@@ -9,7 +9,8 @@
         "raygui.h": "c",
         "nuklear.h": "c",
         "raylib-nuklear.h": "c",
-        "dk_gui.h": "c"
+        "dk_gui.h": "c",
+        "webgpu.h": "c"
     },
     "mesonbuild.configureOnOpen": true
 }
