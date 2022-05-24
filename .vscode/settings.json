@@ -1,0 +1,15 @@
+{
+    "makefile.extensionOutputFolder": "./.vscode",
+    "files.associations": {
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "vx_utils.h": "c",
+        "dk_matrix.h": "c",
+        "raylib.h": "c",
+        "raygui.h": "c",
+        "nuklear.h": "c",
+        "raylib-nuklear.h": "c",
+        "dk_gui.h": "c"
+    },
+    "mesonbuild.configureOnOpen": true
+}

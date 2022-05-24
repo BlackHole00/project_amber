@@ -1,0 +1,17 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "meson compile",
+            "command": "meson",
+            "args": [
+                "compile",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}\\builddir"
+            },
+            "group": "build"
+        },
+    ],
+    "version": "2.0.0"
+}
