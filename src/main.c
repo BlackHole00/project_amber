@@ -10,6 +10,7 @@ int main() {
     vx_windowcontext_init(vx_wgpucontext_init);
 
     vx_WindowDescriptor desc = VX_DEFAULT(vx_WindowDescriptor);
+    desc.show_fps_in_title = true;
     vx_window_init(&desc);
 
     vx_window_run();
