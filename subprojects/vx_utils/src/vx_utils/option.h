@@ -1,8 +1,8 @@
 #pragma once
-#include "vx_template.h"
-#include "vx_types.h"
+#include "template.h"
+#include "types.h"
 #include <stdbool.h>
-#include "vx_panic.h"
+#include "panic.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #define _VX_OPTION_ELEM(T) typedef struct {                                                         \

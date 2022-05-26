@@ -1,6 +1,6 @@
 #pragma once
-#include "vx_template.h"
-#include "vx_types.h"
+#include "template.h"
+#include "types.h"
 
 #define VX_CREATE_DEFAULT(_TYPE, ...) static inline _TYPE VX_TEMPLATE_NAME(_TYPE, default)(void) { return (_TYPE){ __VA_ARGS__ }; }
 #define VX_DEFAULT(_TYPE) VX_TEMPLATE_NAME(_TYPE, default)()

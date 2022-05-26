@@ -1,6 +1,6 @@
 #pragma once
-#include "vx_types.h"
-#include "vx_vector.h"
+#include "types.h"
+#include "vector.h"
 
 typedef u64 vx_HashMap_Hash;
 

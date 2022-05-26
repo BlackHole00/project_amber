@@ -1,3 +1,21 @@
+#include <vx_lib/os/window_context.h>
+#include <vx_lib/os/context/wgpu.h>
+#include <vx_lib/os/window.h>
+
+#include "framework.h"
+
+int main() {
+    initializeLog();
+
+    vx_windowcontext_init(vx_wgpucontext_init);
+
+    vx_WindowDescriptor desc = VX_DEFAULT(vx_WindowDescriptor);
+    vx_window_init(&desc);
+
+    vx_window_run();
+}
+
+#if 0
 #include <webgpu.h>
 #include <wgpu.h>
 
@@ -341,3 +359,5 @@ int main() {
 
   return 0;
 }
+
+#endif

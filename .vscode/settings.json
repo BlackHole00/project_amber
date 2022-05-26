@@ -10,7 +10,14 @@
         "nuklear.h": "c",
         "raylib-nuklear.h": "c",
         "dk_gui.h": "c",
-        "webgpu.h": "c"
+        "webgpu.h": "c",
+        "input_helper.h": "c",
+        "panic.h": "c",
+        "instance.h": "c",
+        "window_context.h": "c",
+        "utils.h": "c",
+        "types.h": "c",
+        "functions.h": "c"
     },
     "mesonbuild.configureOnOpen": true
 }

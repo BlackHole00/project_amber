@@ -1,6 +1,6 @@
 #pragma once
 #include <memory.h>
-#include "vx_types.h"
+#include "types.h"
 
 #define VX_ARRAY_ELEMENT_COUNT(_ARR) (sizeof((_ARR)) / sizeof(*(_ARR)))
 

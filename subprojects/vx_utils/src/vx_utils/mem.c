@@ -1,8 +1,8 @@
-#include "vx_mem.h"
+#include "mem.h"
 
 #include <stdio.h>
 #include <malloc.h>
-#include "vx_panic.h"
+#include "panic.h"
 
 static u32 allocation_number = 0;
 static u32 deallocation_number = 0;

@@ -1,10 +1,10 @@
 #pragma once
 #include <malloc.h>
 #include <stdio.h>
-#include "vx_types.h"
-#include "vx_template.h"
-#include "vx_option.h"
-#include "vx_mem.h"
+#include "types.h"
+#include "template.h"
+#include "option.h"
+#include "mem.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #define VX_VECTOR_DATA(_VEC) ((_VEC)->data)

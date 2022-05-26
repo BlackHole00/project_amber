@@ -1,5 +1,5 @@
-#include "vx_file.h"
-#include "vx_utils.h"
+#include "file.h"
+#include "utils.h"
 
 char* vx_file_get_content(FILE* file) {
     /*  Check if the file is valid  */
