@@ -17,7 +17,9 @@
         "window_context.h": "c",
         "utils.h": "c",
         "types.h": "c",
-        "functions.h": "c"
+        "functions.h": "c",
+        "wgpu.h": "c",
+        "framework.h": "c"
     },
     "mesonbuild.configureOnOpen": true
 }

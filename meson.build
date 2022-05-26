@@ -14,7 +14,6 @@ lib_wgpu_dep = lib_wgpu.get_variable('lib_wgpu_dep')
 
 executable('project_amber',
     'src/main.c',
-    'src/framework.c',
     dependencies : [ lib_vx_utils_dep, lib_vx_lib_dep, lib_glfw_dep, lib_wgpu_dep ],
     link_args: [ '-static-libgcc' ],
     install : true

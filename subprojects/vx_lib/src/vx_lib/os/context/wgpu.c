@@ -116,6 +116,7 @@ void vx_wgpucontext_init(GLFWwindow* window) {
                     },
             }
         );
+        VX_NULL_ASSERT(VX_WGPUCONTEXT_INSTANCE.surface);
     }
     #else
     #error "Unsupported WGPU_TARGET"

@@ -126,7 +126,7 @@ void vx_window_run() {
 
         /*  Clear the input's keys and buttons for the next frame.  */
         //_update_keys_and_buttons(self);
-        glfwSwapBuffers(VX_WINDOW_INSTANCE.glfw_window);
+        //glfwSwapBuffers(VX_WINDOW_INSTANCE.glfw_window);
         glfwPollEvents();
     }
 

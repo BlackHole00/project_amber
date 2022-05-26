@@ -1,8 +1,123 @@
+#include <wgpu.h>
+#include <webgpu.h>
+#include <vx_utils/utils.h>
 #include <vx_lib/os/window_context.h>
 #include <vx_lib/os/context/wgpu.h>
 #include <vx_lib/os/window.h>
+#include <vx_lib/gfx/wgpu_utils.h>
 
-#include "framework.h"
+const int WIDTH = 640;
+const int HEIGHT = 480;
+
+static void _handle_device_lost(WGPUDeviceLostReason reason, char const * message, void * userdata) {
+  printf("DEVICE LOST (%d): %s\n", reason, message);
+}
+
+static void _handle_uncaptured_error(WGPUErrorType type, char const * message, void * userdata) {
+  printf("UNCAPTURED ERROR (%d): %s\n", type, message);
+}
+
+typedef struct {
+    WGPUSurface surface;
+    WGPUAdapter adapter;
+    WGPUDevice device;
+    WGPUQueue queue;
+    WGPUSwapChain swap_chain;
+    WGPUTextureFormat swap_chain_format;
+    WGPUCommandEncoder encoder;
+} State;
+VX_CREATE_INSTANCE(State, STATE_INSTANCE);
+
+void init() {
+    STATE_INSTANCE.surface = VX_WGPUCONTEXT_INSTANCE.surface;
+
+    wgpuInstanceRequestAdapter(NULL, &(WGPURequestAdapterOptions) {
+        .compatibleSurface = STATE_INSTANCE.surface,
+        .powerPreference = WGPUPowerPreference_HighPerformance,
+        .forceFallbackAdapter = false,
+        .nextInChain = NULL,
+    }, request_adapter_callback, &STATE_INSTANCE.adapter);
+    VX_NULL_ASSERT(STATE_INSTANCE.adapter);
+
+    WGPUAdapterProperties properties;
+    wgpuAdapterGetProperties(STATE_INSTANCE.adapter, &properties);
+    printf("Using %s (adapter type %d, backend type %d)\n", properties.name, properties.adapterType, properties.backendType);
+
+    wgpuAdapterRequestDevice(STATE_INSTANCE.adapter, &(WGPUDeviceDescriptor) {
+        .nextInChain = (const WGPUChainedStruct*)&(WGPUDeviceExtras) {
+            .chain = (WGPUChainedStruct) {
+                .next = NULL,
+                .sType = WGPUSType_DeviceExtras,
+            },
+            .label = "Device",
+            .tracePath = NULL,
+        },
+        .requiredLimits =
+        &(WGPURequiredLimits) {
+            .nextInChain = NULL,
+            .limits = (WGPULimits){
+                .maxBindGroups = 1,
+            },
+        },
+    }, request_device_callback, &STATE_INSTANCE.device);
+    VX_NULL_ASSERT(STATE_INSTANCE.device);
+
+    wgpuDeviceSetUncapturedErrorCallback(STATE_INSTANCE.device, _handle_uncaptured_error, NULL);
+    wgpuDeviceSetDeviceLostCallback(STATE_INSTANCE.device, _handle_device_lost, NULL);
+
+    STATE_INSTANCE.swap_chain_format = wgpuSurfaceGetPreferredFormat(STATE_INSTANCE.surface, STATE_INSTANCE.adapter);
+
+    STATE_INSTANCE.swap_chain = wgpuDeviceCreateSwapChain(STATE_INSTANCE.device, STATE_INSTANCE.surface, &(WGPUSwapChainDescriptor) {
+        .usage = WGPUTextureUsage_RenderAttachment,
+        .format = STATE_INSTANCE.swap_chain_format,
+        .width = WIDTH,
+        .height = HEIGHT,
+        .presentMode = WGPUPresentMode_Immediate,
+    });
+    VX_NULL_ASSERT(STATE_INSTANCE.swap_chain);
+
+    STATE_INSTANCE.queue = wgpuDeviceGetQueue(STATE_INSTANCE.device);
+    VX_NULL_ASSERT(STATE_INSTANCE.queue);
+}
+
+void logic(f64 delta) {
+
+}
+
+void draw() {
+    STATE_INSTANCE.encoder = wgpuDeviceCreateCommandEncoder(STATE_INSTANCE.device, &(WGPUCommandEncoderDescriptor){.label = "Command Encoder"});
+    VX_NULL_ASSERT(STATE_INSTANCE.encoder);
+
+    WGPUTextureView output = wgpuSwapChainGetCurrentTextureView(STATE_INSTANCE.swap_chain);
+    VX_NULL_ASSERT(output);
+
+    WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(STATE_INSTANCE.encoder, &(WGPURenderPassDescriptor) {
+        .colorAttachments = &(WGPURenderPassColorAttachment) {
+            .view = output,
+            .resolveTarget = 0,
+            .loadOp = WGPULoadOp_Clear,
+            .storeOp = WGPUStoreOp_Store,
+            .clearValue = (WGPUColor) {
+                .r = 0.1,
+                .g = 0.2,
+                .b = 0.3,
+                .a = 1.0,
+            },
+        },
+        .colorAttachmentCount = 1,
+        .depthStencilAttachment = NULL,
+    });
+
+    wgpuRenderPassEncoderEnd(render_pass);
+
+    WGPUCommandBuffer cmd_buffer = wgpuCommandEncoderFinish(STATE_INSTANCE.encoder, &(WGPUCommandBufferDescriptor){ .label = NULL });
+    wgpuQueueSubmit(STATE_INSTANCE.queue, 1, &cmd_buffer);
+    wgpuSwapChainPresent(STATE_INSTANCE.swap_chain);
+}
+
+void close() {
+
+}
 
 int main() {
     initializeLog();
@@ -10,7 +125,13 @@ int main() {
     vx_windowcontext_init(vx_wgpucontext_init);
 
     vx_WindowDescriptor desc = VX_DEFAULT(vx_WindowDescriptor);
+    desc.width = WIDTH;
+    desc.height = HEIGHT;
     desc.show_fps_in_title = true;
+    desc.init_fn    = init;
+    desc.logic_fn   = logic;
+    desc.draw_fn    = draw;
+    desc.close_fn   = close;
     vx_window_init(&desc);
 
     vx_window_run();

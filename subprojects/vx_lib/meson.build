@@ -15,6 +15,7 @@ lib = static_library('vx_lib',
     'src/vx_lib/os/window.c',
     'src/vx_lib/os/window_context.c',
     'src/vx_lib/os/context/wgpu.c',
+    'src/vx_lib/gfx/wgpu_utils.c',
     dependencies: [ lib_vx_utils_dep, lib_glfw_dep, lib_wgpu_dep ],
     include_directories : inc,
     install : true
