@@ -18,6 +18,27 @@ static void _handle_uncaptured_error(WGPUErrorType type, char const * message, v
 }
 
 typedef struct {
+    f32 position[3];
+    f32 color[3];
+} Vertex;
+
+const Vertex VERTICES[3] = {
+    { .position = { 0.0, 0.5, 0.0 }, .color = { 1.0, 0.0, 0.0 } },
+    { .position = {-0.5,-0.5, 0.0 }, .color = { 0.0, 1.0, 0.0 } },
+    { .position = { 0.5,-0.5, 0.0 }, .color = { 0.0, 0.0, 1.0 } }
+};
+
+const WGPUVertexBufferLayout Vertex_BUFFER_LAYOUT = {
+    .arrayStride = sizeof(Vertex),
+    .attributeCount = 2,
+    .attributes = (WGPUVertexAttribute[]) {
+        { .format = WGPUVertexFormat_Float32x3, .offset = 0,                .shaderLocation = 0 },
+        { .format = WGPUVertexFormat_Float32x3, .offset = sizeof(f32) * 3,  .shaderLocation = 1 }
+    },
+    .stepMode = WGPUVertexStepMode_Vertex,
+};
+
+typedef struct {
     WGPUSurface surface;
     WGPUAdapter adapter;
     WGPUDevice device;
@@ -26,6 +47,7 @@ typedef struct {
     WGPUTextureFormat swap_chain_format;
     WGPUCommandEncoder encoder;
     WGPURenderPipeline pipeline;
+    WGPUBuffer vertex_buffer;
 } State;
 VX_CREATE_INSTANCE(State, STATE_INSTANCE);
 
@@ -95,8 +117,8 @@ void init() {
         .vertex = (WGPUVertexState) {
             .module = shader_module,
             .entryPoint = "vs_main",
-            .bufferCount = 0,
-            .buffers = NULL,
+            .bufferCount = 1,
+            .buffers = &Vertex_BUFFER_LAYOUT
         },
         .fragment = &(WGPUFragmentState) {
             .module = shader_module,
@@ -134,6 +156,17 @@ void init() {
         .depthStencil = NULL,
     });
     VX_NULL_ASSERT(STATE_INSTANCE.pipeline);
+
+    STATE_INSTANCE.vertex_buffer = wgpuDeviceCreateBuffer(STATE_INSTANCE.device, &(WGPUBufferDescriptor) {
+        .label = "vertex_buffer",
+        .usage = WGPUBufferUsage_Vertex | WGPUBufferUsage_MapWrite,
+        .mappedAtCreation = true,
+        .size = sizeof(VERTICES)
+    });
+    Vertex* data = wgpuBufferGetMappedRange(STATE_INSTANCE.vertex_buffer, 0, sizeof(VERTICES));
+    memcpy(data, VERTICES, sizeof(VERTICES));
+    wgpuBufferUnmap(STATE_INSTANCE.vertex_buffer);
+
 }
 
 void logic(f64 delta) {
@@ -165,6 +198,7 @@ void draw() {
     });
 
     wgpuRenderPassEncoderSetPipeline(render_pass, STATE_INSTANCE.pipeline);
+    wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0, STATE_INSTANCE.vertex_buffer, 0, sizeof(VERTICES));
     wgpuRenderPassEncoderDraw(render_pass, 3, 1, 0, 0);
     wgpuRenderPassEncoderEnd(render_pass);
 
@@ -174,7 +208,7 @@ void draw() {
 }
 
 void close() {
-
+    wgpuBufferDestroy(STATE_INSTANCE.vertex_buffer);
 }
 
 int main() {
