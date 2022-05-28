@@ -25,6 +25,7 @@ typedef struct {
     WGPUSwapChain swap_chain;
     WGPUTextureFormat swap_chain_format;
     WGPUCommandEncoder encoder;
+    WGPURenderPipeline pipeline;
 } State;
 VX_CREATE_INSTANCE(State, STATE_INSTANCE);
 
@@ -78,6 +79,61 @@ void init() {
 
     STATE_INSTANCE.queue = wgpuDeviceGetQueue(STATE_INSTANCE.device);
     VX_NULL_ASSERT(STATE_INSTANCE.queue);
+
+    WGPUShaderModuleDescriptor shader_source = load_wgsl("res/shader.wgsl");
+    WGPUShaderModule shader_module = wgpuDeviceCreateShaderModule(STATE_INSTANCE.device, &shader_source);
+
+    WGPUPipelineLayout pipeline_layout = wgpuDeviceCreatePipelineLayout(STATE_INSTANCE.device, &(WGPUPipelineLayoutDescriptor){
+        .label = NULL,
+        .bindGroupLayoutCount = 0,
+        .bindGroupLayouts = NULL,
+        .nextInChain = NULL,
+    });
+    STATE_INSTANCE.pipeline = wgpuDeviceCreateRenderPipeline(STATE_INSTANCE.device, &(WGPURenderPipelineDescriptor) {
+        .label = "pipeline",
+        .layout = pipeline_layout,
+        .vertex = (WGPUVertexState) {
+            .module = shader_module,
+            .entryPoint = "vs_main",
+            .bufferCount = 0,
+            .buffers = NULL,
+        },
+        .fragment = &(WGPUFragmentState) {
+            .module = shader_module,
+            .entryPoint = "fs_main",
+            .targetCount = 1,
+            .targets = &(WGPUColorTargetState) {
+                .format = STATE_INSTANCE.swap_chain_format,
+                .blend = &(WGPUBlendState){
+                    .color = (WGPUBlendComponent) {
+                        .srcFactor = WGPUBlendFactor_One,
+                        .dstFactor = WGPUBlendFactor_Zero,
+                        .operation = WGPUBlendOperation_Add,
+                    },
+                    .alpha = (WGPUBlendComponent) {
+                        .srcFactor = WGPUBlendFactor_One,
+                        .dstFactor = WGPUBlendFactor_Zero,
+                        .operation = WGPUBlendOperation_Add,
+                    }
+                },
+                .writeMask = WGPUColorWriteMask_All
+            },
+        },
+        .primitive = (WGPUPrimitiveState) {
+            .topology = WGPUPrimitiveTopology_TriangleList,
+            .stripIndexFormat = WGPUIndexFormat_Undefined,
+            .frontFace = WGPUFrontFace_CCW,
+            .cullMode = WGPUCullMode_None,
+        },
+        .multisample = (WGPUMultisampleState) {
+            .alphaToCoverageEnabled = false,
+            .count = 1,
+            .mask = ~0,
+            .nextInChain = NULL,
+        },
+        .depthStencil = NULL,
+    });
+    VX_NULL_ASSERT(STATE_INSTANCE.pipeline);
 }
 
 void logic(f64 delta) {
@@ -108,6 +164,8 @@ void draw() {
         .depthStencilAttachment = NULL,
     });
 
+    wgpuRenderPassEncoderSetPipeline(render_pass, STATE_INSTANCE.pipeline);
+    wgpuRenderPassEncoderDraw(render_pass, 3, 1, 0, 0);
     wgpuRenderPassEncoderEnd(render_pass);
 
     WGPUCommandBuffer cmd_buffer = wgpuCommandEncoderFinish(STATE_INSTANCE.encoder, &(WGPUCommandBufferDescriptor){ .label = NULL });
@@ -125,8 +183,8 @@ int main() {
     vx_windowcontext_init(vx_wgpucontext_init);
 
     vx_WindowDescriptor desc = VX_DEFAULT(vx_WindowDescriptor);
-    desc.width = WIDTH;
-    desc.height = HEIGHT;
+    desc.width      = WIDTH;
+    desc.height     = HEIGHT;
     desc.show_fps_in_title = true;
     desc.init_fn    = init;
     desc.logic_fn   = logic;
