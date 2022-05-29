@@ -1,10 +1,12 @@
 #include <wgpu.h>
 #include <webgpu.h>
+#include <stb_image.h>
 #include <vx_utils/utils.h>
 #include <vx_lib/os/window_context.h>
 #include <vx_lib/os/context/wgpu.h>
 #include <vx_lib/os/window.h>
 #include <vx_lib/gfx/wgpu_utils.h>
+#include <float.h>
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -19,14 +21,14 @@ static void _handle_uncaptured_error(WGPUErrorType type, char const * message, v
 
 typedef struct {
     f32 position[3];
-    f32 color[3];
+    f32 uv[2];
 } Vertex;
 
 const Vertex VERTICES[4] = {
-    { .position = {-0.5,-0.5, 0.0 }, .color = { 1.0, 0.0, 0.0 } },
-    { .position = { 0.5,-0.5, 0.0 }, .color = { 0.0, 1.0, 0.0 } },
-    { .position = { 0.5, 0.5, 0.0 }, .color = { 0.0, 0.0, 1.0 } },
-    { .position = {-0.5, 0.5, 0.0 }, .color = { 0.0, 1.0, 0.0 } }
+    { .position = {-0.5,-0.5, 0.0 }, .uv = { 0.0, 0.0 } },
+    { .position = { 0.5,-0.5, 0.0 }, .uv = { 1.0, 0.0 } },
+    { .position = { 0.5, 0.5, 0.0 }, .uv = { 1.0, 1.0 } },
+    { .position = {-0.5, 0.5, 0.0 }, .uv = { 0.0, 1.0 } }
 };
 
 const u32 INDICES[6] = {
@@ -39,7 +41,7 @@ const WGPUVertexBufferLayout Vertex_BUFFER_LAYOUT = {
     .attributeCount = 2,
     .attributes = (WGPUVertexAttribute[]) {
         { .format = WGPUVertexFormat_Float32x3, .offset = 0,                .shaderLocation = 0 },
-        { .format = WGPUVertexFormat_Float32x3, .offset = sizeof(f32) * 3,  .shaderLocation = 1 }
+        { .format = WGPUVertexFormat_Float32x2, .offset = sizeof(f32) * 3,  .shaderLocation = 1 }
     },
     .stepMode = WGPUVertexStepMode_Vertex,
 };
@@ -55,6 +57,9 @@ typedef struct {
     WGPURenderPipeline pipeline;
     WGPUBuffer vertex_buffer;
     WGPUBuffer index_buffer;
+    WGPUExtent3D texture_size;
+    WGPUTexture diffuse_texture;
+    WGPUBindGroup diffuse_texture_bind_group;
 } State;
 VX_CREATE_INSTANCE(State, STATE_INSTANCE);
 
@@ -109,13 +114,93 @@ void init() {
     STATE_INSTANCE.queue = wgpuDeviceGetQueue(STATE_INSTANCE.device);
     VX_NULL_ASSERT(STATE_INSTANCE.queue);
 
+    int num_channels;
+    int img_width, img_height;
+    byte* img_data = stbi_load("res/dirt.png", &img_width, &img_height, &num_channels, 4);
+    STATE_INSTANCE.texture_size.depthOrArrayLayers = 1;
+    STATE_INSTANCE.texture_size.width = img_width;
+    STATE_INSTANCE.texture_size.height = img_height;
+    int img_size = STATE_INSTANCE.texture_size.width * STATE_INSTANCE.texture_size.width * num_channels;
+
+    STATE_INSTANCE.diffuse_texture = wgpuDeviceCreateTexture(STATE_INSTANCE.device, &(WGPUTextureDescriptor) {
+        .dimension = WGPUTextureDimension_2D,
+        .format = WGPUTextureFormat_RGBA8UnormSrgb,
+        .label = "diffuse_texture",
+        .mipLevelCount = 1,
+        .sampleCount = 1,
+        .usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
+        .size = STATE_INSTANCE.texture_size
+    });
+
+    wgpuQueueWriteTexture(STATE_INSTANCE.queue, &(WGPUImageCopyTexture) {
+        .texture = STATE_INSTANCE.diffuse_texture,
+        .mipLevel = 0,
+        .origin = (WGPUOrigin3D) { 0, 0, 0 },
+        .aspect = WGPUTextureAspect_All
+    }, img_data, img_size, &(WGPUTextureDataLayout) {
+        .bytesPerRow = num_channels * STATE_INSTANCE.texture_size.width,
+        .rowsPerImage = STATE_INSTANCE.texture_size.height,
+        .offset = 0
+    }, &STATE_INSTANCE.texture_size);
+
+    WGPUTextureView diffuse_view = wgpuTextureCreateView(STATE_INSTANCE.diffuse_texture, &(WGPUTextureViewDescriptor) { 0 });
+    WGPUSampler diffuse_sampler = wgpuDeviceCreateSampler(STATE_INSTANCE.device, &(WGPUSamplerDescriptor) {
+        .addressModeU = WGPUAddressMode_ClampToEdge,
+        .addressModeV = WGPUAddressMode_ClampToEdge,
+        .addressModeW = WGPUAddressMode_ClampToEdge,
+        .magFilter = WGPUFilterMode_Nearest,
+        .minFilter = WGPUFilterMode_Nearest,
+        .mipmapFilter = WGPUFilterMode_Nearest,
+        .lodMinClamp = 0.0f,
+        .lodMaxClamp = FLT_MAX
+    });
+
+    WGPUBindGroupLayout diffuse_layout = wgpuDeviceCreateBindGroupLayout(STATE_INSTANCE.device, &(WGPUBindGroupLayoutDescriptor) {
+        .label = "diffuse_texture_bind_group",
+        .entryCount = 2,
+        .entries = (WGPUBindGroupLayoutEntry[]) {
+            {
+                .binding = 0,
+                .visibility = WGPUShaderStage_Fragment,
+                .texture = (WGPUTextureBindingLayout) {
+                    .multisampled = false,
+                    .sampleType = WGPUTextureSampleType_Float,
+                    .viewDimension = WGPUTextureViewDimension_2D
+                },
+            },
+            {
+                .binding = 1,
+                .visibility = WGPUShaderStage_Fragment,
+                .sampler = (WGPUSamplerBindingLayout) {
+                    .type = WGPUSamplerBindingType_Filtering
+                }
+            }
+        }
+    });
+
+    STATE_INSTANCE.diffuse_texture_bind_group = wgpuDeviceCreateBindGroup(STATE_INSTANCE.device, &(WGPUBindGroupDescriptor) {
+        .label = "diffuse_texture_bind_group",
+        .layout = diffuse_layout,
+        .entryCount = 2,
+        .entries = (WGPUBindGroupEntry[]) {
+            {
+                .binding = 0,
+                .textureView = diffuse_view
+            },
+            {
+                .binding = 1,
+                .sampler = diffuse_sampler
+            }
+        }
+    });
+
     WGPUShaderModuleDescriptor shader_source = load_wgsl("res/shader.wgsl");
     WGPUShaderModule shader_module = wgpuDeviceCreateShaderModule(STATE_INSTANCE.device, &shader_source);
 
     WGPUPipelineLayout pipeline_layout = wgpuDeviceCreatePipelineLayout(STATE_INSTANCE.device, &(WGPUPipelineLayoutDescriptor){
         .label = NULL,
-        .bindGroupLayoutCount = 0,
-        .bindGroupLayouts = NULL,
+        .bindGroupLayoutCount = 1,
+        .bindGroupLayouts = &diffuse_layout,
         .nextInChain = NULL,
     });
     STATE_INSTANCE.pipeline = wgpuDeviceCreateRenderPipeline(STATE_INSTANCE.device, &(WGPURenderPipelineDescriptor) {
@@ -216,6 +301,7 @@ void draw() {
     wgpuRenderPassEncoderSetPipeline(render_pass, STATE_INSTANCE.pipeline);
     wgpuRenderPassEncoderSetIndexBuffer(render_pass, STATE_INSTANCE.index_buffer, WGPUIndexFormat_Uint32, 0, sizeof(INDICES));
     wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0, STATE_INSTANCE.vertex_buffer, 0, sizeof(VERTICES));
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, STATE_INSTANCE.diffuse_texture_bind_group, 0, NULL);
     //wgpuRenderPassEncoderDraw(render_pass, 3, 1, 0, 0);
     wgpuRenderPassEncoderDrawIndexed(render_pass, 6, 1, 0, 0, 0);
     wgpuRenderPassEncoderEnd(render_pass);

@@ -19,7 +19,9 @@
         "types.h": "c",
         "functions.h": "c",
         "wgpu.h": "c",
-        "framework.h": "c"
+        "framework.h": "c",
+        "stb_image.h": "c",
+        "wgpu_utils.h": "c"
     },
     "mesonbuild.configureOnOpen": true
 }
