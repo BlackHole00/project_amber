@@ -103,17 +103,14 @@ void vx_wgpucontext_init(GLFWwindow* window) {
             NULL,
             &(WGPUSurfaceDescriptor){
                 .label = NULL,
-                .nextInChain =
-                    (const WGPUChainedStruct *)&(
-                        WGPUSurfaceDescriptorFromWindowsHWND){
-                        .chain =
-                            (WGPUChainedStruct){
-                                .next = NULL,
-                                .sType = WGPUSType_SurfaceDescriptorFromWindowsHWND,
-                            },
-                        .hinstance = hinstance,
-                        .hwnd = hwnd,
-                    },
+                .nextInChain = (const WGPUChainedStruct *)&(WGPUSurfaceDescriptorFromWindowsHWND) {
+                    .chain = (WGPUChainedStruct){
+                            .next = NULL,
+                            .sType = WGPUSType_SurfaceDescriptorFromWindowsHWND,
+                        },
+                    .hinstance = hinstance,
+                    .hwnd = hwnd,
+                },
             }
         );
         VX_NULL_ASSERT(VX_WGPUCONTEXT_INSTANCE.surface);

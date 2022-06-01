@@ -21,7 +21,8 @@
         "wgpu.h": "c",
         "framework.h": "c",
         "stb_image.h": "c",
-        "wgpu_utils.h": "c"
+        "wgpu_utils.h": "c",
+        "console_logger.h": "c"
     },
     "mesonbuild.configureOnOpen": true
 }

@@ -6,6 +6,8 @@ lib = static_library('vx_utils',
     'src/vx_utils/functions.c',
     'src/vx_utils/mem.c',
     'src/vx_utils/panic.c',
+    'src/vx_utils/log.c',
+    'src/vx_utils/loggers/stream_logger.c',
     include_directories : inc,
     install : true
 )

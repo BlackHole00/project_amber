@@ -17,3 +17,4 @@
 #include "file.h"
 #include "map.h"
 #include "instance.h"
+#include "log.h"

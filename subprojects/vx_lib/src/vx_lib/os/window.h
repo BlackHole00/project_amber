@@ -19,11 +19,11 @@ typedef struct {
 
     u32 swap_interval;
 
-    VX_CALLBACK(init_fn,   void, void);
-    VX_CALLBACK(logic_fn,  void, f64 delta);
-    VX_CALLBACK(draw_fn,   void, void);
-    VX_CALLBACK(close_fn,  void, void);
-    VX_CALLBACK(resize_fn, void, usize width, usize height);
+    VX_CALLBACK(void, init_fn,      void);
+    VX_CALLBACK(void, logic_fn,     f64 delta);
+    VX_CALLBACK(void, draw_fn,      void);
+    VX_CALLBACK(void, close_fn,     void);
+    VX_CALLBACK(void, resize_fn,    usize width, usize height);
 } vx_WindowDescriptor;
 VX_CREATE_DEFAULT(vx_WindowDescriptor,
     .title      = "Window",
@@ -80,11 +80,11 @@ typedef struct {
     } info_data;
 
     struct {
-        VX_CALLBACK(init,   void, void);
-        VX_CALLBACK(logic,   void, f64 delta);
-        VX_CALLBACK(draw,   void, void);
-        VX_CALLBACK(close,  void, void);
-        VX_CALLBACK(resize, void, usize width, usize height);
+        VX_CALLBACK(void, init,     void);
+        VX_CALLBACK(void, logic,    f64 delta);
+        VX_CALLBACK(void, draw,     void);
+        VX_CALLBACK(void, close,    void);
+        VX_CALLBACK(void, resize,   usize width, usize height);
     } callbacks;
 
     GLFWwindow* glfw_window;

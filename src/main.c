@@ -2,6 +2,7 @@
 #include <webgpu.h>
 #include <stb_image.h>
 #include <vx_utils/utils.h>
+#include <vx_utils/loggers/stream_logger.h>
 #include <vx_lib/os/window_context.h>
 #include <vx_lib/os/context/wgpu.h>
 #include <vx_lib/os/window.h>
@@ -12,11 +13,11 @@ const int WIDTH = 640;
 const int HEIGHT = 480;
 
 static void _handle_device_lost(WGPUDeviceLostReason reason, char const * message, void * userdata) {
-  printf("DEVICE LOST (%d): %s\n", reason, message);
+    vx_log(VX_LOGMESSAGELEVEL_FATAL, "DEVICE LOST (%d): %s\n", reason, message);
 }
 
 static void _handle_uncaptured_error(WGPUErrorType type, char const * message, void * userdata) {
-  printf("UNCAPTURED ERROR (%d): %s\n", type, message);
+    vx_log(VX_LOGMESSAGELEVEL_FATAL, "WGPU UNCAPTURED ERROR (%d): %s\n", type, message);
 }
 
 typedef struct {
@@ -142,6 +143,7 @@ void init() {
         .rowsPerImage = STATE_INSTANCE.texture_size.height,
         .offset = 0
     }, &STATE_INSTANCE.texture_size);
+    stbi_image_free(img_data);
 
     WGPUTextureView diffuse_view = wgpuTextureCreateView(STATE_INSTANCE.diffuse_texture, &(WGPUTextureViewDescriptor) { 0 });
     WGPUSampler diffuse_sampler = wgpuDeviceCreateSampler(STATE_INSTANCE.device, &(WGPUSamplerDescriptor) {
@@ -317,6 +319,8 @@ void close() {
 
 int main() {
     initializeLog();
+
+    vx_stream_logger_init(stdout, VX_LOGMESSAGELEVEL_DEBUG);
 
     vx_windowcontext_init(vx_wgpucontext_init);
 

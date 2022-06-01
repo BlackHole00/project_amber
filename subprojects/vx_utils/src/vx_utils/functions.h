@@ -2,8 +2,8 @@
 #include "template.h"
 void _vx_dummy_func();
 
-
-#define VX_CALLBACK(_FN_NAME, _RETURN_TYPE, ...) _RETURN_TYPE(*_FN_NAME)();
+//#define VX_CALLBACK(_FN_NAME, _RETURN_TYPE, ...) _RETURN_TYPE(*_FN_NAME)(__VA_ARGS__);
+#define VX_CALLBACK(_RETURN_TYPE, _FN_NAME, ...) _RETURN_TYPE(*_FN_NAME)(__VA_ARGS__);
 
 #ifdef VX_DO_NOT_USE_TYPEOF
 #define VX_SAFE_FUNC_PTR(_PTR) (_PTR == NULL ? _vx_dummy_func : _PTR)

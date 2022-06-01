@@ -5,7 +5,7 @@
 #include <vx_utils/utils.h>
 
 typedef struct {
-    VX_CALLBACK(context_init_fn, void, GLFWwindow*);
+    VX_CALLBACK(void, context_init_fn, GLFWwindow*);
 } vx_WindowContext;
 VX_DECLARE_INSTANCE(vx_WindowContext, VX_WINDOWCONTEXT_INSTANCE);
 

@@ -5,7 +5,6 @@
 WGPUShaderModuleDescriptor load_wgsl(const char *name) {
     char* file_content = vx_filepath_get_content(name);
 
-
     WGPUShaderModuleWGSLDescriptor *wgslDescriptor = malloc(sizeof(WGPUShaderModuleWGSLDescriptor));
     wgslDescriptor->chain.next = NULL;
     wgslDescriptor->chain.sType = WGPUSType_ShaderModuleWGSLDescriptor;
@@ -17,40 +16,38 @@ WGPUShaderModuleDescriptor load_wgsl(const char *name) {
 }
 
 void request_adapter_callback(WGPURequestAdapterStatus status, WGPUAdapter received, const char *message, void *userdata) {
-  *(WGPUAdapter *)userdata = received;
+    *(WGPUAdapter *)userdata = received;
 }
 
 void request_device_callback(WGPURequestDeviceStatus status, WGPUDevice received, const char *message, void *userdata) {
-  *(WGPUDevice *)userdata = received;
+    *(WGPUDevice *)userdata = received;
 }
 
 void readBufferMap(WGPUBufferMapAsyncStatus status, void *userdata) {}
 
 void logCallback(WGPULogLevel level, const char *msg) {
-    char *level_str;
     switch (level) {
     case WGPULogLevel_Error:
-        level_str = "Error";
+        vx_log(VX_LOGMESSAGELEVEL_ERROR, "WGPU ERROR: %s", msg);
         break;
     case WGPULogLevel_Warn:
-        level_str = "Warn";
+        vx_log(VX_LOGMESSAGELEVEL_WARN, "WGPU WARNING: %s", msg);
         break;
     case WGPULogLevel_Info:
-        level_str = "Info";
+        vx_log(VX_LOGMESSAGELEVEL_INFO, "WGPU INFO: %s", msg);
         break;
     case WGPULogLevel_Debug:
-        level_str = "Debug";
+        vx_log(VX_LOGMESSAGELEVEL_INFO, "WGPU DEBUG: %s", msg);
         break;
     case WGPULogLevel_Trace:
-        level_str = "Trace";
+        vx_log(VX_LOGMESSAGELEVEL_INFO, "WGPU TRACE: %s", msg);
         break;
     default:
-        level_str = "Unknown Level";
+        vx_log(VX_LOGMESSAGELEVEL_INFO, "WGPU UNKNOWN MESSAGE: %s", msg);
     }
-    printf("[%s] %s\n", level_str, msg);
 }
 
 void initializeLog() {
   wgpuSetLogCallback(logCallback);
-  wgpuSetLogLevel(WGPULogLevel_Warn);
+  wgpuSetLogLevel(WGPULogLevel_Info);
 }
