@@ -4,5 +4,9 @@
 
 #include "../log.h"
 
-void vx_stream_logger_init(FILE* stream, vx_LogMessageLevel minimum_message_level);
-static inline void vx_stream_logger_free() {}
+namespace vx {
+
+void stream_logger_init(FILE* stream, LogMessageLevel minimum_message_level);
+static inline void stream_logger_free() {}
+
+};

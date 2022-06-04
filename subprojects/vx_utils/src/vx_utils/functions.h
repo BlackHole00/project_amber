@@ -1,15 +1,13 @@
 #pragma once
 #include "template.h"
-void _vx_dummy_func();
 
-//#define VX_CALLBACK(_FN_NAME, _RETURN_TYPE, ...) _RETURN_TYPE(*_FN_NAME)(__VA_ARGS__);
+namespace vx {
+    void _dummy_func();
+};
+
 #define VX_CALLBACK(_RETURN_TYPE, _FN_NAME, ...) _RETURN_TYPE(*_FN_NAME)(__VA_ARGS__);
 
-#ifdef VX_DO_NOT_USE_TYPEOF
-#define VX_SAFE_FUNC_PTR(_PTR) (_PTR == NULL ? _vx_dummy_func : _PTR)
-#else
-#define VX_SAFE_FUNC_PTR(_PTR) (_PTR == NULL ? _vx_dummy_func : (__typeof__(_PTR))_PTR)
-#endif
+#define VX_SAFE_FUNC_PTR(_PTR) (_PTR == NULL ? (decltype(_PTR))vx::_dummy_func : (decltype(_PTR))_PTR)
 
 /*  EXAMPLE:
 *       int add_fi(f32 a, i32 b) {

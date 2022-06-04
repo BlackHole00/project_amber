@@ -1,3 +1,5 @@
+#if 0
+
 #include "wgpu_utils.h"
 
 #include <vx_utils/utils.h>
@@ -51,3 +53,5 @@ void initializeLog() {
   wgpuSetLogCallback(logCallback);
   wgpuSetLogLevel(WGPULogLevel_Info);
 }
+
+#endif

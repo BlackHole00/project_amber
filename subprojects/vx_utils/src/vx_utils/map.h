@@ -1,4 +1,7 @@
 #pragma once
+
+#if 0
+
 #include "types.h"
 #include "vector.h"
 
@@ -102,3 +105,5 @@ _VX_HASHMAP_CREATE_FOR_TYPE(i32)
 _VX_HASHMAP_CREATE_FOR_TYPE(i64)
 _VX_HASHMAP_CREATE_FOR_TYPE(f32)
 _VX_HASHMAP_CREATE_FOR_TYPE(f64)
+
+#endif

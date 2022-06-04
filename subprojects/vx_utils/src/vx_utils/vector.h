@@ -1,4 +1,148 @@
 #pragma once
+
+#include "mem.h"
+#include "option.h"
+#include "clone.h"
+#include "default.h"
+#include "to_string.h"
+#include <string.h>
+
+namespace vx {
+
+template <class T>
+struct Vector {
+    T* data;
+    usize length;
+    usize _mem_length;
+
+    T operator[](int idx) const {
+        return data[idx];
+    }
+
+    T& operator[](int idx) {
+        return data[idx];
+    }
+};
+
+template <class T>
+Vector<T> vector_new(usize initial_size = 0) {
+    Vector<T> vector;
+
+    vector.data = vx::alloc<T>(initial_size);
+    vector.length = 0;
+    vector._mem_length = initial_size;
+
+    return vector;
+}
+
+template <class T>
+void vector_free(Vector<T>* vector) {
+    VX_NULL_ASSERT(vector);
+
+    vx::free(vector->data);
+    vector->_mem_length = 0;
+    vector->length = 0;
+    vector->data = nullptr;
+}
+
+template <class T>
+void vector_clear(Vector<T>* vector) {
+    vector->data = vx::realloc(vector->data, vector->_mem_length / 2);
+    vector->_mem_length /= 2;
+    vector->length = 0;
+}
+
+template <class T>
+void vector_push(Vector<T>* vector, T data) {
+    VX_NULL_ASSERT(vector);
+
+    /* If the vector is full, then enlarge it.*/
+    if (vector->length >= vector->_mem_length) {
+        vector->_mem_length = (vector->_mem_length == 0) ? 1 : vector->_mem_length * 2;
+        vector->data = vx::realloc<T>(vector->data, vector->_mem_length);
+    }
+
+    /* Push the new value*/
+    (*vector)[vector->length] = data;
+    vector->length++;
+}
+
+template <class T>
+vx::Option<T> vector_pop(Vector<T>* vector) {
+    VX_NULL_ASSERT(vector);
+
+    if (vector->length > 0) {
+        T top = (*vector)[vector->length - 1];
+        vector->length--;
+
+        if (vector->length <= (vector->_mem_length / 2)) {
+            vector->_mem_length /= 2;
+            vector->data = vx::realloc<T>(vector->data, vector->_mem_length);
+        }
+
+        return vx::option_some(top);
+    }
+    return vx::option_none<T>();
+}
+
+template <class T>
+T* vector_top(Vector<T>* vector) {
+    VX_NULL_CHECK(vector);
+
+    if (vector->length > 0) {
+        return &(*vector)[vector->length - 1];
+    }
+    return nullptr;
+}
+
+template <class T>
+T* vector_get(Vector<T>* vector, usize index) {
+    VX_NULL_CHECK(vector);
+
+    if (index < vector->length) {
+        return &(*vector)[index];
+    }
+    return nullptr;
+}
+
+template <class T>
+void vector_insert(Vector<T>* vector, T data, usize index) {
+    VX_NULL_ASSERT(vector);
+
+    vector_push(vector, data);
+    for (u32 i = (vector->length - 1); i > index; i--) {
+        (*vector)[i] = (*vector)[i - 1];
+    }
+    (*vector)[index] = data;
+}
+
+template <class T>
+vx::Option<T> vector_remove(Vector<T>* vector, usize index) {
+    if (index >= vector->length || index < 0) {
+        return vx::option_none<T>();
+    }
+
+    T value = (*vector)[index];
+    for (u32 i = index; i < vector->length - 1; i++) {
+        (*vector)[i] = (*vector)[i + 1];
+    }
+    vector_pop(vector);
+
+    return vx::option_some(value);
+}
+
+};
+
+VX_CREATE_CLONE_T(template<class T>, Vector<T>,
+    vector_clear(dest); 
+    for (usize i = 0; i < source->length; i++) {
+        vector_push<T>(dest, (*source)[i]);
+    }
+)
+
+#if 0
+
+#pragma once
 #include <malloc.h>
 #include <stdio.h>
 #include "types.h"
@@ -159,3 +303,5 @@ _VX_VECTOR_CREATE_FOR_TYPE(f64)
 *           vx_vector_clear(&vec);
 *      }
 */
+
+#endif

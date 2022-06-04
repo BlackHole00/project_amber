@@ -1,5 +1,9 @@
 #pragma once
 
+#define VX_CONCAT(_T, _NAME) _NAME ## _ ## _T
+
+#if 0
+
 #define VX_CREATE_TYPE_POINTER_DEFINITION(_TYPE) typedef _TYPE* _TYPE ## _ptr
 
 /*  Merge the name of the function and the type of the template */
@@ -49,3 +53,5 @@
 *       VX_TEMPLATE_BODY(i32, T_TEST_BD);
 *       VX_TEMPLATE_BODY(f32, T_TEST_BD);
 */
+
+#endif

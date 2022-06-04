@@ -5,13 +5,17 @@
 
 #include "log.h"
 
-void vx_panic(char* file, int line, const char* function, char* message) {
+namespace vx {
+
+void panic(const char* file, int line, const char* function, const char* message) {
     //printf("Error in function %s(%s::%d): %s", function, file, line, message);
-    if (VX_LOGGER_INSTANCE_VALID) {
-        vx_log(VX_LOGMESSAGELEVEL_FATAL, "Error in function %s(%s::%d): %s", function, file, line, message);
+    if (LOGGER_INSTANCE_VALID) {
+        vx::log(vx::LogMessageLevel::FATAL, "Error in function %s(%s::%d): %s", function, file, line, message);
     } else {
         printf("Error in function %s(%s::%d): %s", function, file, line, message);
     }
 
     exit(-1);
 }
+
+};

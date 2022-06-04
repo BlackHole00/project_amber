@@ -1,13 +1,13 @@
-project('lib_vx_utils', 'c')
+project('lib_vx_utils', 'cpp')
 
 inc = include_directories('src')
 lib = static_library('vx_utils',
-    'src/vx_utils/file.c',
-    'src/vx_utils/functions.c',
-    'src/vx_utils/mem.c',
-    'src/vx_utils/panic.c',
-    'src/vx_utils/log.c',
-    'src/vx_utils/loggers/stream_logger.c',
+    'src/vx_utils/file.cpp',
+    'src/vx_utils/functions.cpp',
+    'src/vx_utils/mem.cpp',
+    'src/vx_utils/panic.cpp',
+    'src/vx_utils/log.cpp',
+    'src/vx_utils/loggers/stream_logger.cpp',
     include_directories : inc,
     install : true
 )

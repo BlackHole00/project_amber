@@ -1,7 +1,9 @@
 #include "file.h"
 #include "utils.h"
 
-char* vx_file_get_content(FILE* file) {
+namespace vx {
+
+char* file_get_content(FILE* file) {
     /*  Check if the file is valid  */
     VX_NULL_CHECK(file, NULL);
 
@@ -21,7 +23,7 @@ char* vx_file_get_content(FILE* file) {
     VX_CHECK(file_len > 0, NULL)
 
     /*  Allocate the needed space. */
-    res = vx_smalloc((file_len + 1) * sizeof(char));
+    res = vx::alloc<char>(file_len + 1);
     res[file_len] = '\0';
     rewind(file);
 
@@ -37,13 +39,15 @@ char* vx_file_get_content(FILE* file) {
     return res;
 }
 
-char* vx_filepath_get_content(const char* file_path) {
+char* filepath_get_content(const char* file_path) {
     FILE* file = fopen(file_path, "r");
     VX_CHECK(file != NULL, NULL);
 
-    char* res = vx_file_get_content(file);
+    char* res = file_get_content(file);
 
     fclose(file);
 
     return res;
 }
+
+};

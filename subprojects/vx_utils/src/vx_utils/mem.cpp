@@ -4,11 +4,13 @@
 #include <malloc.h>
 #include "panic.h"
 
+namespace vx {
+
 static u32 allocation_number = 0;
 static u32 deallocation_number = 0;
 static u32 reallocation_number = 0;
 
-void* vx_smalloc(usize size) {
+void* raw_alloc(usize size) {
     void* ptr = malloc(size);
     VX_ASSERT("Could not allocate memory!", ptr != 0 || size == 0);
 
@@ -19,8 +21,8 @@ void* vx_smalloc(usize size) {
     return ptr;
 }
 
-void* vx_srealloc(void* mem_adr, usize size) {
-    void* ptr = realloc(mem_adr, size);
+void* raw_realloc(void* mem_adr, usize size) {
+    void* ptr = ::realloc(mem_adr, size);
     VX_ASSERT("Could not reallocate memory!", ptr != 0 || size == 0);
 
     reallocation_number++;
@@ -28,15 +30,15 @@ void* vx_srealloc(void* mem_adr, usize size) {
     return ptr;
 }
 
-void vx_free(void* ptr) {
+void raw_free(void* ptr) {
     if (ptr != NULL) {
-        free(ptr);
+        ::free(ptr);
 
         deallocation_number++;
     }
 }
 
-void vx_memory_print_state() {
+void memory_print_state() {
     printf("\n---[Memory state]---\n");
     printf("ALLOCATIONS: %d\n", allocation_number);
     printf("DEALLOCATIONS: %d\n", deallocation_number);
@@ -44,3 +46,6 @@ void vx_memory_print_state() {
     printf("\nThere are %d blocks to free!\n", allocation_number - deallocation_number);
     printf("--------------------\n");
 }
+
+};
+

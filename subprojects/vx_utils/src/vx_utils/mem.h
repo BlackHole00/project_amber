@@ -6,7 +6,26 @@
 
 #define VX_ARRAY_ELEMENT_COUNT(_ARR) (sizeof((_ARR)) / sizeof(*(_ARR)))
 
-void* vx_smalloc(usize);
-void* vx_srealloc(void*, usize);
-void vx_free(void*);
-void vx_memory_print_state();
+namespace vx {
+
+void* raw_alloc(usize);
+void* raw_realloc(void*, usize);
+void raw_free(void*);
+void memory_print_state();
+
+template <class T>
+T* alloc(usize elem_num) {
+    return (T*)vx::raw_alloc(elem_num * sizeof(T));
+}
+
+template <class T>
+T* realloc(T* ptr, usize elem_num) {
+    return (T*)vx::raw_realloc(ptr, elem_num * sizeof(T));
+}
+
+template <class T>
+void free(T* ptr) {
+    raw_free((T*)ptr);
+}
+
+};

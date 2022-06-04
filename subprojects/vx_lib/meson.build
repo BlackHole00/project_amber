@@ -1,4 +1,4 @@
-project('lib_vx_lib', 'c')
+project('lib_vx_lib', 'cpp')
 
 inc = include_directories('src')
 
@@ -12,10 +12,10 @@ lib_wgpu = subproject('wgpu')
 lib_wgpu_dep = lib_wgpu.get_variable('lib_wgpu_dep')
 
 lib = static_library('vx_lib',
-    'src/vx_lib/os/window.c',
-    'src/vx_lib/os/window_context.c',
-    'src/vx_lib/os/context/wgpu.c',
-    'src/vx_lib/gfx/wgpu_utils.c',
+    #'src/vx_lib/os/window.c',
+    #'src/vx_lib/os/window_context.c',
+    #'src/vx_lib/os/context/wgpu.c',
+    #'src/vx_lib/gfx/wgpu_utils.c',
     dependencies: [ lib_vx_utils_dep, lib_glfw_dep, lib_wgpu_dep ],
     include_directories : inc,
     install : true
