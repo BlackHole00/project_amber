@@ -370,6 +370,9 @@ int main() {
     vx::stream_logger_init(stdout, vx::LogMessageLevel::DEBUG);
     vx::allocator_stack_init();
 
+    VX_DEFER(vx::stream_logger_free());
+    VX_DEFER(vx::allocator_stack_free());
+
     printf("%d\n", vx::default_value<int>());
     Vertex vertex = vx::default_value<Vertex>();
 
@@ -393,7 +396,4 @@ int main() {
 
     vx::vector_free<f32>(&vec);
     vx::vector_free<f32>(&vec2);
-
-    vx::stream_logger_free();
-    vx::allocator_stack_free();
 }
