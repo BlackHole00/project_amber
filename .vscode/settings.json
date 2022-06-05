@@ -22,7 +22,10 @@
         "framework.h": "c",
         "stb_image.h": "c",
         "wgpu_utils.h": "c",
-        "console_logger.h": "c"
+        "console_logger.h": "c",
+        "type_traits": "cpp",
+        "xtr1common": "cpp",
+        "initializer_list": "cpp"
     },
     "mesonbuild.configureOnOpen": true
 }

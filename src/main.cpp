@@ -363,8 +363,16 @@ typedef struct {
     float uv[2] = { 1.0, 0.0 };
 } Vertex;
 VX_CREATE_TO_STRING(Vertex,
-    snprintf(buffer, size, "Vertex { { %f, %f, %f }, { %f, %f } }", ptr->position[0], ptr->position[1], ptr->position[2], ptr->uv[0], ptr->uv[1]);
+    snprintf(BUFFER, SIZE, "Vertex { { %f, %f, %f }, { %f, %f } }", PTR->position[0], PTR->position[1], PTR->position[2], PTR->uv[0], PTR->uv[1]);
 )
+
+const char* NAMES[] = {
+    "Nick",
+    "Test",
+    "Something",
+    "Ahahahaha",
+    "IdkMan!!!"
+};
 
 int main() {
     vx::stream_logger_init(stdout, vx::LogMessageLevel::DEBUG);
@@ -396,4 +404,8 @@ int main() {
 
     vx::vector_free<f32>(&vec);
     vx::vector_free<f32>(&vec2);
+
+    for (usize i = 0; i < VX_ARRAY_ELEMENT_COUNT(NAMES); i++) {
+        printf("%s: %llu\n", NAMES[i], vx::hash(NAMES[i]));
+    }
 }

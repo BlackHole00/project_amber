@@ -143,8 +143,8 @@ vx::Option<T> vector_remove(Vector<T>* vector, usize index) {
 };
 
 VX_CREATE_CLONE_T(template<class T>, Vector<T>,
-    vector_clear(dest); 
-    for (usize i = 0; i < source->length; i++) {
-        vector_push<T>(dest, (*source)[i]);
+    vector_clear(DEST); 
+    for (usize i = 0; i < SOURCE->length; i++) {
+        vector_push<T>(DEST, (*SOURCE)[i]);
     }
 )
