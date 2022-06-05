@@ -20,3 +20,4 @@
 #include "log.h"
 #include "to_string.h"
 #include "clone.h"
+#include "defer.h"

@@ -3,48 +3,53 @@
 #include <stdio.h>
 #include <malloc.h>
 #include "panic.h"
+#include "log.h"
+#include "vector.h"
+#include "allocators/raw_allocator.h"
 
 namespace vx {
 
-static u32 allocation_number = 0;
-static u32 deallocation_number = 0;
-static u32 reallocation_number = 0;
+VX_CREATE_INSTANCE(AllocatorStack, ALLOCATOR_STACK_INSTANCE)
 
-void* raw_alloc(usize size) {
-    void* ptr = malloc(size);
-    VX_ASSERT("Could not allocate memory!", ptr != 0 || size == 0);
-
-    if (ptr != NULL) {
-        allocation_number++;
+void allocator_stack_init() {
+    if (!RAW_ALLOCATOR_INSTANCE_VALID) {
+        raw_allocator_init();
     }
 
-    return ptr;
+    ALLOCATOR_STACK_INSTANCE = vector_new<Allocator*>(1, &RAW_ALLOCATOR_INSTANCE);
+
+    ALLOCATOR_STACK_INSTANCE[0] = &RAW_ALLOCATOR_INSTANCE;
+
+    ALLOCATOR_STACK_INSTANCE_VALID = true;
 }
 
-void* raw_realloc(void* mem_adr, usize size) {
-    void* ptr = ::realloc(mem_adr, size);
-    VX_ASSERT("Could not reallocate memory!", ptr != 0 || size == 0);
+void allocator_stack_free() {
+    vector_free(&ALLOCATOR_STACK_INSTANCE);
 
-    reallocation_number++;
-
-    return ptr;
+    ALLOCATOR_STACK_INSTANCE_VALID = false;
 }
 
-void raw_free(void* ptr) {
-    if (ptr != NULL) {
-        ::free(ptr);
+void allocator_stack_push_allocator(Allocator* allocator) {
+    VX_ASSERT("The stack instance has not been initialized yet!", ALLOCATOR_STACK_INSTANCE_VALID);
 
-        deallocation_number++;
+    vector_push(&ALLOCATOR_STACK_INSTANCE, allocator);
+}
+
+void allocator_stack_pop_allocator() {
+    VX_ASSERT("The stack instance has not been initialized yet!", ALLOCATOR_STACK_INSTANCE_VALID);
+
+    if (ALLOCATOR_STACK_INSTANCE.length <= 1) {
+        log(LogMessageLevel::WARN, "The user is trying to pop the base raw allocator in the allocator_stack. Ignoring!");
+        return;
     }
+
+    vector_pop(&ALLOCATOR_STACK_INSTANCE);
 }
 
-void memory_print_state() {
-    printf("\n---[Memory state]---\n");
-    printf("ALLOCATIONS: %d\n", allocation_number);
-    printf("DEALLOCATIONS: %d\n", deallocation_number);
-    printf("REALLOCATIONS: %d\n", reallocation_number);
-    printf("\nThere are %d blocks to free!\n", allocation_number - deallocation_number);
-    printf("--------------------\n");
+Allocator* allocator_stack_get_current_allocator() {
+    VX_ASSERT("The stack instance has not been initialized yet!", ALLOCATOR_STACK_INSTANCE_VALID);
+
+    return *vector_top(&ALLOCATOR_STACK_INSTANCE);
 }
 
 };

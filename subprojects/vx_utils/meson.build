@@ -8,6 +8,7 @@ lib = static_library('vx_utils',
     'src/vx_utils/panic.cpp',
     'src/vx_utils/log.cpp',
     'src/vx_utils/loggers/stream_logger.cpp',
+    'src/vx_utils/allocators/raw_allocator.cpp',
     include_directories : inc,
     install : true
 )

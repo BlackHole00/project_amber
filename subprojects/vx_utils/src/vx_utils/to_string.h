@@ -2,6 +2,8 @@
 #include "panic.h"
 #include "types.h"
 
+#include "stdio.h"
+
 #define VX_CREATE_TO_STRING(_TYPE, ...) namespace vx {              \
 inline void to_string(_TYPE* ptr, char* buffer, usize size) {       \
     __VA_ARGS__                                                     \

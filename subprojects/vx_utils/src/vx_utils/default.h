@@ -4,7 +4,7 @@
 
 #define VX_CREATE_DEFAULT(_TYPE, ...)               \
 template <>                                         \
-_TYPE vx::default_value<_TYPE>() {                  \
+inline _TYPE vx::default_value<_TYPE>() {           \
     return { __VA_ARGS__ };                         \
 }
 

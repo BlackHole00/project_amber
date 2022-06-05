@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include "allocators/raw_allocator.h"
+
 namespace vx {
 
 VX_CREATE_INSTANCE(Logger, LOGGER_INSTANCE);
@@ -22,13 +24,28 @@ void log(LogMessageLevel message_level, const char* fmt, ...) {
         va_start(args, fmt);
 
         int required_chars = vsnprintf(NULL, 0, fmt, args);
-        char* buffer = vx::alloc<char>(required_chars + 1);
+
+        char* buffer;
+        if (!ALLOCATOR_STACK_INSTANCE_VALID) {
+            if (!RAW_ALLOCATOR_INSTANCE_VALID) {
+                raw_allocator_init();
+            }
+
+            buffer = vx::alloc<char>(required_chars + 1, &RAW_ALLOCATOR_INSTANCE);
+        } else {
+            buffer = vx::alloc<char>(required_chars + 1);
+        }
 
         vsprintf(buffer, fmt, args);
 
         LOGGER_INSTANCE.print(message_level, buffer);
 
-        vx::free(buffer);
+        if (!ALLOCATOR_STACK_INSTANCE_VALID) {
+            vx::free(buffer, &RAW_ALLOCATOR_INSTANCE);
+        } else {
+            vx::free(buffer);
+        }
+
         va_end(args);
     }
 }
