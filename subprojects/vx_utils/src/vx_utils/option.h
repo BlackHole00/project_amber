@@ -6,7 +6,7 @@ namespace vx {
 
 template <class T>
 struct Option {
-    bool is_some;
+    bool is_some = false;
     T data;
 };
 
@@ -41,6 +41,15 @@ T option_unwrap(Option<T> option) {
     VX_ASSERT("None value found when unwrapping option!", option.is_some);
 
     return option.data;
+}
+
+template <class T>
+T* option_as_ptr(Option<T>* option) {
+    if (option->is_some) {
+        return &option->data;
+    }
+
+    return nullptr;
 }
 
 };

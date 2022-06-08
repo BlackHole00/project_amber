@@ -8,6 +8,9 @@
 #include "mem.h"
 #include <string.h>
 
+// TODO: Actually implement this formula.
+#define VX_VECTOR_GROW_FORMULA(x) (2*(x) + 8)
+
 namespace vx {
 
 template <class T>
@@ -138,6 +141,14 @@ vx::Option<T> vector_remove(Vector<T>* vector, usize index) {
     vector_pop(vector);
 
     return vx::option_some(value);
+}
+
+template <class T>
+void vector_resize(Vector<T>* vector, usize new_size) {
+    vector->data = vx::realloc<T>(vector->data, new_size, vector->_allocator);
+
+    vector->length = new_size;
+    vector->_mem_length = new_size;
 }
 
 };

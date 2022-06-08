@@ -390,6 +390,8 @@ int main() {
 
     vx::Vector<f32> vec = vx::vector_new<f32>();
     vx::Vector<f32> vec2 = vx::vector_new<f32>();
+    VX_DEFER(vx::vector_free<f32>(&vec));
+    VX_DEFER(vx::vector_free<f32>(&vec2));
 
     vx::vector_push<f32>(&vec, 10);
     vx::vector_push<f32>(&vec, 20);
@@ -402,10 +404,22 @@ int main() {
         printf("%f %f\n", vec[i], vec2[i]);
     }
 
-    vx::vector_free<f32>(&vec);
-    vx::vector_free<f32>(&vec2);
-
     for (usize i = 0; i < VX_ARRAY_ELEMENT_COUNT(NAMES); i++) {
         printf("%s: %llu\n", NAMES[i], vx::hash(NAMES[i]));
     }
+
+    vx::HashTable<int, const char*> hash_table = vx::hash_table_new<int, const char*>();
+    VX_DEFER(vx::hash_table_free(&hash_table));
+    vx::hash_table_insert(&hash_table, "Hi!", 1);
+    vx::hash_table_insert(&hash_table, "Ho!", 2);
+    vx::hash_table_insert(&hash_table, "Hi!", 1);
+    vx::hash_table_insert(&hash_table, "Ho!", 2);
+    vx::hash_table_insert(&hash_table, "Hi!", 1);
+
+    printf("%d\n", *vx::hash_table_get(&hash_table, "Hi!"));
+    printf("%d\n", *vx::hash_table_get(&hash_table, "Ho!"));
+
+    vx::hash_table_remove(&hash_table, "Hi!");
+
+    vx::_hash_table_dbg(&hash_table);
 }
