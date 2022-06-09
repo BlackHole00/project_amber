@@ -1,5 +1,7 @@
 #include "file.h"
+
 #include "utils.h"
+#include "mem.h"
 
 namespace vx {
 
@@ -23,7 +25,7 @@ char* file_get_content(FILE* file) {
     VX_CHECK(file_len > 0, NULL)
 
     /*  Allocate the needed space. */
-    res = vx::alloc<char>(file_len + 1);
+    res = alloc<char>(file_len + 1);
     res[file_len] = '\0';
     rewind(file);
 

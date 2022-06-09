@@ -2,10 +2,9 @@
 
 #include "mem.h"
 #include "option.h"
-#include "clone.h"
-#include "default.h"
-#include "to_string.h"
 #include "mem.h"
+#include "traits/clone.h"
+#include "traits/len.h"
 #include <string.h>
 
 // TODO: Actually implement this formula.
@@ -158,4 +157,8 @@ VX_CREATE_CLONE_T(template<class T>, Vector<T>,
     for (usize i = 0; i < SOURCE->length; i++) {
         vector_push<T>(DEST, (*SOURCE)[i]);
     }
+)
+
+VX_CREATE_LEN_T(template <class T>, Vector<T>,
+    return VALUE->length;
 )

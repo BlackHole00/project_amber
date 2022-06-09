@@ -1,6 +1,6 @@
 #pragma once
-#include "template.h"
-#include "types.h"
+
+#include "../types.h"
 #include <string.h>
 
 namespace vx {

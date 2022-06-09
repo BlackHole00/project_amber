@@ -1,6 +1,6 @@
 #pragma once
-#include "template.h"
-#include "types.h"
+
+#include "../types.h"
 
 #define VX_CREATE_DEFAULT(_TYPE, ...)               \
 template <>                                         \

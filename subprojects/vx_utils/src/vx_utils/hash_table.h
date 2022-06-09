@@ -1,16 +1,19 @@
 #pragma once
 
+#include "macro.h"
 #include "mem.h"
-#include "hash.h"
 #include "option.h"
 #include "vector.h"
-#include "compare.h"
 #include "defer.h"
+#include "traits/compare.h"
+#include "traits/hash.h"
 
 namespace vx {
 
 #define _VX_HASHTABLE_MEM_LENGTH(HT) (HT)->elements.length
 
+// T must implement vx::hash
+// K must implement vx::compare
 template <class T, class K>
 struct HashTableBucket {
     T value;
@@ -43,12 +46,12 @@ void hash_table_free(HashTable<T, K>* hash_table) {
 }
 
 template <class T, class K>
-void hash_table_insert(HashTable<T, K>* hash_table, K key, T value) {
-    _hash_table_resize(hash_table);
-
+void _raw_hash_table_set(HashTable<T, K>* hash_table, K key, T value) {
+    bool new_entry = true;
     u64 hash = vx::hash(key) % _VX_HASHTABLE_MEM_LENGTH(hash_table);
     while (hash_table->elements[hash].is_some) {
         if (compare(option_unwrap(hash_table->elements[hash]).key, key) == ComparationResult::Equal) {
+            new_entry = false;
             break;
         }
 
@@ -58,7 +61,16 @@ void hash_table_insert(HashTable<T, K>* hash_table, K key, T value) {
 
     hash_table->elements[hash] = option_some(HashTableBucket<T, K> { value, key });
 
-    hash_table->num_elems++;
+    if (new_entry) {
+        hash_table->num_elems++;
+    }
+}
+
+template <class T, class K>
+void hash_table_set(HashTable<T, K>* hash_table, K key, T value) {
+    _hash_table_resize(hash_table);
+    _raw_hash_table_set(hash_table, key, value);
+
 }
 
 template <class T, class K>
@@ -108,7 +120,7 @@ void _hash_table_resize(HashTable<T, K>* hash_table) {
     vx::Vector<HashTableBucket<T, K>> buckets = vector_new<HashTableBucket<T, K>>(0, hash_table->elements._allocator);
     VX_DEFER(vector_free(&buckets));
 
-    for (usize i = 0; i < hash_table->num_elems - 1; i++) {
+    for (usize i = 0; i < hash_table->num_elems; i++) {
         if (hash_table->elements[i].is_some) {
             vector_push(&buckets, option_unwrap(hash_table->elements[i]));
         }
@@ -118,22 +130,38 @@ void _hash_table_resize(HashTable<T, K>* hash_table) {
         hash_table->elements[i] = option_none<HashTableBucket<T, K>>();
     }
 
+    hash_table->num_elems = 0;
     for (usize i = 0; i < buckets.length; i++) {
-        hash_table_insert(hash_table, buckets[i].key, buckets[i].value);
+        _raw_hash_table_set(hash_table, buckets[i].key, buckets[i].value);
     }
 }
 
 template <class T, class K>
 void _hash_table_dbg(HashTable<T, K>* hash_table) {
+    printf("\n");
     for(usize i = 0; i < _VX_HASHTABLE_MEM_LENGTH(hash_table); i++) {
         if (hash_table->elements[i].is_some) {
-            printf("%lld: SOME(%i)\n", i, option_unwrap(hash_table->elements[i]).value);
+            printf("%lld: SOME(%s: %i)\n", i, option_unwrap(hash_table->elements[i]).key, option_unwrap(hash_table->elements[i]).value);
         } else {
             printf("%lld: NONE\n", i);
         }
     }
 }
 
-#undef _VX_HASHTABLE_MEM_LENGTH
-
 };
+
+VX_CREATE_CLONE_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTable<T, K>),
+    VX_NULL_ASSERT(SOURCE);
+    VX_NULL_ASSERT(DEST);
+
+    DEST->num_elems = SOURCE->num_elems;
+    clone(&SOURCE->elements, &DEST->elements);
+)
+
+VX_CREATE_LEN_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTable<T, K>),
+    VX_NULL_ASSERT(VALUE);
+
+    return VALUE->num_elems;
+)
+
+#undef _VX_HASHTABLE_MEM_LENGTH

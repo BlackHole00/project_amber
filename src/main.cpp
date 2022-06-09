@@ -400,6 +400,7 @@ int main() {
 
     vx::clone(&vec, &vec2);
 
+    printf("vector len: %lld\n", vx::len(&vec));
     for (usize i = 0; i < vec.length; i++) {
         printf("%f %f\n", vec[i], vec2[i]);
     }
@@ -410,16 +411,20 @@ int main() {
 
     vx::HashTable<int, const char*> hash_table = vx::hash_table_new<int, const char*>();
     VX_DEFER(vx::hash_table_free(&hash_table));
-    vx::hash_table_insert(&hash_table, "Hi!", 1);
-    vx::hash_table_insert(&hash_table, "Ho!", 2);
-    vx::hash_table_insert(&hash_table, "Hi!", 1);
-    vx::hash_table_insert(&hash_table, "Ho!", 2);
-    vx::hash_table_insert(&hash_table, "Hi!", 1);
+    vx::hash_table_set(&hash_table, "Hi!", 1);
+    vx::hash_table_set(&hash_table, "Ho!", 2);
+    vx::hash_table_set(&hash_table, "Hi!", 3);
+    vx::hash_table_set(&hash_table, "Ho!", 4);
+    vx::hash_table_set(&hash_table, "Hi!", 5);
 
+    printf("table len: %lld\n", vx::len(&hash_table));
     printf("%d\n", *vx::hash_table_get(&hash_table, "Hi!"));
     printf("%d\n", *vx::hash_table_get(&hash_table, "Ho!"));
 
     vx::hash_table_remove(&hash_table, "Hi!");
 
-    vx::_hash_table_dbg(&hash_table);
+    vx::HashTable<int, const char*> hash_table2 = vx::hash_table_new<int, const char*>();
+    vx::clone(&hash_table, &hash_table2);
+
+    vx::_hash_table_dbg(&hash_table2);
 }

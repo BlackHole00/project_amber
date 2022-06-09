@@ -1,5 +1,4 @@
 #pragma once
-#include "template.h"
 
 namespace vx {
     void _dummy_func();
