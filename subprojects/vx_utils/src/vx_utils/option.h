@@ -4,22 +4,31 @@
 
 namespace vx {
 
+/**
+ * @class An object which may or may not contain some data of type T.
+ */
 template <class T>
 struct Option {
     bool is_some = false;
-    T data;
+    T _data;
 };
 
+/**
+ * @brief Creates an Option with some data.
+ */
 template <class T>
 constexpr Option<T> option_some(T data) {
     Option<T> option;
 
     option.is_some = true;
-    option.data = data;
+    option._data = data;
 
     return option;
 }
 
+/**
+ * @brief Create an empty Option, without data.
+ */
 template <class T>
 constexpr Option<T> option_none() {
     Option<T> option;
@@ -29,24 +38,36 @@ constexpr Option<T> option_none() {
     return option;
 }
 
+/**
+ * @brief Unwraps an option.
+ * @param option An option. If it is not valid, then the program will halt.
+ */
 template <class T>
 T* option_unwrap(Option<T>* option) {
     VX_ASSERT("None value found when unwrapping option!", option->is_some);
 
-    return &(option->data);
+    return &(option->_data);
 }
 
+/**
+ * @brief Unwraps an option.
+ * @param option An option. If it is not valid, then the program will halt.
+ */
 template <class T>
 T option_unwrap(Option<T> option) {
     VX_ASSERT("None value found when unwrapping option!", option.is_some);
 
-    return option.data;
+    return option._data;
 }
 
+/**
+ * @brief Converts an option to a pointer.
+ * @return Returns nullptr if the option is none.
+ */
 template <class T>
 T* option_as_ptr(Option<T>* option) {
     if (option->is_some) {
-        return &option->data;
+        return &option->_data;
     }
 
     return nullptr;

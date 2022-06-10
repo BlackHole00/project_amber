@@ -6,6 +6,11 @@
 
 namespace vx {
 
+/**
+ * @class Slice
+ * @brief An object that holds an array with its length. Can use the [] operator.
+ * @implements len
+ */
 template <class T>
 struct Slice {
     T* data;
@@ -24,16 +29,11 @@ struct Slice {
     }
 };
 
-template <class T, usize LEN>
-Slice<T> slice_new(T array[LEN]) {
-    Slice<T> slice;
-
-    slice.data = array;
-    slice.length = VX_ARRAY_ELEMENT_COUNT(array);
-
-    return slice;
-}
-
+/**
+ * @brief Creates a new slice.
+ * @param data The pointer to the first element of the array.
+ * @param length The number of elements in the array.
+ */
 template <class T>
 Slice<T> slice_new(T* data, usize length) {
     Slice<T> slice;

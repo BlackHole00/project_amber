@@ -1,13 +1,21 @@
 #pragma once
 
+/** @brief Halts the program with a message. */
 #define VX_PANIC(_MESSAGE) panic(__FILE__, __LINE__, __FUNCTION__, _MESSAGE)
+/** @brief Halts the program with a message if a condition is not satisfied. */
 #define VX_ASSERT(_MESSAGE, _EQ) { if(!(_EQ)) { VX_PANIC(_MESSAGE); } }
+/** @brief Returns _RET if a condition is not satisfied. */
 #define VX_CHECK(_EQ, _RET) { if (!(_EQ)) { return _RET; } }
+/** @brief Halts the program with a message and executing a function. */
 #define VX_PANIC_EXIT_OP(_MESSAGE, _EXIT_OP) _EXIT_OP; VX_PANIC(_MESSAGE);
+/** @brief Halts the program with a message and executing a function if a condition is not satisfied. */
 #define VX_ASSERT_EXIT_OP(_MESSAGE, _EQ, _EXIT_OP) { if(!(_EQ)) { VX_PANIC_EXIT_OP(_MESSAGE, _EXIT_OP); } }
+/** @brief Returns _RET and executes a function if a condition is not satisfied. */
 #define VX_CHECK_EXIT_OP(_EQ, _RET, _EXIT_OP) { if (!(_EQ)) { _EXIT_OP; return _RET; } }
+/** @brief Halts the program if this instrution is met. Should only be used for not-yet-implemented functionality. */
 #define VX_UNIMPLEMENTED() VX_PANIC("This function has yet to be implemented!")
 
+/* Debug variants of the macros above. These do nothing in release mode. */
 #ifdef _DEBUG
     #define VX_DBG_ASSERT(_MESSAGE, _EQ) VX_ASSERT(_MESSAGE, _EQ)
     #define VX_DBG_CHECK(_EQ, _RET) VX_CHECK(_EQ, _RET)
@@ -28,7 +36,14 @@
 
 namespace vx {
 
-void panic(const char*, int, const char*, const char*);
+/**
+ * @brief Halts the program providing an error message.
+ * @param file The .c file name of the calling location.
+ * @param line The line number of the calling location.
+ * @param function The function name of the calling location.
+ * @param message The crash message.
+ */
+void panic(const char* file, int line, const char* function, const char* message);
 
 };
 

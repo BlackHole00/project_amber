@@ -20,8 +20,7 @@ struct HashTableBucket {
     K key;
 };
 
-// T must implement vx::hash
-// K must implement vx::compare
+// K must implement vx::hash and vx::compare
 template <class T, class K>
 struct HashTable {
     vx::Vector<vx::Option<HashTableBucket<T, K>>> elements;

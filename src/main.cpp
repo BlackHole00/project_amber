@@ -4,6 +4,7 @@
 
 #include <math.h>
 
+
 typedef struct {
     float position[3] = { 1.0, 0.0, 0.0};
     float uv[2] = { 1.0, 0.0 };
@@ -83,3 +84,4 @@ int main() {
 
     vx::_hash_table_dbg(&hash_table2);
 }
+
