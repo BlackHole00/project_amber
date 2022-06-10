@@ -1,8 +1,8 @@
 #include "log.h"
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdarg>
+#include <cstring>
 
 #include "allocators/raw_allocator.h"
 
@@ -20,10 +20,10 @@ void empty_logger_init() {
 
 void log(LogMessageLevel message_level, const char* fmt, ...) {
     if (message_level >= LOGGER_INSTANCE.minimum_message_level) {
-        va_list args;
+        std::va_list args;
         va_start(args, fmt);
 
-        int required_chars = vsnprintf(NULL, 0, fmt, args);
+        int required_chars = std::vsnprintf(NULL, 0, fmt, args);
 
         char* buffer;
         if (!ALLOCATOR_STACK_INSTANCE_VALID) {
@@ -36,7 +36,7 @@ void log(LogMessageLevel message_level, const char* fmt, ...) {
             buffer = vx::alloc<char>(required_chars + 1);
         }
 
-        vsprintf(buffer, fmt, args);
+        std::vsprintf(buffer, fmt, args);
 
         LOGGER_INSTANCE.print(message_level, buffer);
 
@@ -53,27 +53,27 @@ void log(LogMessageLevel message_level, const char* fmt, ...) {
 void logmessagelevel_to_string(LogMessageLevel message_level, char* buffer) {
     switch(message_level) {
         case LogMessageLevel::DEBUG: {
-            strcpy(buffer, "DEBUG");
+            std::strcpy(buffer, "DEBUG");
             break;
         }
         case LogMessageLevel::INFO: {
-            strcpy(buffer, "INFO");
+            std::strcpy(buffer, "INFO");
             break;
         }
         case LogMessageLevel::WARN: {
-            strcpy(buffer, "WARN");
+            std::strcpy(buffer, "WARN");
             break;
         }
         case LogMessageLevel::ERROR: {
-            strcpy(buffer, "ERROR");
+            std::strcpy(buffer, "ERROR");
             break;
         }
         case LogMessageLevel::FATAL: {
-            strcpy(buffer, "FATAL");
+            std::strcpy(buffer, "FATAL");
             break;
         }
         default: {
-            strcpy(buffer, "");
+            std::strcpy(buffer, "");
         }
     }
 }

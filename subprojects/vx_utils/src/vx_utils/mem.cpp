@@ -1,7 +1,5 @@
 #include "mem.h"
 
-#include <stdio.h>
-#include <malloc.h>
 #include "panic.h"
 #include "log.h"
 #include "vector.h"

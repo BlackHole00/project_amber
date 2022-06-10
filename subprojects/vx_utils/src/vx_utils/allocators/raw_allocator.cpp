@@ -1,7 +1,7 @@
 #include "raw_allocator.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "../panic.h"
 
@@ -15,7 +15,7 @@ static u32 deallocation_number = 0;
 static u32 reallocation_number = 0;
 
 static void* raw_alloc(usize size) {
-    void* ptr = ::malloc(size);
+    void* ptr = std::malloc(size);
     VX_ASSERT("Could not allocate memory!", ptr != 0 || size == 0);
 
     if (ptr != NULL) {
@@ -26,7 +26,7 @@ static void* raw_alloc(usize size) {
 }
 
 static void* raw_realloc(void* mem_adr, usize size) {
-    void* ptr = ::realloc(mem_adr, size);
+    void* ptr = std::realloc(mem_adr, size);
     VX_ASSERT("Could not reallocate memory!", ptr != 0 || size == 0);
 
     reallocation_number++;
@@ -36,7 +36,7 @@ static void* raw_realloc(void* mem_adr, usize size) {
 
 static void raw_free(void* ptr) {
     if (ptr != NULL) {
-        ::free(ptr);
+        std::free(ptr);
 
         deallocation_number++;
     }

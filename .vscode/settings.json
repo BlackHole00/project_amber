@@ -25,7 +25,21 @@
         "console_logger.h": "c",
         "type_traits": "cpp",
         "xtr1common": "cpp",
-        "initializer_list": "cpp"
+        "initializer_list": "cpp",
+        "atomic": "cpp",
+        "bit": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "cstddef": "cpp",
+        "cstdint": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "cstring": "cpp",
+        "ctime": "cpp",
+        "cwchar": "cpp",
+        "limits": "cpp",
+        "xstddef": "cpp",
+        "cstdarg": "cpp"
     },
     "mesonbuild.configureOnOpen": true
 }

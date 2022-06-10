@@ -1,7 +1,7 @@
 #pragma once
-#include <stdio.h>
+#include <cstdio>
 
 namespace vx {
-    char* file_get_content(FILE*);
+    char* file_get_content(std::FILE*);
     char* filepath_get_content(const char*);
 };

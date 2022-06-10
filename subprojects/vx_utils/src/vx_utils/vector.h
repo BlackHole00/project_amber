@@ -7,7 +7,6 @@
 #include "traits/len.h"
 #include "traits/as_slice.h"
 #include "traits/as_ptr.h"
-#include <string.h>
 
 // TODO: Actually implement this formula.
 #define VX_VECTOR_GROW_FORMULA(x) (2*(x) + 8)

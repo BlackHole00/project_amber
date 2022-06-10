@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../types.h"
-#include <string.h>
+#include <cstring>
 
 namespace vx {
 
@@ -27,7 +27,7 @@ inline ComparationResult hash(_TYPE V1, _TYPE V2) {                 \
 };
 
 VX_CREATE_COMPARE(const char*,
-    int res = strcmp(V1, V2);
+    int res = std::strcmp(V1, V2);
 
     if (res > 0) {
         return ComparationResult::Greater;

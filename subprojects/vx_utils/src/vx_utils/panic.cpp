@@ -1,7 +1,7 @@
 #include "panic.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "log.h"
 
@@ -12,10 +12,10 @@ void panic(const char* file, int line, const char* function, const char* message
     if (LOGGER_INSTANCE_VALID) {
         vx::log(vx::LogMessageLevel::FATAL, "Error in function %s(%s::%d): %s", function, file, line, message);
     } else {
-        printf("Error in function %s(%s::%d): %s", function, file, line, message);
+        std::printf("Error in function %s(%s::%d): %s", function, file, line, message);
     }
 
-    exit(-1);
+    std::exit(-1);
 }
 
 };

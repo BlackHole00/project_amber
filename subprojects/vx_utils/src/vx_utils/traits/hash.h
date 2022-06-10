@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../types.h"
-#include <string.h>
 
 #define VX_CREATE_HASH(_TYPE, ...) namespace vx {                   \
 inline u64 hash(_TYPE VALUE) {                                      \
