@@ -18,4 +18,5 @@
 #include "instance.h"
 #include "log.h"
 #include "defer.h"
+#include "slice.h"
 #include "traits/traits.h"

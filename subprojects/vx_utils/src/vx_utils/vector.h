@@ -5,6 +5,7 @@
 #include "mem.h"
 #include "traits/clone.h"
 #include "traits/len.h"
+#include "traits/as_slice.h"
 #include <string.h>
 
 // TODO: Actually implement this formula.
@@ -159,6 +160,10 @@ VX_CREATE_CLONE_T(template<class T>, Vector<T>,
     }
 )
 
-VX_CREATE_LEN_T(template <class T>, Vector<T>,
+VX_CREATE_LEN_T(template <class T>, Vector<T>*,
     return VALUE->length;
+)
+
+VX_CREATE_AS_SLICE_T(template <class T>, Vector<T>*, T,
+    return slice_new(VALUE->data, VALUE->length);
 )

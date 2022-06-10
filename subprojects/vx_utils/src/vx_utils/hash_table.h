@@ -158,7 +158,7 @@ VX_CREATE_CLONE_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTa
     clone(&SOURCE->elements, &DEST->elements);
 )
 
-VX_CREATE_LEN_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTable<T, K>),
+VX_CREATE_LEN_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTable<T, K>*),
     VX_NULL_ASSERT(VALUE);
 
     return VALUE->num_elems;
