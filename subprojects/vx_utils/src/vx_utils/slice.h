@@ -3,13 +3,14 @@
 #include "types.h"
 #include "mem.h"
 #include "traits/len.h"
+#include "traits/as_ptr.h"
 
 namespace vx {
 
 /**
  * @class Slice
  * @brief An object that holds an array with its length. Can use the [] operator.
- * @implements len
+ * @implements len, as_ptr
  */
 template <class T>
 struct Slice {
@@ -48,4 +49,8 @@ Slice<T> slice_new(T* data, usize length) {
 
 VX_CREATE_LEN_T(template <class T>, Slice<T>, 
     return VALUE.length;
+)
+
+VX_CREATE_AS_PTR_T(template <class T>, Slice<T>, T,
+    return VALUE.data;
 )

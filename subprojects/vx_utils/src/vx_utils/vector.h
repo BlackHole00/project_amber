@@ -6,6 +6,7 @@
 #include "traits/clone.h"
 #include "traits/len.h"
 #include "traits/as_slice.h"
+#include "traits/as_ptr.h"
 #include <string.h>
 
 // TODO: Actually implement this formula.
@@ -16,7 +17,7 @@ namespace vx {
 /**
  * @class Vector<T>
  * @brief A dynamic-growing vector.
- * @implements clone, len, as_slice.
+ * @implements clone, len, as_slice, as_ptr.
  * @param T The type of the items being stored.
  */
 template <class T>
@@ -214,6 +215,10 @@ VX_CREATE_LEN_T(template <class T>, Vector<T>*,
 )
 
 VX_CREATE_AS_SLICE_T(template <class T>, Vector<T>*, T,
+    return slice_new(VALUE->data, VALUE->length);
+)
+
+VX_CREATE_AS_PTR_T(template <class T>, Vector<T>*, T,
     return slice_new(VALUE->data, VALUE->length);
 )
 

@@ -2,10 +2,13 @@
 
 #include "panic.h"
 
+#include "traits/as_ptr.h"
+
 namespace vx {
 
 /**
  * @class An object which may or may not contain some data of type T.
+ * @implements as_ptr
  */
 template <class T>
 struct Option {
@@ -60,20 +63,15 @@ T option_unwrap(Option<T> option) {
     return option._data;
 }
 
-/**
- * @brief Converts an option to a pointer.
- * @return Returns nullptr if the option is none.
- */
-template <class T>
-T* option_as_ptr(Option<T>* option) {
-    if (option->is_some) {
-        return &option->_data;
+};
+
+VX_CREATE_AS_PTR_T(template <class T>, Option<T>*, T,
+    if (VALUE->is_some) {
+        return &VALUE->_data;
     }
 
     return nullptr;
-}
-
-};
+)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /*  vx_Option example:

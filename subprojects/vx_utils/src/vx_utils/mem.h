@@ -34,7 +34,7 @@ struct Allocator {
  * It is possibile to temporarly push an allocator and then pop it if a custom allocator is needed.
  * By default the stack allocator will use a raw system allocator. It cannot be removed.
  *
- * @class AllocatorStack - INSTANCE.
+ * @class AllocatorStack - INSTANCE
  * @brief A stack used to manage the allocators.
  */
 typedef Vector<Allocator*> AllocatorStack;
