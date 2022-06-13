@@ -9,7 +9,7 @@ namespace vx {
 
 /**
  * @class Slice
- * @brief An object that holds an array with its length. Can use the [] operator.
+ * @brief An object that holds an array with its length. Can use the [] operator. It is always intended to be passes as value.
  * @implements len, as_ptr
  */
 template <class T>

@@ -13,7 +13,6 @@ VX_CREATE_TO_STRING(Vertex*,
     snprintf(BUFFER, len(BUFFER), "Vertex { { %f, %f, %f }, { %f, %f } }", VALUE->position[0], VALUE->position[1], VALUE->position[2], VALUE->uv[0], VALUE->uv[1]);
 )
 
-
 const char* NAMES[5] = {
     "Nick",
     "Test",

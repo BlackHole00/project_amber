@@ -16,6 +16,6 @@ void stream_logger_init(std::FILE* stream, LogMessageLevel minimum_message_level
 /**
  * @brief Deinitializes the StreamLogger.
  */
-static inline void stream_logger_free();
+void stream_logger_free();
 
 };
