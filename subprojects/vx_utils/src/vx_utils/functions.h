@@ -1,6 +1,9 @@
 #pragma once
 
 namespace vx {
+    /**
+     * @brief INTERNAL - A function that does nothing. It is used to create safer function pointers.
+     */
     void _dummy_func();
 };
 

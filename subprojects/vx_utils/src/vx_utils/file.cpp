@@ -5,11 +5,13 @@
 
 namespace vx {
 
-char* file_get_content(std::FILE* file) {
+char* file_get_content(std::FILE* file, Allocator* allocator) {
     /*  Check if the file is valid  */
-    VX_NULL_CHECK(file, NULL);
+    VX_NULL_CHECK(file, nullptr);
 
-    char* res;
+    VX_VALIDATE_ALLOCATOR(allocator);
+
+    char* res = nullptr;
 
     /*  Get the initial position of the file. The user may still want to use the file.  */
     std::fpos_t intial_point_in_file;
@@ -41,11 +43,11 @@ char* file_get_content(std::FILE* file) {
     return res;
 }
 
-char* filepath_get_content(const char* file_path) {
+char* filepath_get_content(const char* file_path, Allocator* allocator) {
     std::FILE* file = std::fopen(file_path, "r");
     VX_CHECK(file != NULL, NULL);
 
-    char* res = file_get_content(file);
+    char* res = file_get_content(file, allocator);
 
     std::fclose(file);
 

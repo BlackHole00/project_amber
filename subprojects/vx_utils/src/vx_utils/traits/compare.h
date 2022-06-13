@@ -5,6 +5,10 @@
 
 namespace vx {
 
+/**
+ * @enum ComparationResult
+ * @brief Describes the result of a comparation between two values.
+ */
 enum class ComparationResult {
     Greater,
     Equal,
