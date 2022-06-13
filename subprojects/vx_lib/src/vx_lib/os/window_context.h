@@ -4,9 +4,13 @@
 #include <GLFW/glfw3.h>
 #include <vx_utils/utils.h>
 
-typedef struct {
-    VX_CALLBACK(void, context_init_fn, GLFWwindow*);
-} vx_WindowContext;
-VX_DECLARE_INSTANCE(vx_WindowContext, VX_WINDOWCONTEXT_INSTANCE);
+namespace vx {
 
-void vx_windowcontext_init(void (*context_init_fn)(GLFWwindow*));
+struct WindowContext {
+    VX_CALLBACK(void, context_init_fn, GLFWwindow*);
+};
+VX_DECLARE_INSTANCE(WindowContext, WINDOWCONTEXT_INSTANCE);
+
+void windowcontext_init(VX_CALLBACK(void, context_init_fn, GLFWwindow*));
+
+};

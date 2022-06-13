@@ -6,44 +6,29 @@
 
 #include "key_state.h"
 
-typedef struct {
-    char* title;
-    i32 width;
-    i32 height;
-    bool fullscreen;
-    bool decorated;
-    bool transparent_framebuffer;
-    bool resizable;
-    bool show_fps_in_title;
-    bool grab_cursor;
+namespace vx {
 
-    u32 swap_interval;
+struct WindowDescriptor {
+    const char* title = "Window";
+    i32 width = 640;
+    i32 height = 480;
+    bool fullscreen = false;
+    bool decorated = true;
+    bool transparent_framebuffer = false;
+    bool resizable = false;
+    bool show_fps_in_title = true;
+    bool grab_cursor = false;
 
-    VX_CALLBACK(void, init_fn,      void);
-    VX_CALLBACK(void, logic_fn,     f64 delta);
-    VX_CALLBACK(void, draw_fn,      void);
-    VX_CALLBACK(void, close_fn,     void);
-    VX_CALLBACK(void, resize_fn,    usize width, usize height);
-} vx_WindowDescriptor;
-VX_CREATE_DEFAULT(vx_WindowDescriptor,
-    .title      = "Window",
-    .width      = 640,
-    .height     = 480,
-    .fullscreen = 0,
-    .resizable  = false,
-    .decorated  = true,
-    .grab_cursor = false,
-    .swap_interval = 0,
-    .transparent_framebuffer = false,
-    .show_fps_in_title = true,
-    .init_fn    = NULL,
-    .logic_fn   = NULL,
-    .draw_fn    = NULL,
-    .close_fn   = NULL,
-    .resize_fn  = NULL,
-)
+    u32 swap_interval = 0;
 
-typedef struct {
+    VX_CALLBACK(void, init_fn,      void)       = nullptr;
+    VX_CALLBACK(void, logic_fn,     f64 delta)  = nullptr;
+    VX_CALLBACK(void, draw_fn,      void)       = nullptr;
+    VX_CALLBACK(void, close_fn,     void)       = nullptr;
+    VX_CALLBACK(void, resize_fn,    usize width, usize height) = nullptr;
+};
+
+struct Window {
     struct {
         struct {
             bool grabbed;
@@ -58,16 +43,16 @@ typedef struct {
             f64 scroll_offset_x;
             f64 scroll_offset_y;
 
-            vx_KeyState mouse_buttons[GLFW_MOUSE_BUTTON_LAST];
+            KeyState mouse_buttons[GLFW_MOUSE_BUTTON_LAST];
         } mouse_data;
 
         struct {
-            vx_KeyState keys[GLFW_KEY_LAST];
+            KeyState keys[GLFW_KEY_LAST];
         } keyboard_data;
     } input_data;
 
     struct {
-        char* title;
+        const char* title;
         i32 width;
         i32 height;
         bool fullscreen;
@@ -88,10 +73,14 @@ typedef struct {
     } callbacks;
 
     GLFWwindow* glfw_window;
-} vx_Window;
-VX_DECLARE_INSTANCE(vx_Window, VX_WINDOW_INSTANCE);
+};
+VX_DECLARE_INSTANCE(Window, WINDOW_INSTANCE);
 
-void vx_window_init(vx_WindowDescriptor* descriptor);
-void vx_window_run();
+void window_init(WindowDescriptor* descriptor);
+void window_run();
 
-#define vx_glfw_window_hint(_HINT, _VALUE) glfwWindowHint((_HINT), (_VALUE));
+inline void glfw_window_hint(int hint, int value) {
+    glfwWindowHint(hint, value);
+}
+
+};

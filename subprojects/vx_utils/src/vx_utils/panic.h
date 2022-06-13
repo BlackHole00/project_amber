@@ -2,6 +2,8 @@
 
 #include "macro.h"
 
+#include <cstdio>
+
 /** @brief Halts the program with a message. */
 #define VX_PANIC(_MESSAGE) vx::panic(__FILE__, __LINE__, __FUNCTION__, _MESSAGE)
 /** @brief Halts the program with a message if a condition is not satisfied. */
@@ -18,7 +20,7 @@
 #define VX_UNIMPLEMENTED() VX_PANIC("This function has yet to be implemented!")
 
 #define VX_NULL_ASSERT(_OBJ) VX_ASSERT(VX_MACRO_ARG("Object "#_OBJ" is NULL!"), VX_MACRO_ARG(_OBJ != NULL));
-#define VX_NULL_CHECK(_OBJ, _RET) VX_CHECK_EXIT_OP(VX_MACRO_ARG(_OBJ != NULL), VX_MACRO_ARG(_RET), VX_MACRO_ARG(printf("Object "#_OBJ" is NULL!\n")));
+#define VX_NULL_CHECK(_OBJ, _RET) VX_CHECK_EXIT_OP(VX_MACRO_ARG(_OBJ != NULL), VX_MACRO_ARG(_RET), std::printf("Object "#_OBJ" is NULL!\n"));
 
 /* Debug variants of the macros above. These do nothing in release mode. */
 #ifdef _DEBUG
