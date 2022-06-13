@@ -1,8 +1,8 @@
-project('lib_stb', 'c')
+project('lib_stb', 'cpp')
 
 inc = include_directories('include')
 lib = static_library('vx_utils',
-    'src/implementation.c',
+    'src/implementation.cpp',
     include_directories : inc,
     install : true
 )

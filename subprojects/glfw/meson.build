@@ -1,4 +1,4 @@
-project('lib_glfw', 'c')
+project('lib_glfw', 'cpp')
 
 inc = include_directories('include')
 
