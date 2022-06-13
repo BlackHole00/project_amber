@@ -13,7 +13,8 @@ static void _stream_logger_print(LogMessageLevel message_level, const char* mess
     std::time(&t);
 
     std::FILE* stream = (std::FILE*)LOGGER_INSTANCE.log_data;
-    logmessagelevel_to_string(message_level, buffer);
+
+    to_string(message_level, slice_from_array<char, 10>(buffer));
 
     std::fprintf(stream, "[%s] (%s): %s\n", buffer, std::strtok(std::ctime(&t), "\n"), message);
 }

@@ -45,6 +45,20 @@ Slice<T> slice_new(T* data, usize length) {
     return slice;
 }
 
+/**
+ * @brief Creates a new slice from an array.
+ * @param array The array.
+ */
+template <class T, usize LEN>
+Slice<T> slice_from_array(T array[LEN]) {
+    Slice<T> slice;
+
+    slice.data = array;
+    slice.length = LEN;
+
+    return slice;
+}
+
 };
 
 VX_CREATE_LEN_T(template <class T>, Slice<T>, 

@@ -10,6 +10,7 @@ namespace vx {
 VX_CREATE_INSTANCE(AllocatorStack, ALLOCATOR_STACK_INSTANCE)
 
 void allocator_stack_init() {
+    /* The allocator stack requires to use the raw allocator. */
     if (!RAW_ALLOCATOR_INSTANCE_VALID) {
         raw_allocator_init();
     }

@@ -5,8 +5,10 @@
 #include "functions.h"
 #include "instance.h"
 
+/** @brief Use inside a struct to emphatize that it's empty. */
 #define VX_EMPTY_STRUCT u8 __empty_field;
 
+/** @brief Get the length of a standard C array (not a pointer!). */
 #define VX_ARRAY_ELEMENT_COUNT(_ARR) (sizeof((_ARR)) / sizeof(*(_ARR)))
 
 namespace vx {
@@ -54,8 +56,17 @@ Allocator* allocator_stack_get_current_allocator();
 #define VX_PUSH_ALLOCATOR(_ALLOCATOR)   vx::allocator_stack_push_allocator(_ALLOCATOR)
 #define VX_POP_ALLOCATOR()              vx::allocator_stack_pop_allocator()
 #define VX_GET_ALLOCATOR()              vx::allocator_stack_get_current_allocator()
+
+/** @brief Validates an allocator. 
+ *  @param _ALLOCATOR_PTR A variable containing a pointer to an allocator. If nullptr it will be set the the current allocator from the AllocatorStack.
+*/
 #define VX_VALIDATE_ALLOCATOR(_ALLOCATOR_PTR) (_ALLOCATOR_PTR) = ((_ALLOCATOR_PTR) != nullptr ? (_ALLOCATOR_PTR) : VX_GET_ALLOCATOR())
 
+/**
+ * @brief Allocates N items of type T.
+ * @param elem_num The number of items.
+ * @param allocator The desired allocator. If nullptr, the current allocator from the AllocatorStack will be used.
+ */
 template <class T>
 T* alloc(usize elem_num, Allocator* allocator = nullptr) {
     VX_VALIDATE_ALLOCATOR(allocator);
@@ -63,6 +74,12 @@ T* alloc(usize elem_num, Allocator* allocator = nullptr) {
     return (T*)allocator->alloc(elem_num * sizeof(T));
 }
 
+/**
+ * @brief Reallocates N items of type T.
+ * @param ptr The pointer to the data to be reallocated.
+ * @param elem_num The new number of items.
+ * @param allocator The desired allocator. Must be the same used for the initial allocation! If nullptr, the current allocator from the AllocatorStack will be used.
+ */
 template <class T>
 T* realloc(T* ptr, usize elem_num, Allocator* allocator = nullptr) {
     VX_VALIDATE_ALLOCATOR(allocator);
@@ -70,6 +87,11 @@ T* realloc(T* ptr, usize elem_num, Allocator* allocator = nullptr) {
     return (T*)allocator->realloc(ptr, elem_num * sizeof(T));
 }
 
+/**
+ * @brief Frees memory previously allocated with free or realloc.
+ * @param ptr The pointer to the data to be freed.
+ * @param allocator The desired allocator. Must be the same used for the initial allocation! If nullptr, the current allocator from the AllocatorStack will be used.
+ */
 template <class T>
 void free(T* ptr, Allocator* allocator = nullptr) {
     VX_VALIDATE_ALLOCATOR(allocator);

@@ -134,7 +134,7 @@ vx::Option<T> vector_pop(Vector<T>* vector) {
  */
 template <class T>
 T* vector_top(Vector<T>* vector) {
-    VX_NULL_CHECK(vector);
+    VX_NULL_CHECK(vector, nullptr);
 
     if (vector->length > 0) {
         return &(*vector)[vector->length - 1];
@@ -148,7 +148,7 @@ T* vector_top(Vector<T>* vector) {
  */
 template <class T>
 T* vector_get(Vector<T>* vector, usize index) {
-    VX_NULL_CHECK(vector);
+    VX_NULL_CHECK(vector, nullptr);
 
     if (index < vector->length) {
         return &(*vector)[index];
@@ -236,8 +236,8 @@ VX_CREATE_AS_PTR_T(template <class T>, Vector<T>*, T,
         vx::vector_push<f32>(&vec, 30);
         vx::vector_push<f32>(&vec, 40);
 
-        vec2 = vec; // This is a shallow copy. Use with attention.
         vx::clone(&vec, &vec2); // This is a deep copy.
+        // vec2 = vec; // This is a shallow copy. Use with attention.
 
         vx::vector_remove<f32>(&vec2, 2);
         vx::vector_insert<f32>(&vec2, 35, 2);

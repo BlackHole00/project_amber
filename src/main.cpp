@@ -1,17 +1,18 @@
-#include <stdio.h>
+#include <vx_utils/traits/traits.h>
 #include <vx_utils/utils.h>
 #include <vx_utils/loggers/stream_logger.h>
 
+#include <stdio.h>
 #include <math.h>
-
 
 typedef struct {
     float position[3] = { 1.0, 0.0, 0.0};
     float uv[2] = { 1.0, 0.0 };
 } Vertex;
-VX_CREATE_TO_STRING(Vertex,
-    snprintf(BUFFER, len(BUFFER), "Vertex { { %f, %f, %f }, { %f, %f } }", PTR->position[0], PTR->position[1], PTR->position[2], PTR->uv[0], PTR->uv[1]);
+VX_CREATE_TO_STRING(Vertex*,
+    snprintf(BUFFER, len(BUFFER), "Vertex { { %f, %f, %f }, { %f, %f } }", VALUE->position[0], VALUE->position[1], VALUE->position[2], VALUE->uv[0], VALUE->uv[1]);
 )
+
 
 const char* NAMES[5] = {
     "Nick",
@@ -77,11 +78,10 @@ int main() {
     printf("%d\n", *vx::hash_table_get(&hash_table, "Ho!"));
 
     vx::hash_table_remove(&hash_table, "Hi!");
+    printf("table len: %lld\n", vx::len(&hash_table));
 
     vx::HashTable<int, const char*> hash_table2 = vx::hash_table_new<int, const char*>();
     VX_DEFER(vx::hash_table_free(&hash_table2));
     vx::clone(&hash_table, &hash_table2);
-
-    vx::_hash_table_dbg(&hash_table2);
 }
 
