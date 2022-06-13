@@ -1,4 +1,1 @@
-[submodule "subprojects/wgpu/src"]
-	path = subprojects/wgpu/src
-	url = https://github.com/gfx-rs/wgpu-native.git
-	branch = v0.12.0.1
+
