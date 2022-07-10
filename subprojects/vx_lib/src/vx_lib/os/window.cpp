@@ -52,7 +52,7 @@ void window_init(WindowDescriptor* descriptor) {
     if (!WINDOWCONTEXT_INSTANCE_VALID) {
         log(LogMessageLevel::WARN, "A window is being created without a context.");
     } else {
-        WINDOWCONTEXT_INSTANCE.context_init_fn(WINDOW_INSTANCE.glfw_window);
+        WINDOWCONTEXT_INSTANCE.context_init_fn(WINDOW_INSTANCE.glfw_window, descriptor);
     }
 
     WINDOW_INSTANCE.callbacks.init   = VX_SAFE_FUNC_PTR(descriptor->init_fn);
@@ -137,6 +137,11 @@ void window_run() {
 
     /*  Call the user's close function and destroy the window.  */
     WINDOW_INSTANCE.callbacks.close();
+
+    if (WINDOWCONTEXT_INSTANCE_VALID) {
+        WINDOWCONTEXT_INSTANCE.context_close_fn();
+    }
+
     glfwDestroyWindow(WINDOW_INSTANCE.glfw_window);
 
     _glfw_terminate();
