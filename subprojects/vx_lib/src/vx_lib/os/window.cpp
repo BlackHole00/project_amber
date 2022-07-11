@@ -61,10 +61,10 @@ void window_init(WindowDescriptor* descriptor) {
     WINDOW_INSTANCE.callbacks.resize = VX_SAFE_FUNC_PTR(descriptor->resize_fn);
     WINDOW_INSTANCE.callbacks.close  = VX_SAFE_FUNC_PTR(descriptor->close_fn);
 
-    WINDOW_INSTANCE.input_data.mouse_data.grabbed     = descriptor->grab_cursor;
-    WINDOW_INSTANCE.input_data.mouse_data.pos_x       = descriptor->width / 2.0f;
-    WINDOW_INSTANCE.input_data.mouse_data.pos_y       = descriptor->height / 2.0f;
-    glfwSetInputMode(WINDOW_INSTANCE.glfw_window, GLFW_CURSOR, descriptor->grab_cursor ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    //WINDOW_INSTANCE.input_data.mouse_data.grabbed     = descriptor->grab_cursor;
+    //WINDOW_INSTANCE.input_data.mouse_data.pos_x       = descriptor->width / 2.0f;
+    //WINDOW_INSTANCE.input_data.mouse_data.pos_y       = descriptor->height / 2.0f;
+    //glfwSetInputMode(WINDOW_INSTANCE.glfw_window, GLFW_CURSOR, descriptor->grab_cursor ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 
     WINDOW_INSTANCE.info_data.title      = descriptor->title;
     WINDOW_INSTANCE.info_data.width      = descriptor->width;

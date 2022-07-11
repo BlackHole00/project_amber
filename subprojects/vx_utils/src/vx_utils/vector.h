@@ -44,14 +44,14 @@ struct Vector {
 template <class T>
 Vector<T> vector_new(usize initial_size = 0, Allocator* allocator = nullptr) {
     VX_VALIDATE_ALLOCATOR(allocator);
-    
+
     Vector<T> vector;
 
     vector.length = initial_size;
     vector._mem_length = initial_size;
     vector._allocator = allocator;
 
-    vector.data = vx::alloc<T>(initial_size, allocator);
+    vector.data = alloc<T>(initial_size, allocator);
     if (initial_size != 0) {
         memset((void*)vector.data, 0, initial_size * sizeof(T));
     }
@@ -66,7 +66,7 @@ template <class T>
 void vector_free(Vector<T>* vector) {
     VX_NULL_ASSERT(vector);
 
-    vx::free(vector->data, vector->_allocator);
+    free<T>(vector->data, vector->_allocator);
     vector->_mem_length = 0;
     vector->length = 0;
     vector->data = nullptr;
@@ -80,7 +80,7 @@ void vector_clear(Vector<T>* vector) {
     VX_NULL_ASSERT(vector);
 
     /* Free half of the memory. */
-    vector->data = vx::realloc(vector->data, vector->_mem_length / 2, vector->_allocator);
+    vector->data = realloc<T>(vector->data, vector->_mem_length / 2, vector->_allocator);
     vector->_mem_length /= 2;
     vector->length = 0;
 }
@@ -97,7 +97,7 @@ void vector_push(Vector<T>* vector, T data) {
     /* If the vector is full, then enlarge it. */
     if (vector->length >= vector->_mem_length) {
         vector->_mem_length = (vector->_mem_length == 0) ? 1 : vector->_mem_length * 2;
-        vector->data = vx::realloc<T>(vector->data, vector->_mem_length, vector->_allocator);
+        vector->data = realloc<T>(vector->data, vector->_mem_length, vector->_allocator);
     }
 
     /* Push the new value. */
@@ -110,7 +110,7 @@ void vector_push(Vector<T>* vector, T data) {
  * @return Returns OptionSome if an item could be found or OptionNone if the vector was empty.
  */
 template <class T>
-vx::Option<T> vector_pop(Vector<T>* vector) {
+Option<T> vector_pop(Vector<T>* vector) {
     VX_NULL_ASSERT(vector);
 
     if (vector->length > 0) {
@@ -120,12 +120,12 @@ vx::Option<T> vector_pop(Vector<T>* vector) {
         /* Resize the vector if needed. */
         if (vector->length <= (vector->_mem_length / 2)) {
             vector->_mem_length /= 2;
-            vector->data = vx::realloc<T>(vector->data, vector->_mem_length, vector->_allocator);
+            vector->data = realloc<T>(vector->data, vector->_mem_length, vector->_allocator);
         }
 
-        return vx::option_some(top);
+        return option_some(top);
     }
-    return vx::option_none<T>();
+    return option_none<T>();
 }
 
 /**
@@ -175,9 +175,9 @@ void vector_insert(Vector<T>* vector, T data, usize index) {
  * @return Returns the element removed if it was found or OptionNone if it did no exist.
  */
 template <class T>
-vx::Option<T> vector_remove(Vector<T>* vector, usize index) {
+Option<T> vector_remove(Vector<T>* vector, usize index) {
     if (index >= vector->length || index < 0) {
-        return vx::option_none<T>();
+        return option_none<T>();
     }
 
     T value = (*vector)[index];
@@ -186,7 +186,7 @@ vx::Option<T> vector_remove(Vector<T>* vector, usize index) {
     }
     vector_pop(vector);
 
-    return vx::option_some(value);
+    return option_some(value);
 }
 
 /**
@@ -194,7 +194,7 @@ vx::Option<T> vector_remove(Vector<T>* vector, usize index) {
  */
 template <class T>
 void vector_resize(Vector<T>* vector, usize new_size) {
-    vector->data = vx::realloc<T>(vector->data, new_size, vector->_allocator);
+    vector->data = realloc<T>(vector->data, new_size, vector->_allocator);
 
     vector->length = new_size;
     vector->_mem_length = new_size;

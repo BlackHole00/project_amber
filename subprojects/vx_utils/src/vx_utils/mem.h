@@ -11,6 +11,8 @@
 /** @brief Get the length of a standard C array (not a pointer!). */
 #define VX_ARRAY_ELEMENT_COUNT(_ARR) (sizeof((_ARR)) / sizeof(*(_ARR)))
 
+#define VX_TRANSMUTE(_TYPE, _OBJ) (*((_TYPE*)(&(_OBJ))))
+
 namespace vx {
 
 template <class T>
@@ -53,9 +55,9 @@ void allocator_stack_pop_allocator();
 /** @brief Returns the current allocator. */
 Allocator* allocator_stack_get_current_allocator();
 
-#define VX_PUSH_ALLOCATOR(_ALLOCATOR)   vx::allocator_stack_push_allocator(_ALLOCATOR)
-#define VX_POP_ALLOCATOR()              vx::allocator_stack_pop_allocator()
-#define VX_GET_ALLOCATOR()              vx::allocator_stack_get_current_allocator()
+#define VX_PUSH_ALLOCATOR(_ALLOCATOR)   ::vx::allocator_stack_push_allocator(_ALLOCATOR)
+#define VX_POP_ALLOCATOR()              ::vx::allocator_stack_pop_allocator()
+#define VX_GET_ALLOCATOR()              ::vx::allocator_stack_get_current_allocator()
 
 /** @brief Validates an allocator. 
  *  @param _ALLOCATOR_PTR A variable containing a pointer to an allocator. If nullptr it will be set the the current allocator from the AllocatorStack.

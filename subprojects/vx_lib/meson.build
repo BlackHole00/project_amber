@@ -16,6 +16,7 @@ lib = static_library('vx_lib',
     'src/vx_lib/os/window.cpp',
     'src/vx_lib/os/window_context.cpp',
     'src/vx_lib/os/context/bgfx_context.cpp',
+    'src/vx_lib/os/input_helper.cpp',
     dependencies: [ lib_vx_utils_dep, lib_glfw_dep, lib_bgfx_dep ],
     include_directories : inc,
     install : true

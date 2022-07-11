@@ -48,6 +48,11 @@ static void memory_print_state() {
     printf("DEALLOCATIONS: %d\n", deallocation_number);
     printf("REALLOCATIONS: %d\n", reallocation_number);
     printf("\nThere are %d blocks to free!\n", allocation_number - deallocation_number);
+
+    if (ALLOCATOR_STACK_INSTANCE_VALID) {
+        printf("\t(Note 1 block is used by the allocator stack. Make sure to call vx::allocator_stack_free() before the program ends.)\n");
+    }
+
     printf("--------------------\n");
 }
 

@@ -54,6 +54,6 @@ template <typename F> _PrivDefer<F> _defer_func(F &&f) { return _PrivDefer<F>(_d
 #define _VX_DEFER_1(x, y) x##y
 #define _VX_DEFER_2(x, y) _VX_DEFER_1(x, y)
 #define _VX_DEFER_3(x)    _VX_DEFER_2(x, __COUNTER__)
-#define VX_DEFER(code)    auto _VX_DEFER_3(_defer_) = vx::_defer_func([&]()->void{code;})
+#define VX_DEFER(code)    auto _VX_DEFER_3(_defer_) = ::vx::_defer_func([&]()->void{code;})
 
 }

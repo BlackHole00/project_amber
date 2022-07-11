@@ -5,7 +5,7 @@
 #include <cstdio>
 
 /** @brief Halts the program with a message. */
-#define VX_PANIC(_MESSAGE) vx::panic(__FILE__, __LINE__, __FUNCTION__, _MESSAGE)
+#define VX_PANIC(_MESSAGE) ::vx::panic(__FILE__, __LINE__, __FUNCTION__, _MESSAGE)
 /** @brief Halts the program with a message if a condition is not satisfied. */
 #define VX_ASSERT(_MESSAGE, _EQ) { if(!(_EQ)) { VX_PANIC(_MESSAGE); } }
 /** @brief Returns _RET if a condition is not satisfied. */

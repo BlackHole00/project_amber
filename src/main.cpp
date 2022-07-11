@@ -2,6 +2,7 @@
 #include <vx_utils/traits/traits.h>
 #include <vx_utils/loggers/stream_logger.h>
 #include <vx_lib/os/window.h>
+#include <vx_lib/os/keys.h>
 #include <vx_lib/os/context/bgfx_context.h>
 #include <bgfx/bgfx.h>
 
@@ -48,6 +49,8 @@ int main() {
 
     vx::window_init(&descriptor);
     vx::window_run();
+
+    vx::allocator_stack_get_current_allocator()->memory_report();
 
     return 0;
 }

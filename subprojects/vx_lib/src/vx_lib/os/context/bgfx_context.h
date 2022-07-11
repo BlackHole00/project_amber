@@ -15,7 +15,7 @@ void bgfxcontext_init_fn(GLFWwindow* window, WindowDescriptor* descriptor);
 void bgfxcontext_close_fn();
 
 inline void windowcontext_init_with_bgfx() {
-    vx::windowcontext_init(bgfxcontext_init_fn, bgfxcontext_close_fn);
+    windowcontext_init(bgfxcontext_init_fn, bgfxcontext_close_fn);
 }
 
 };

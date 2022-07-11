@@ -3,8 +3,6 @@
 #include <GLFW/glfw3.h>
 #include <vx_utils/utils.h>
 
-#include "key_state.h"
-
 namespace vx {
 
 struct WindowDescriptor {
@@ -28,28 +26,6 @@ struct WindowDescriptor {
 };
 
 struct Window {
-    struct {
-        struct {
-            bool grabbed;
-
-            bool moved;
-            f64 offset_x;
-            f64 offset_y;
-            f64 pos_x;
-            f64 pos_y;
-
-            bool scrolled;
-            f64 scroll_offset_x;
-            f64 scroll_offset_y;
-
-            KeyState mouse_buttons[GLFW_MOUSE_BUTTON_LAST];
-        } mouse_data;
-
-        struct {
-            KeyState keys[GLFW_KEY_LAST];
-        } keyboard_data;
-    } input_data;
-
     struct {
         const char* title;
         i32 width;
