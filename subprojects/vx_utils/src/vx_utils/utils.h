@@ -19,4 +19,5 @@
 #include "log.h"
 #include "defer.h"
 #include "slice.h"
+#include "foreach.h"
 #include "traits/traits.h"

@@ -22,3 +22,55 @@ typedef ssize_t isize;
 #endif
 
 typedef char* rawstr;
+
+template <class T>
+struct Vec2 {
+    union {
+        T x;
+        T width;
+    };
+    union {
+        T y;
+        T height;
+    };
+};
+
+template <class T>
+struct Vec3 {
+    union {
+        T x;
+        T width;
+        T r;
+    };
+    union {
+        T y;
+        T height;
+        T g;
+    };
+    union {
+        T z;
+        T b;
+    };
+};
+
+template <class T>
+struct Vec4 {
+    union {
+        T x;
+        T width;
+        T r;
+    };
+    union {
+        T y;
+        T height;
+        T g;
+    };
+    union {
+        T z;
+        T b;
+    };
+    union {
+        T w;
+        T a;
+    };
+};

@@ -1,6 +1,7 @@
 #include "window.h"
 
 #include "window_context.h"
+#include "window_helper.h"
 
 namespace vx {
 
@@ -23,12 +24,25 @@ static void _glfw_terminate() {
 static void _internal_glfw_resize(GLFWwindow* window, i32 width, i32 height) {
 }
 static void _internal_glfw_mouse_pos(GLFWwindow* window, f64 pos_x, f64 pos_y) {
+    //VX_DEBUG_LOG("Cursor update: %lf, %lf", pos_x, pos_y);
+    _windowhelper_update_mouse_pos(pos_x, pos_y);
 }
-static void _internal_glfw_mouse_scroll(GLFWwindow* window, double x_offset, double y_offset) {
+static void _internal_glfw_mouse_scroll(GLFWwindow* window, f64 x_offset, f64 y_offset) {
 }
 static void _internal_glfw_mouse_button(GLFWwindow* window, int button, int action, int mods) {
 }
 static void _internal_glfw_keys(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
+    if (action == GLFW_PRESS) {
+        KeyState* ks = _windowhelper_get_keystate((KeyboardKey)(key));
+
+        ks->just_pressed = true;
+        ks->pressed = true;
+    } else if (action == GLFW_RELEASE) {
+        KeyState* ks = _windowhelper_get_keystate((KeyboardKey)(key));
+
+        ks->just_released = true;
+        ks->pressed = false;
+    }
 }
 
 void window_init(WindowDescriptor* descriptor) {
@@ -61,11 +75,6 @@ void window_init(WindowDescriptor* descriptor) {
     WINDOW_INSTANCE.callbacks.resize = VX_SAFE_FUNC_PTR(descriptor->resize_fn);
     WINDOW_INSTANCE.callbacks.close  = VX_SAFE_FUNC_PTR(descriptor->close_fn);
 
-    //WINDOW_INSTANCE.input_data.mouse_data.grabbed     = descriptor->grab_cursor;
-    //WINDOW_INSTANCE.input_data.mouse_data.pos_x       = descriptor->width / 2.0f;
-    //WINDOW_INSTANCE.input_data.mouse_data.pos_y       = descriptor->height / 2.0f;
-    //glfwSetInputMode(WINDOW_INSTANCE.glfw_window, GLFW_CURSOR, descriptor->grab_cursor ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-
     WINDOW_INSTANCE.info_data.title      = descriptor->title;
     WINDOW_INSTANCE.info_data.width      = descriptor->width;
     WINDOW_INSTANCE.info_data.height     = descriptor->height;
@@ -79,6 +88,8 @@ void window_init(WindowDescriptor* descriptor) {
     glfwSwapInterval(descriptor->swap_interval);
 
     WINDOW_INSTANCE_VALID = true;
+
+    windowhelper_init(descriptor->grab_cursor, descriptor->width / 2.0f, descriptor->height / 2.0f);
 }
 
 void window_run() {
@@ -122,12 +133,12 @@ void window_run() {
             }
         }
 
-        /*  Update the window input helper. */
-        //WINDOWinputhelper_update(&input_helper, self, delta);
-
         /*  Call the user's functions.  */
         WINDOW_INSTANCE.callbacks.logic(delta);
         WINDOW_INSTANCE.callbacks.draw();
+
+        /*  Update the window input helper. */
+        _windowhelper_postlogic_update();
 
         /*  Clear the input's keys and buttons for the next frame.  */
         //_update_keys_and_buttons(self);
@@ -140,6 +151,9 @@ void window_run() {
 
     if (WINDOWCONTEXT_INSTANCE_VALID) {
         WINDOWCONTEXT_INSTANCE.context_close_fn();
+    }
+    if (WINDOWHELPER_INSTANCE_VALID) {
+        windowhelper_free();
     }
 
     glfwDestroyWindow(WINDOW_INSTANCE.glfw_window);

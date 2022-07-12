@@ -7,6 +7,7 @@
 #include "traits/len.h"
 #include "traits/as_slice.h"
 #include "traits/as_ptr.h"
+#include "traits/iterator.h"
 
 // TODO: Actually implement this formula.
 #define VX_VECTOR_GROW_FORMULA(x) (2*(x) + 8)
@@ -200,6 +201,12 @@ void vector_resize(Vector<T>* vector, usize new_size) {
     vector->_mem_length = new_size;
 }
 
+template <class T>
+struct VectorIterator {
+    Vector<T>* vector;
+    usize current_idx;
+};
+
 };
 
 VX_CREATE_CLONE_T(template<class T>, Vector<T>,
@@ -219,6 +226,27 @@ VX_CREATE_AS_SLICE_T(template <class T>, Vector<T>*, T,
 
 VX_CREATE_AS_PTR_T(template <class T>, Vector<T>*, T,
     return slice_new(VALUE->data, VALUE->length);
+)
+
+VX_CREATE_TO_ITER_T(template <class T>, Vector<T>*, VectorIterator<T>,
+    VectorIterator<T> iter;
+
+    iter.vector = VALUE;
+    iter.current_idx = 0;
+
+    return iter;
+)
+
+VX_CREATE_ITER_NEXT_T(template <class T>, VectorIterator<T>, T,
+    VX_ASSERT("Iterator out of bounds!\n", ITER->current_idx < len(ITER->vector));
+
+    ITER->current_idx++;
+
+    return &((*ITER->vector)[ITER->current_idx - 1]);
+)
+
+VX_CREATE_ITER_HAS_FINISHED_T(template <class T>, VectorIterator<T>,
+    return ITER->current_idx >= len(ITER->vector);
 )
 
 /* EXAMPLE:

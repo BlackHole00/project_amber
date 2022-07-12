@@ -1,7 +1,6 @@
 #include "log.h"
 
 #include <cstdio>
-#include <cstdarg>
 
 #include "allocators/raw_allocator.h"
 

@@ -201,6 +201,18 @@ T* hash_table_get(HashTable<T, K>* hash_table, K key) {
     }
 }
 
+template <class T, class K>
+T* hash_table_get_or_insert(HashTable<T, K>* hash_table, K key) {
+    T* value = hash_table_get(hash_table, key);
+    if (value != nullptr) {
+        return value;
+    }
+
+    hash_table_set(hash_table, key, T { });
+
+    return hash_table_get(hash_table, key);
+} 
+
 /**
  * @brief Removes a key and its associated value form the table.
  * @return Returns OptionNone if the key was not found. Returns OptionSome with the remove value otherwise.

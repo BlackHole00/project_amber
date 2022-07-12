@@ -8,6 +8,7 @@
 #include "traits/to_string.h"
 
 #include <cstring>
+#include <cstdarg>
 
 namespace vx {
 
@@ -52,6 +53,51 @@ inline void empty_logger_free() {}
  */
 void log(LogMessageLevel message_level, const char* fmt, ...);
 
+inline void debug_log(const char* fmt, ...) {
+    std::va_list args;
+    va_start(args, fmt);
+
+    log(LogMessageLevel::DEBUG, fmt, args);
+
+    va_end(args);
+}
+
+inline void info_log(const char* fmt, ...) {
+    std::va_list args;
+    va_start(args, fmt);
+
+    log(LogMessageLevel::INFO, fmt, args);
+
+    va_end(args);
+}
+
+inline void warn_log(const char* fmt, ...) {
+    std::va_list args;
+    va_start(args, fmt);
+
+    log(LogMessageLevel::WARN, fmt, args);
+
+    va_end(args);
+}
+
+inline void error_log(const char* fmt, ...) {
+    std::va_list args;
+    va_start(args, fmt);
+
+    log(LogMessageLevel::ERROR, fmt, args);
+
+    va_end(args);
+}
+
+inline void fatal_log(const char* fmt, ...) {
+    std::va_list args;
+    va_start(args, fmt);
+
+    log(LogMessageLevel::FATAL, fmt, args);
+
+    va_end(args);
+}
+
 };
 
 VX_CREATE_TO_STRING(LogMessageLevel, 
@@ -81,9 +127,3 @@ VX_CREATE_TO_STRING(LogMessageLevel,
         }
     }
 )
-
-//#define VX_DEBUG_LOG(_FMT, ...) vx_log(VX_LOGMESSAGELEVEL_DEBUG, _FMT, __VA_ARGS__)
-//#define VX_INFO_LOG (_FMT, ...) vx_log(VX_LOGMESSAGELEVEL_INFO,  _FMT, __VA_ARGS__)
-//#define VX_WARN_LOG (_FMT, ...) vx_log(VX_LOGMESSAGELEVEL_WARN,  _FMT, __VA_ARGS__)
-//#define VX_ERROR_LOG(_FMT, ...) vx_log(VX_LOGMESSAGELEVEL_ERROR, _FMT, __VA_ARGS__)
-//#define VX_FATAL_LOG(_FMT, ...) vx_log(VX_LOGMESSAGELEVEL_FATAL, _FMT, __VA_ARGS__)

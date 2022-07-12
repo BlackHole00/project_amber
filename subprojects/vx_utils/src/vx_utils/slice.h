@@ -4,6 +4,7 @@
 #include "mem.h"
 #include "traits/len.h"
 #include "traits/as_ptr.h"
+#include "traits/iterator.h"
 
 namespace vx {
 
@@ -59,6 +60,12 @@ Slice<T> slice_from_array(T array[LEN]) {
     return slice;
 }
 
+template <class T>
+struct SliceIterator {
+    Slice<T> slice;
+    usize current_idx;
+};
+
 };
 
 VX_CREATE_LEN_T(template <class T>, Slice<T>, 
@@ -67,4 +74,25 @@ VX_CREATE_LEN_T(template <class T>, Slice<T>,
 
 VX_CREATE_AS_PTR_T(template <class T>, Slice<T>, T,
     return VALUE.data;
+)
+
+VX_CREATE_TO_ITER_T(template <class T>, Slice<T>, SliceIterator<T>,
+    SliceIterator<T> iter;
+
+    iter.slice = VALUE;
+    iter.current_idx = 0;
+
+    return iter;
+)
+
+VX_CREATE_ITER_NEXT_T(template <class T>, SliceIterator<T>, T,
+    VX_ASSERT("Iterator out of bounds!\n", ITER->current_idx < len(ITER->slice));
+
+    ITER->current_idx++;
+
+    return &(ITER->slice[ITER->current_idx - 1]);
+)
+
+VX_CREATE_ITER_HAS_FINISHED_T(template <class T>, SliceIterator<T>,
+    return ITER->current_idx >= len(ITER->slice);
 )
