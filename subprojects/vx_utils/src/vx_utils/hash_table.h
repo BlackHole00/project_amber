@@ -7,6 +7,7 @@
 #include "defer.h"
 #include "traits/compare.h"
 #include "traits/hash.h"
+#include "traits/iterator.h"
 
 namespace vx {
 
@@ -55,7 +56,7 @@ struct HashTable {
  * @param allocator A pointer to an allocator. If nullptr, the current allocator from the AllocatorStack will be used.
  */
 template <class T, class K>
-HashTable<T, K> hash_table_new(Allocator* allocator = nullptr) {
+HashTable<T, K> hashtable_new(Allocator* allocator = nullptr) {
     VX_VALIDATE_ALLOCATOR(allocator);
 
     HashTable<T, K> ht;
@@ -76,12 +77,12 @@ HashTable<T, K> hash_table_new(Allocator* allocator = nullptr) {
  * @param allocator A pointer to an allocator. If nullptr, the current allocator from the AllocatorStack will be used.
  */
 template <class T, class K>
-HashTable<T, K> hash_table_new_with_size(usize size, Allocator* allocator = nullptr) {
+HashTable<T, K> hashtable_new_with_size(usize size, Allocator* allocator = nullptr) {
     VX_VALIDATE_ALLOCATOR(allocator);
 
-    HashTable<T, K> ht = hash_table_new<T, K>(allocator);
+    HashTable<T, K> ht = hashtable_new<T, K>(allocator);
 
-    _hash_table_resize(&ht, size);
+    _hashtable_resize(&ht, size);
 
     return ht;
 }
@@ -90,7 +91,7 @@ HashTable<T, K> hash_table_new_with_size(usize size, Allocator* allocator = null
  * @brief Frees an hash table.
  */
 template <class T, class K>
-void hash_table_free(HashTable<T, K>* hash_table) {
+void hashtable_free(HashTable<T, K>* hash_table) {
     vector_free(&hash_table->elements);
 }
 
@@ -98,7 +99,7 @@ void hash_table_free(HashTable<T, K>* hash_table) {
  * @brief INTERNAL - Sets a key on the table without checking for resizing.
  */
 template <class T, class K>
-void _raw_hash_table_set(HashTable<T, K>* hash_table, K key, T value) {
+void _raw_hashtable_set(HashTable<T, K>* hash_table, K key, T value) {
     bool new_entry = true;
     u64 hash_value = hash(key) % _VX_HASHTABLE_MEM_LENGTH(hash_table);
     while (hash_table->elements[hash_value].state == HashTableBucketState::Used) {
@@ -124,13 +125,13 @@ void _raw_hash_table_set(HashTable<T, K>* hash_table, K key, T value) {
  * @brief INTERNAL - Resizes a table (This operation rehashes all the elements).
  */
 template <class T, class K>
-void _hash_table_resize(HashTable<T, K>* hash_table, usize new_len) {
+void _hashtable_resize(HashTable<T, K>* hash_table, usize new_len) {
     vector_resize(&hash_table->elements, new_len);
 
     Vector<HashTableBucket<T, K>> buckets = vector_new<HashTableBucket<T, K>>(0, hash_table->_allocator);
     VX_DEFER(vector_free(&buckets));
 
-    for (usize i = 0; i < hash_table->num_elems; i++) {
+    for (usize i = 0; i < _VX_HASHTABLE_MEM_LENGTH(hash_table); i++) {
         if (hash_table->elements[i].state == HashTableBucketState::Used) {
             vector_push(&buckets, hash_table->elements[i]);
         }
@@ -142,7 +143,7 @@ void _hash_table_resize(HashTable<T, K>* hash_table, usize new_len) {
 
     hash_table->num_elems = 0;
     for (usize i = 0; i < buckets.length; i++) {
-        _raw_hash_table_set(hash_table, buckets[i].key, buckets[i].value);
+        _raw_hashtable_set(hash_table, buckets[i].key, buckets[i].value);
     }
 }
 
@@ -150,22 +151,22 @@ void _hash_table_resize(HashTable<T, K>* hash_table, usize new_len) {
  * @brief INTERNAL - Resizes a table if more space is needed.
  */
 template <class T, class K>
-void _hash_table_check_resize(HashTable<T, K>* hash_table) {
+void _hashtable_check_resize(HashTable<T, K>* hash_table) {
     /* There should always be an empty slot in the table. */
     if ((hash_table->num_elems + 1) < hash_table->elements.length) {
         return;
     }
 
-    _hash_table_resize(hash_table, _VX_HASHTABLE_MEM_LENGTH(hash_table) * 2);
+    _hashtable_resize(hash_table, _VX_HASHTABLE_MEM_LENGTH(hash_table) * 2);
 }
 
 /**
  * @brief Inserts a pair of key and value in the table.
  */
 template <class T, class K>
-void hash_table_set(HashTable<T, K>* hash_table, K key, T value) {
-    _hash_table_check_resize(hash_table);
-    _raw_hash_table_set(hash_table, key, value);
+void hashtable_set(HashTable<T, K>* hash_table, K key, T value) {
+    _hashtable_check_resize(hash_table);
+    _raw_hashtable_set(hash_table, key, value);
 
 }
 
@@ -174,7 +175,7 @@ void hash_table_set(HashTable<T, K>* hash_table, K key, T value) {
  * @return Returns nullptr if the key was not found.
  */
 template <class T, class K>
-T* hash_table_get(HashTable<T, K>* hash_table, K key) {
+T* hashtable_get(HashTable<T, K>* hash_table, K key) {
     u64 hash_value = hash(key) % _VX_HASHTABLE_MEM_LENGTH(hash_table);
 
     /* If the bucket at the hash position is empty, then the key does not exists. */
@@ -202,15 +203,15 @@ T* hash_table_get(HashTable<T, K>* hash_table, K key) {
 }
 
 template <class T, class K>
-T* hash_table_get_or_insert(HashTable<T, K>* hash_table, K key) {
-    T* value = hash_table_get(hash_table, key);
+T* hashtable_get_or_insert(HashTable<T, K>* hash_table, K key) {
+    T* value = hashtable_get(hash_table, key);
     if (value != nullptr) {
         return value;
     }
 
-    hash_table_set(hash_table, key, T { });
+    hashtable_set(hash_table, key, T { });
 
-    return hash_table_get(hash_table, key);
+    return hashtable_get(hash_table, key);
 } 
 
 /**
@@ -218,7 +219,7 @@ T* hash_table_get_or_insert(HashTable<T, K>* hash_table, K key) {
  * @return Returns OptionNone if the key was not found. Returns OptionSome with the remove value otherwise.
  */
 template <class T, class K>
-Option<T> hash_table_remove(HashTable<T, K>* hash_table, K key) {
+Option<T> hashtable_remove(HashTable<T, K>* hash_table, K key) {
     u64 hash_value = hash(key) % _VX_HASHTABLE_MEM_LENGTH(hash_table);
 
     if (hash_table->elements[hash_value].state != HashTableBucketState::Used) {
@@ -250,12 +251,44 @@ Option<T> hash_table_remove(HashTable<T, K>* hash_table, K key) {
 }
 
 template <class T, class K>
-void hash_table_set_all_values(HashTable<T, K>* hash_table, T value) {
+void hashtable_set_all_values(HashTable<T, K>* hash_table, T value) {
     for (usize i = 0; i < len(&hash_table->elements); i++) {
         if (hash_table->elements[i].state == HashTableBucketState::Used) {
             hash_table->elements[i].value = value;
         }
     }
+}
+
+template <class T, class K>
+struct HashTableElementIterator {
+    HashTable<T, K>* hash_table;
+    usize current_idx;
+};
+
+template <class T, class K>
+struct HashTableKeyIterator {
+    HashTable<T, K>* hash_table;
+    usize current_idx;
+};
+
+template <class T, class K>
+HashTableElementIterator<T, K> hashtable_get_element_iter(HashTable<T, K>* hash_table) {
+    HashTableElementIterator<T, K> iter;
+
+    iter.hash_table = hash_table;
+    iter.current_idx = 0;
+
+    return iter;
+}
+
+template <class T, class K>
+HashTableKeyIterator<T, K> hashtable_get_key_iter(HashTable<T, K>* hash_table) {
+    HashTableKeyIterator<T, K> iter;
+
+    iter.hash_table = hash_table;
+    iter.current_idx = 0;
+
+    return iter;
 }
 
 };
@@ -272,6 +305,66 @@ VX_CREATE_LEN_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTabl
     VX_NULL_ASSERT(VALUE);
 
     return VALUE->num_elems;
+)
+
+VX_CREATE_TO_ITER_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTable<T, K>*), VX_MACRO_ARG(HashTableElementIterator<T, K>),
+    return hashtable_get_element_iter(VALUE);
+)
+
+VX_CREATE_ITER_NEXT_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTableElementIterator<T, K>), T,
+    while (ITER->hash_table->elements[ITER->current_idx].state != HashTableBucketState::Used) {
+        ITER->current_idx++;
+
+        VX_ASSERT("HashTableElementIterator out of bounds!", ITER->current_idx < _VX_HASHTABLE_MEM_LENGTH(ITER->hash_table));
+    }
+
+    ITER->current_idx++;
+
+    return &(ITER->hash_table->elements[ITER->current_idx - 1].value);
+)
+
+VX_CREATE_ITER_HAS_FINISHED_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTableElementIterator<T, K>),
+    bool finish = true;
+
+    usize tmp = ITER->current_idx;
+    while (tmp < _VX_HASHTABLE_MEM_LENGTH(ITER->hash_table)) {
+        if (ITER->hash_table->elements[tmp].state == HashTableBucketState::Used) {
+            finish = false;
+            break;
+        }
+
+        tmp++;
+    }
+
+    return finish;
+)
+
+VX_CREATE_ITER_NEXT_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTableKeyIterator<T, K>), K,
+    while (ITER->hash_table->elements[ITER->current_idx].state != HashTableBucketState::Used) {
+        ITER->current_idx++;
+
+        VX_ASSERT("HashTableKeyIterator out of bounds!", ITER->current_idx < _VX_HASHTABLE_MEM_LENGTH(ITER->hash_table));
+    }
+
+    ITER->current_idx++;
+
+    return &(ITER->hash_table->elements[ITER->current_idx - 1].key);
+)
+
+VX_CREATE_ITER_HAS_FINISHED_T(VX_MACRO_ARG(template <class T, class K>), VX_MACRO_ARG(HashTableKeyIterator<T, K>),
+    bool finish = true;
+
+    usize tmp = ITER->current_idx;
+    while (tmp < _VX_HASHTABLE_MEM_LENGTH(ITER->hash_table)) {
+        if (ITER->hash_table->elements[tmp].state == HashTableBucketState::Used) {
+            finish = false;
+            break;
+        }
+
+        tmp++;
+    }
+
+    return finish;
 )
 
 #undef _VX_HASHTABLE_MEM_LENGTH

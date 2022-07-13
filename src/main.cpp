@@ -22,14 +22,14 @@ void init() {
 void logic(f64 delta) {
     //vx::log(vx::LogMessageLevel::INFO, "Mouse offset: %lf, %lf\n", vx::WINDOWHELPER_INSTANCE.input.mouse_data.offset_x, vx::WINDOWHELPER_INSTANCE.input.mouse_data.offset_y);
 
-    //if (vx::windowhelper_input_get_keystate(vx::KeyboardKey::Space).just_pressed) {
-    //    vx::debug_log("aaaa");
-    //} else if (vx::windowhelper_input_get_keystate(vx::KeyboardKey::Space).just_released) {
-    //    vx::debug_log("bbbb");
-    //}
-    //if (vx::windowhelper_input_get_keystate(vx::KeyboardKey::Space).pressed) {
-    //    vx::debug_log("cccc");
-    //}
+    if (vx::windowhelper_input_get_keystate(vx::KeyboardKey::Space).just_pressed) {
+        vx::debug_log("aaaa");
+    } else if (vx::windowhelper_input_get_keystate(vx::KeyboardKey::Space).just_released) {
+        vx::debug_log("bbbb");
+    }
+    if (vx::windowhelper_input_get_keystate(vx::KeyboardKey::Space).pressed) {
+        vx::debug_log("cccc");
+    }
 }
 
 void draw() {
@@ -58,28 +58,6 @@ int main() {
 
     VX_DEFER(vx::stream_logger_free());
     VX_DEFER(vx::allocator_stack_free());
-
-    vx::Slice<int> slice = vx::slice_new(TEST_VEC, 10);
-    vx::SliceIterator<int> iter = vx::to_iter(slice);
-    vx::log(vx::LogMessageLevel::DEBUG, "%llu asdasd", iter.current_idx);
-    VX_FOREACH(num, slice,
-        vx::log(vx::LogMessageLevel::DEBUG, "%d asdasd", *num);
-    )
-
-    vx::Vector<int> vec = vx::vector_new<int>();
-    VX_DEFER(vx::vector_free(&vec));
-    vx::vector_push(&vec, 0);
-    vx::vector_push(&vec, 1);
-    vx::vector_push(&vec, 2);
-    vx::vector_push(&vec, 3);
-    vx::vector_push(&vec, 4);
-    vx::vector_push(&vec, 5);
-    vx::vector_push(&vec, 6);
-    vx::vector_push(&vec, 7);
-
-    VX_FOREACH(num, &vec,
-        vx::log(vx::LogMessageLevel::DEBUG, "%d asdasd", *num);
-    )
 
     vx::windowcontext_init_with_bgfx();
 

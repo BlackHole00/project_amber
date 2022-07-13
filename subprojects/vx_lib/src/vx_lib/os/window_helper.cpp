@@ -11,8 +11,8 @@ void windowhelper_init(bool grabbed, f64 mouse_pos_x, f64 mouse_pos_y) {
         return;
     }
 
-    WINDOWHELPER_INSTANCE.input.keyboard.keys = hash_table_new_with_size<KeyState, KeyboardKey>((usize)(KeyboardKey::Count));
-    hash_table_set_all_values(&WINDOWHELPER_INSTANCE.input.keyboard.keys, KeyState { 0 });
+    WINDOWHELPER_INSTANCE.input.keyboard.keys = hashtable_new_with_size<KeyState, KeyboardKey>((usize)(KeyboardKey::Count));
+    hashtable_set_all_values(&WINDOWHELPER_INSTANCE.input.keyboard.keys, KeyState { 0 });
 
     windowhelper_input_set_mouse_grab(grabbed);
     windowhelper_input_set_mouse_pos(mouse_pos_x, mouse_pos_y);
@@ -21,7 +21,7 @@ void windowhelper_init(bool grabbed, f64 mouse_pos_x, f64 mouse_pos_y) {
 }
 
 void windowhelper_free() {
-    hash_table_free(&WINDOWHELPER_INSTANCE.input.keyboard.keys);
+    hashtable_free(&WINDOWHELPER_INSTANCE.input.keyboard.keys);
 }
 
 void windowhelper_input_set_mouse_grab(bool grabbed) {
@@ -43,13 +43,10 @@ void windowhelper_input_set_mouse_pos(f64 pos_x, f64 pos_y, bool update_offset) 
 }
 
 void _windowhelper_postlogic_update() {
-    // TODO: Make iterators.
-    for (usize i = 0; i < len(&WINDOWHELPER_INSTANCE.input.keyboard.keys.elements); i++) {
-        if (WINDOWHELPER_INSTANCE.input.keyboard.keys.elements[i].state == HashTableBucketState::Used) {
-            WINDOWHELPER_INSTANCE.input.keyboard.keys.elements[i].value.just_pressed = false;
-            WINDOWHELPER_INSTANCE.input.keyboard.keys.elements[i].value.just_released = false;
-        }
-    }
+    VX_FOREACH(key_state, &WINDOWHELPER_INSTANCE.input.keyboard.keys, 
+        key_state->just_pressed = false;
+        key_state->just_released = false;
+    )
 
     WINDOWHELPER_INSTANCE.input.mouse_data.offset.x = 0.0f;
     WINDOWHELPER_INSTANCE.input.mouse_data.offset.y = 0.0f;
