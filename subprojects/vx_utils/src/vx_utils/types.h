@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+#define var auto
+
 typedef std::uint8_t byte;
 typedef std::uint8_t u8;
 typedef std::uint16_t u16;
@@ -23,6 +25,8 @@ typedef ssize_t isize;
 
 typedef char* rawstr;
 
+namespace vx {
+
 template <class T>
 struct Vec2 {
     union {
@@ -34,6 +38,11 @@ struct Vec2 {
         T height;
     };
 };
+
+template <class T>
+inline Vec2<T> vec2_new(T v1, T v2) {
+    return Vec2<T> { v1, v2 };
+}
 
 template <class T>
 struct Vec3 {
@@ -52,6 +61,11 @@ struct Vec3 {
         T b;
     };
 };
+
+template <class T>
+inline Vec3<T> vec3_new(T v1, T v2, T v3) {
+    return Vec3<T> { v1, v2, v3 };
+}
 
 template <class T>
 struct Vec4 {
@@ -73,4 +87,11 @@ struct Vec4 {
         T w;
         T a;
     };
+};
+
+template <class T>
+inline Vec4<T> vec4_new(T v1, T v2, T v3, T v4) {
+    return Vec4<T> { v1, v2, v3, v4 };
+}
+
 };

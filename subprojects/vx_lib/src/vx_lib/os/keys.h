@@ -19,7 +19,7 @@ struct KeyState {
     bool just_released: 6;
 };
 
-enum class KeyboardKey: i16 {   // copied from glfw3.h
+enum class Key: i16 {   // copied from glfw3.h
     Unknown         = -1,
 
     Space           = 32,
@@ -152,15 +152,28 @@ enum class KeyboardKey: i16 {   // copied from glfw3.h
     RightSuper      = 347,
     Menu            = 348,
 
-    Last            = (u16)(KeyboardKey::Menu),
-    Count           = 119,
+    MouseLeftButton = 0,
+    MouseRightButton  = 1,
+    MouseMiddleButton = 2,
+    MouseButton1    = 0,
+    MouseButton2    = 1,
+    MouseButton3    = 2,
+    MouseButton4    = 3,
+    MouseButton5    = 4,
+    MouseButton6    = 5,
+    MouseButton7    = 6,
+    MouseButton8    = 7,
+
+
+    Last            = (u16)(Key::Menu),
+    Count           = 127,
 };
 
 };
 
-VX_CREATE_COMPARE(KeyboardKey,
+VX_CREATE_COMPARE(Key,
     return (V1 == V2) ? ComparationResult::Equal : ComparationResult::Lesser;
 );
-VX_CREATE_HASH(KeyboardKey,
+VX_CREATE_HASH(Key,
     return (u64)(VALUE) * (u64)(158) % (u64)(255);
 );

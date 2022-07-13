@@ -64,8 +64,8 @@ void bgfxcontext_init_fn(GLFWwindow* window, WindowDescriptor* descriptor) {
 
     if (!BGFX_CONTEXT_INSTANCE_VALID) {
         BGFX_CONTEXT_INSTANCE.bgfx_initializer.resolution = bgfx::Resolution();
-        BGFX_CONTEXT_INSTANCE.bgfx_initializer.resolution.width = descriptor->width;
-        BGFX_CONTEXT_INSTANCE.bgfx_initializer.resolution.height = descriptor->height;
+        BGFX_CONTEXT_INSTANCE.bgfx_initializer.resolution.width = descriptor->size.width;
+        BGFX_CONTEXT_INSTANCE.bgfx_initializer.resolution.height = descriptor->size.height;
         BGFX_CONTEXT_INSTANCE.bgfx_initializer.resolution.reset = BGFX_RESET_VSYNC;
     }
 

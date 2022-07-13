@@ -22,23 +22,35 @@ static void _glfw_terminate() {
     }
 }
 static void _internal_glfw_resize(GLFWwindow* window, i32 width, i32 height) {
+    windowhelper_state_set_window_size(vec2_new(width, height));
 }
 static void _internal_glfw_mouse_pos(GLFWwindow* window, f64 pos_x, f64 pos_y) {
-    //VX_DEBUG_LOG("Cursor update: %lf, %lf", pos_x, pos_y);
-    _windowhelper_update_mouse_pos(pos_x, pos_y);
+    _windowhelper_update_mouse_pos(vec2_new(pos_x, pos_y));
 }
 static void _internal_glfw_mouse_scroll(GLFWwindow* window, f64 x_offset, f64 y_offset) {
+    _windowhelper_update_mouse_scroll(vec2_new(x_offset, y_offset));
 }
-static void _internal_glfw_mouse_button(GLFWwindow* window, int button, int action, int mods) {
-}
-static void _internal_glfw_keys(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
+static void _internal_glfw_mouse_button(GLFWwindow* window, i32 button, i32 action, i32 mods) {
     if (action == GLFW_PRESS) {
-        KeyState* ks = _windowhelper_get_keystate((KeyboardKey)(key));
+        KeyState* ks = _windowhelper_get_keystate((Key)(button));
 
         ks->just_pressed = true;
         ks->pressed = true;
     } else if (action == GLFW_RELEASE) {
-        KeyState* ks = _windowhelper_get_keystate((KeyboardKey)(key));
+        KeyState* ks = _windowhelper_get_keystate((Key)(button));
+
+        ks->just_released = true;
+        ks->pressed = false;
+    }
+}
+static void _internal_glfw_keys(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
+    if (action == GLFW_PRESS) {
+        KeyState* ks = _windowhelper_get_keystate((Key)(key));
+
+        ks->just_pressed = true;
+        ks->pressed = true;
+    } else if (action == GLFW_RELEASE) {
+        KeyState* ks = _windowhelper_get_keystate((Key)(key));
 
         ks->just_released = true;
         ks->pressed = false;
@@ -54,7 +66,7 @@ void window_init(WindowDescriptor* descriptor) {
     glfw_window_hint(GLFW_RESIZABLE,                 descriptor->resizable);
     glfw_window_hint(GLFW_TRANSPARENT_FRAMEBUFFER,   descriptor->transparent_framebuffer);
 
-    WINDOW_INSTANCE.glfw_window = glfwCreateWindow(descriptor->width, descriptor->height, descriptor->title, descriptor->fullscreen ? glfwGetPrimaryMonitor(): NULL, NULL);
+    WINDOW_INSTANCE.glfw_window = glfwCreateWindow(descriptor->size.width, descriptor->size.height, descriptor->title, descriptor->fullscreen ? glfwGetPrimaryMonitor(): NULL, NULL);
     VX_ASSERT_EXIT_OP("Could not create the glfw window!", WINDOW_INSTANCE.glfw_window, _glfw_terminate());
 
     glfwSetWindowSizeCallback(WINDOW_INSTANCE.glfw_window,   _internal_glfw_resize);
@@ -76,8 +88,7 @@ void window_init(WindowDescriptor* descriptor) {
     WINDOW_INSTANCE.callbacks.close  = VX_SAFE_FUNC_PTR(descriptor->close_fn);
 
     WINDOW_INSTANCE.info_data.title      = descriptor->title;
-    WINDOW_INSTANCE.info_data.width      = descriptor->width;
-    WINDOW_INSTANCE.info_data.height     = descriptor->height;
+    WINDOW_INSTANCE.info_data.size       = descriptor->size;
     WINDOW_INSTANCE.info_data.fullscreen = descriptor->fullscreen;
     WINDOW_INSTANCE.info_data.resizable  = descriptor->resizable;
     WINDOW_INSTANCE.info_data.decorated  = descriptor->decorated;
@@ -89,7 +100,7 @@ void window_init(WindowDescriptor* descriptor) {
 
     WINDOW_INSTANCE_VALID = true;
 
-    windowhelper_init(descriptor->grab_cursor, descriptor->width / 2.0f, descriptor->height / 2.0f);
+    windowhelper_init(descriptor->grab_cursor, vec2_new<f64>(descriptor->size.width / 2.0f, descriptor->size.height / 2.0f));
 }
 
 void window_run() {
@@ -134,7 +145,7 @@ void window_run() {
         }
 
         /*  Call the user's functions.  */
-        WINDOW_INSTANCE.callbacks.logic(delta);
+        WINDOW_INSTANCE.callbacks.logic();
         WINDOW_INSTANCE.callbacks.draw();
 
         /*  Update the window input helper. */

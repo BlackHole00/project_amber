@@ -7,8 +7,7 @@ namespace vx {
 
 struct WindowDescriptor {
     const char* title = "Window";
-    i32 width = 640;
-    i32 height = 480;
+    Vec2<i32> size = { 640, 480 };
     bool fullscreen = false;
     bool decorated = true;
     bool transparent_framebuffer = false;
@@ -19,17 +18,16 @@ struct WindowDescriptor {
     u32 swap_interval = 0;
 
     VX_CALLBACK(void, init_fn,      void)       = nullptr;
-    VX_CALLBACK(void, logic_fn,     f64 delta)  = nullptr;
+    VX_CALLBACK(void, logic_fn,     void)       = nullptr;
     VX_CALLBACK(void, draw_fn,      void)       = nullptr;
     VX_CALLBACK(void, close_fn,     void)       = nullptr;
-    VX_CALLBACK(void, resize_fn,    usize width, usize height) = nullptr;
+    VX_CALLBACK(void, resize_fn,    void)       = nullptr;
 };
 
 struct Window {
     struct {
         const char* title;
-        i32 width;
-        i32 height;
+        Vec2<i32> size;
         bool fullscreen;
         bool decorated;
         bool transparent_framebuffer;
@@ -41,10 +39,10 @@ struct Window {
 
     struct {
         VX_CALLBACK(void, init,     void);
-        VX_CALLBACK(void, logic,    f64 delta);
+        VX_CALLBACK(void, logic,    void);
         VX_CALLBACK(void, draw,     void);
         VX_CALLBACK(void, close,    void);
-        VX_CALLBACK(void, resize,   usize width, usize height);
+        VX_CALLBACK(void, resize,   void);
     } callbacks;
 
     GLFWwindow* glfw_window;

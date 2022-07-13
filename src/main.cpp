@@ -19,16 +19,9 @@ void init() {
 
 }
 
-void logic(f64 delta) {
-    //vx::log(vx::LogMessageLevel::INFO, "Mouse offset: %lf, %lf\n", vx::WINDOWHELPER_INSTANCE.input.mouse_data.offset_x, vx::WINDOWHELPER_INSTANCE.input.mouse_data.offset_y);
-
-    if (vx::windowhelper_input_get_keystate(vx::KeyboardKey::Space).just_pressed) {
-        vx::debug_log("aaaa");
-    } else if (vx::windowhelper_input_get_keystate(vx::KeyboardKey::Space).just_released) {
-        vx::debug_log("bbbb");
-    }
-    if (vx::windowhelper_input_get_keystate(vx::KeyboardKey::Space).pressed) {
-        vx::debug_log("cccc");
+void logic() {
+    if (vx::windowhelper_input_get_keystate(vx::Key::Escape).pressed) {
+        vx::windowhelper_close_window();
     }
 }
 
@@ -41,6 +34,11 @@ void draw() {
 	bgfx::touch(0);
 
     bgfx::frame();
+}
+
+void resize() {
+    var size = vx::windowhelper_state_get_window_size();
+    vx::log(vx::LogMessageLevel::INFO, "Window resized to %dx%d", size.width, size.height);
 }
 
 void close() {
@@ -62,10 +60,12 @@ int main() {
     vx::windowcontext_init_with_bgfx();
 
     vx::WindowDescriptor descriptor;
-    descriptor.init_fn = am::init;
+    descriptor.resizable = true;
+    descriptor.init_fn  = am::init;
     descriptor.logic_fn = am::logic;
-    descriptor.draw_fn = am::draw;
+    descriptor.draw_fn  = am::draw;
     descriptor.close_fn = am::close;
+    descriptor.resize_fn = am::resize;
 
     vx::window_init(&descriptor);
     vx::window_run();
