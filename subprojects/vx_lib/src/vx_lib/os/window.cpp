@@ -106,12 +106,6 @@ void window_init(WindowDescriptor* descriptor) {
 void window_run() {
     VX_ASSERT("The window instance has not been initilized yet!", WINDOW_INSTANCE_VALID);
 
-    ///*  Create helper structs for the user. */
-    //vx_WindowInputHelper input_helper = vx_windowinputhelper_new(self);
-    //vx_WindowControl control = vx_windowcontrol_new(self);
-    //self->utils_ptrs.input_helper = &input_helper;
-    //self->utils_ptrs.window_control = &control;
-
     /*  Time counting data  initialization. */
     f64 last_time       = glfwGetTime();
     f64 current_time    = 0.0f;
@@ -151,9 +145,6 @@ void window_run() {
         /*  Update the window input helper. */
         _windowhelper_postlogic_update();
 
-        /*  Clear the input's keys and buttons for the next frame.  */
-        //_update_keys_and_buttons(self);
-        //glfwSwapBuffers(WINDOW_INSTANCE.glfw_window);
         glfwPollEvents();
     }
 

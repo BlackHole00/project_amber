@@ -36,6 +36,15 @@ void log(LogMessageLevel message_level, const char* fmt, ...) {
 
         std::vsprintf(buffer, fmt, args);
 
+        for (int i = required_chars; i >= 0; i--) {
+            if (buffer[i] == '\n') {
+                buffer[i] = '\0';
+            }
+            else if (buffer[i] != '\0') {
+                break;
+            }
+        }
+
         LOGGER_INSTANCE.print(message_level, buffer);
 
         if (!ALLOCATOR_STACK_INSTANCE_VALID) {

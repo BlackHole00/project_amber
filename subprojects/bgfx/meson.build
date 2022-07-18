@@ -3,7 +3,7 @@ project('lib_bgfx', 'cpp')
 make = find_program('make')
 run_command(make, '-C', 'bgfx', 'mingw-gcc-debug64')
 
-inc = include_directories([ 'bgfx/include' ])
+inc = include_directories([ 'bgfx/include', 'bx/include/compat/mingw', 'bx/include' ])
 
 lib_bgfx_dep = declare_dependency(include_directories : inc,
     link_args: [
@@ -19,5 +19,8 @@ lib_bgfx_dep = declare_dependency(include_directories : inc,
         '-lspirv-crossDebug',
         '-lspirv-optDebug',
         '-lpsapi'
+    ],
+    compile_args: [
+        '-D BX_CONFIG_DEBUG=1'
     ]
 )

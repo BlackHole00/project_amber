@@ -3,6 +3,9 @@
 #include <cstdio>
 #include <cstdlib>
 
+// TODO: Implement atomic in vx_utils
+#include <atomic>
+
 #include "../panic.h"
 
 namespace vx {
@@ -10,9 +13,9 @@ namespace vx {
 VX_CREATE_INSTANCE(RawAllocator, RAW_ALLOCATOR_INSTANCE)
 
 /* TODO: Make atomic. */
-static u32 allocation_number = 0;
-static u32 deallocation_number = 0;
-static u32 reallocation_number = 0;
+static std::atomic<u32> allocation_number = 0;
+static std::atomic<u32> deallocation_number = 0;
+static std::atomic<u32> reallocation_number = 0;
 
 static void* raw_alloc(usize size) {
     void* ptr = std::malloc(size);
@@ -44,10 +47,10 @@ static void raw_free(void* ptr) {
 
 static void memory_print_state() {
     printf("\n---[Memory state]---\n");
-    printf("ALLOCATIONS: %d\n", allocation_number);
-    printf("DEALLOCATIONS: %d\n", deallocation_number);
-    printf("REALLOCATIONS: %d\n", reallocation_number);
-    printf("\nThere are %d blocks to free!\n", allocation_number - deallocation_number);
+    printf("ALLOCATIONS: %d\n", (int)(allocation_number));
+    printf("DEALLOCATIONS: %d\n", (int)(deallocation_number));
+    printf("REALLOCATIONS: %d\n", (int)(reallocation_number));
+    printf("\nThere are %d blocks to free!\n", (int)(allocation_number - deallocation_number));
 
     if (ALLOCATOR_STACK_INSTANCE_VALID) {
         printf("\t(Note: 1 block is used by the allocator stack. Make sure to call vx::allocator_stack_free() before the program ends.)\n");

@@ -3,6 +3,7 @@
 #include "macro.h"
 
 #include <cstdio>
+#include <cstdlib>
 
 /** @brief Halts the program with a message. */
 #define VX_PANIC(_MESSAGE) ::vx::panic(__FILE__, __LINE__, __FUNCTION__, _MESSAGE)
@@ -47,6 +48,10 @@ namespace vx {
  * @param message The crash message.
  */
 void panic(const char* file, int line, const char* function, const char* message);
+
+inline void halt() {
+    std::exit(-1);
+}
 
 };
 
