@@ -9,6 +9,7 @@
 #include <bgfx/bgfx.h>
 #include <bx/bx.h>
 #include <bx/math.h>
+#include <cmath>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -27,13 +28,73 @@ struct Vertex {
 VX_CREATE_INSTANCE(bgfx::VertexLayout, VERTEX_LAYOUT);
 
 Vertex VERTICES[] = {
-    Vertex { -0.5, -0.5, 0.0, 0xff0000ff },
-    Vertex {  0.5, -0.5, 0.0, 0xff00ff00 },
-    Vertex {  0.0,  0.5, 0.0, 0xffff0000 }
+    // FRONT FACE
+    Vertex { -0.5, -0.5, 0.5, 0xff0000ff },
+    Vertex {  0.5, -0.5, 0.5, 0xff0000ff },
+    Vertex {  0.5,  0.5, 0.5, 0xff0000ff },
+    Vertex { -0.5,  0.5, 0.5, 0xff0000ff },
+
+    // REAR FACE
+    Vertex { -0.5, -0.5, -0.5, 0xff00ffff },
+    Vertex { -0.5,  0.5, -0.5, 0xff00ffff },
+    Vertex {  0.5,  0.5, -0.5, 0xff00ffff },
+    Vertex {  0.5, -0.5, -0.5, 0xff00ffff },
+
+    // LEFT FACE
+    Vertex { -0.5, -0.5, -0.5, 0xff00ff00 },
+    Vertex { -0.5, -0.5,  0.5, 0xff00ff00 },
+    Vertex { -0.5,  0.5,  0.5, 0xff00ff00 },
+    Vertex { -0.5,  0.5, -0.5, 0xff00ff00 },
+
+    // RIGHT FACE
+    Vertex {  0.5, -0.5, -0.5, 0xffffff00 },
+    Vertex {  0.5,  0.5, -0.5, 0xffffff00 },
+    Vertex {  0.5,  0.5,  0.5, 0xffffff00 },
+    Vertex {  0.5, -0.5,  0.5, 0xffffff00 },
+
+    // TOP FACE
+    Vertex { -0.5,  0.5, -0.5, 0xffff0000 },
+    Vertex { -0.5,  0.5,  0.5, 0xffff0000 },
+    Vertex {  0.5,  0.5,  0.5, 0xffff0000 },
+    Vertex {  0.5,  0.5, -0.5, 0xffff0000 },
+
+    // BOTTOM FACE
+    Vertex { -0.5, -0.5, -0.5, 0xffff00ff },
+    Vertex {  0.5, -0.5, -0.5, 0xffff00ff },
+    Vertex {  0.5, -0.5,  0.5, 0xffff00ff },
+    Vertex { -0.5, -0.5,  0.5, 0xffff00ff },
+
+};
+u16 INDICES[] = {
+    // FRONT FACE
+    0, 1, 2, 2, 3, 0,
+
+    // REAR FACE
+    4, 5, 6, 6, 7, 4,
+
+    // LEFT FACE
+    8, 9, 10, 10, 11, 8,
+
+    // RIGHT FACE
+    12, 13, 14, 14, 15, 12,
+
+    // TOP FACE
+    16, 17, 18, 18, 19, 16,
+
+    // BOTTOM FACE
+    20, 21, 22, 22, 23, 20
 };
 
 struct GameData {
+    static constexpr bx::Vec3 at  = { 0.0f, 0.0f,  0.0f };
+    static constexpr bx::Vec3 eye = { 1.0f, 2.0f,  3.0f };
+
+    f32 x_rot;
+    f32 y_rot;
+    f32 z_rot;
+
     bgfx::VertexBufferHandle v_buffer;
+    bgfx::IndexBufferHandle i_buffer;
     bgfx::ShaderHandle v_shader;
     bgfx::ShaderHandle f_shader;
     bgfx::ProgramHandle program;
@@ -42,13 +103,10 @@ struct GameData {
 VX_CREATE_INSTANCE(GameData, GAMEDATA_INSTANCE);
 
 void init() {
-    const bx::Vec3 at  = { 0.0f, 0.0f,   0.0f };
-    const bx::Vec3 eye = { 0.0f, 0.0f, -35.0f };
-
     vx::Vec2<i32> window_size = vx::windowhelper_state_get_window_size();
 
     float view[16];
-	bx::mtxLookAt(view, eye, at);
+	bx::mtxLookAt(view, GAMEDATA_INSTANCE.eye, GAMEDATA_INSTANCE.at);
 
 	float proj[16];
 	bx::mtxProj(proj, 60.0f, (f32)(window_size.width) / (f32)(window_size.height), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
@@ -67,8 +125,8 @@ void init() {
 		| BGFX_STATE_WRITE_B
 		| BGFX_STATE_WRITE_A
 		| BGFX_STATE_WRITE_Z
-		| BGFX_STATE_DEPTH_TEST_LESS
-		| BGFX_STATE_CULL_CW
+        | BGFX_STATE_DEPTH_TEST_LESS
+		| BGFX_STATE_CULL_CCW
 		| BGFX_STATE_MSAA;
 
     VERTEX_LAYOUT.begin()
@@ -77,7 +135,8 @@ void init() {
     .end();
     VERTEX_LAYOUT_VALID = true;
 
-    GAMEDATA_INSTANCE.v_buffer = bgfx::createVertexBuffer(bgfx::makeRef(VERTICES, 3 * sizeof(Vertex)), VERTEX_LAYOUT);
+    GAMEDATA_INSTANCE.v_buffer = bgfx::createVertexBuffer(bgfx::makeRef(VERTICES, VX_ARRAY_ELEMENT_COUNT(VERTICES) * sizeof(Vertex)), VERTEX_LAYOUT);
+    GAMEDATA_INSTANCE.i_buffer = bgfx::createIndexBuffer (bgfx::makeRef(INDICES, VX_ARRAY_ELEMENT_COUNT(INDICES) * sizeof(u16)));
     GAMEDATA_INSTANCE.v_shader = vx::option_unwrap(vx::load_bgfx_shader("basic", "vs_basic"));
     GAMEDATA_INSTANCE.f_shader = vx::option_unwrap(vx::load_bgfx_shader("basic", "fs_basic"));
     GAMEDATA_INSTANCE.program  = bgfx::createProgram(GAMEDATA_INSTANCE.v_shader, GAMEDATA_INSTANCE.f_shader, true);
@@ -89,18 +148,29 @@ void logic() {
     if (vx::windowhelper_input_get_keystate(vx::Key::Escape).pressed) {
         vx::windowhelper_close_window();
     }
+
+    GAMEDATA_INSTANCE.x_rot = std::remainder(vx::windowhelper_time(), 2 * VX_PI);
+    GAMEDATA_INSTANCE.y_rot = std::remainder(vx::windowhelper_time() + 0.5 * VX_PI, 2 * VX_PI);
+    GAMEDATA_INSTANCE.z_rot = std::remainder(vx::windowhelper_time() + VX_PI, 2 * VX_PI);
 }
 
 void draw() {
     bgfx::setViewRect(0, 0, 0, uint16_t(640), uint16_t(480) );
-    bgfx::setViewClear(0, BGFX_CLEAR_COLOR, 0);
+    bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x00000000, 1.0f, 0);
 
 	// This dummy draw call is here to make sure that view 0 is cleared
 	// if no other draw calls are submitted to view 0.
 	//bgfx::touch(0);
 
-    bgfx::setVertexBuffer(0, GAMEDATA_INSTANCE.v_buffer);
     bgfx::setState(GAMEDATA_INSTANCE.state);
+
+    bgfx::setVertexBuffer(0, GAMEDATA_INSTANCE.v_buffer);
+    bgfx::setIndexBuffer(GAMEDATA_INSTANCE.i_buffer);
+
+    float model[16];
+    bx::mtxFromQuaternion(model, bx::fromEuler(bx::Vec3(GAMEDATA_INSTANCE.x_rot, GAMEDATA_INSTANCE.y_rot, GAMEDATA_INSTANCE.z_rot)));
+    bgfx::setTransform(model);
+
     bgfx::submit(0, GAMEDATA_INSTANCE.program);
 
     bgfx::frame();
@@ -108,14 +178,22 @@ void draw() {
 }
 
 void resize() {
-    var size = vx::windowhelper_state_get_window_size();
-    vx::log(vx::LogMessageLevel::INFO, "Window resized to %dx%d", size.width, size.height);
+    vx::Vec2<i32> window_size = vx::windowhelper_state_get_window_size();
+    vx::log(vx::LogMessageLevel::INFO, "Window resized to %dx%d", window_size.width, window_size.height);
 
-    bgfx::setViewRect(0, 0, 0, (u16)(size.width), (u16)(size.height));
+    bgfx::setViewRect(0, 0, 0, (u16)(window_size.width), (u16)(window_size.height));
+
+    float view[16];
+	bx::mtxLookAt(view, GAMEDATA_INSTANCE.eye, GAMEDATA_INSTANCE.at);
+
+	float proj[16];
+	bx::mtxProj(proj, 60.0f, (f32)(window_size.width) / (f32)(window_size.height), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
+	bgfx::setViewTransform(0, view, proj);
 }
 
 void close() {
     bgfx::destroy(GAMEDATA_INSTANCE.v_buffer);
+    bgfx::destroy(GAMEDATA_INSTANCE.i_buffer);
     bgfx::destroy(GAMEDATA_INSTANCE.program);
 }
 

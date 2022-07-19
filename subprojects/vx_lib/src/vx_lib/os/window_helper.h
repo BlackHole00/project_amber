@@ -72,6 +72,9 @@ inline bool windowhelper_state_is_resizable() {
     return WINDOW_INSTANCE.info_data.resizable;
 }
 
+inline f64 windowhelper_time() {
+    return glfwGetTime();
+}
 inline f64 windowhelper_delta_time() {
     return WINDOWHELPER_INSTANCE.delta;
 }
