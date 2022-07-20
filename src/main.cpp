@@ -10,6 +10,7 @@
 #include <bx/bx.h>
 #include <bx/math.h>
 #include <cmath>
+#include <FastNoiseLite.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -89,9 +90,15 @@ struct GameData {
     static constexpr bx::Vec3 at  = { 0.0f, 0.0f,  0.0f };
     static constexpr bx::Vec3 eye = { 1.0f, 2.0f,  3.0f };
 
+    fnl_state noise;
+
     f32 x_rot;
     f32 y_rot;
     f32 z_rot;
+
+    f32 x_pos;
+    f32 y_pos;
+    f32 z_pos;
 
     bgfx::VertexBufferHandle v_buffer;
     bgfx::IndexBufferHandle i_buffer;
@@ -104,6 +111,11 @@ VX_CREATE_INSTANCE(GameData, GAMEDATA_INSTANCE);
 
 void init() {
     vx::Vec2<i32> window_size = vx::windowhelper_state_get_window_size();
+
+    GAMEDATA_INSTANCE.noise = fnlCreateState();
+    GAMEDATA_INSTANCE.noise.noise_type = FNL_NOISE_OPENSIMPLEX2;
+    GAMEDATA_INSTANCE.noise.frequency = 0.2;
+    GAMEDATA_INSTANCE.noise.seed = vx::windowhelper_time();
 
     float view[16];
 	bx::mtxLookAt(view, GAMEDATA_INSTANCE.eye, GAMEDATA_INSTANCE.at);
@@ -148,33 +160,38 @@ void logic() {
     if (vx::windowhelper_input_get_keystate(vx::Key::Escape).pressed) {
         vx::windowhelper_close_window();
     }
+    if (vx::windowhelper_input_get_keystate(vx::Key::LeftAlt).pressed &&
+        vx::windowhelper_input_get_keystate(vx::Key::Enter).just_pressed
+    ) {
+        vx::windowhelper_state_set_fullscreen(!vx::windowhelper_state_is_fullscreen());
+    }
 
     GAMEDATA_INSTANCE.x_rot = std::remainder(vx::windowhelper_time(), 2 * VX_PI);
     GAMEDATA_INSTANCE.y_rot = std::remainder(vx::windowhelper_time() + 0.5 * VX_PI, 2 * VX_PI);
     GAMEDATA_INSTANCE.z_rot = std::remainder(vx::windowhelper_time() + VX_PI, 2 * VX_PI);
+
+    GAMEDATA_INSTANCE.x_pos = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise,  vx::windowhelper_time(),  vx::windowhelper_time());
+    GAMEDATA_INSTANCE.y_pos = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise, -vx::windowhelper_time(),  vx::windowhelper_time());
+    GAMEDATA_INSTANCE.z_pos = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise, -vx::windowhelper_time(), -vx::windowhelper_time());
 }
 
 void draw() {
-    bgfx::setViewRect(0, 0, 0, uint16_t(640), uint16_t(480) );
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x00000000, 1.0f, 0);
-
-	// This dummy draw call is here to make sure that view 0 is cleared
-	// if no other draw calls are submitted to view 0.
-	//bgfx::touch(0);
-
     bgfx::setState(GAMEDATA_INSTANCE.state);
 
     bgfx::setVertexBuffer(0, GAMEDATA_INSTANCE.v_buffer);
     bgfx::setIndexBuffer(GAMEDATA_INSTANCE.i_buffer);
 
     float model[16];
-    bx::mtxFromQuaternion(model, bx::fromEuler(bx::Vec3(GAMEDATA_INSTANCE.x_rot, GAMEDATA_INSTANCE.y_rot, GAMEDATA_INSTANCE.z_rot)));
+    float tmp[16], tmp2[16];
+    bx::mtxFromQuaternion(tmp2, bx::fromEuler(bx::Vec3(GAMEDATA_INSTANCE.x_rot, GAMEDATA_INSTANCE.y_rot, GAMEDATA_INSTANCE.z_rot)));
+    bx::mtxTranslate(tmp, GAMEDATA_INSTANCE.x_pos, GAMEDATA_INSTANCE.y_pos, GAMEDATA_INSTANCE.z_pos);
+    bx::mtxMul(model, tmp2, tmp);
     bgfx::setTransform(model);
 
     bgfx::submit(0, GAMEDATA_INSTANCE.program);
 
     bgfx::frame();
-    //bgfx::renderFrame(-1);
 }
 
 void resize() {
@@ -216,6 +233,8 @@ int main() {
     descriptor.draw_fn  = am::draw;
     descriptor.close_fn = am::close;
     descriptor.resize_fn = am::resize;
+    //descriptor.size = vx::vec2_new<i32>(1024, 480);
+    descriptor.size = vx::vec2_new<i32>(1024, 768);
 
     vx::window_init(&descriptor);
     vx::window_run();
