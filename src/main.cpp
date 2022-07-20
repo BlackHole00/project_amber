@@ -6,6 +6,7 @@
 #include <vx_lib/os/keys.h>
 #include <vx_lib/os/context/bgfx_context.h>
 #include <vx_lib/gfx/bgfx/shader_utils.h>
+#include <vx_lib/logic/components/transform.h>
 #include <bgfx/bgfx.h>
 #include <bx/bx.h>
 #include <bx/math.h>
@@ -88,17 +89,18 @@ u16 INDICES[] = {
 
 struct GameData {
     static constexpr bx::Vec3 at  = { 0.0f, 0.0f,  0.0f };
-    static constexpr bx::Vec3 eye = { 1.0f, 2.0f,  3.0f };
+    static constexpr bx::Vec3 eye = { 0.0f, 0.0f,  3.0f };
 
     fnl_state noise;
 
-    f32 x_rot;
-    f32 y_rot;
-    f32 z_rot;
-
-    f32 x_pos;
-    f32 y_pos;
-    f32 z_pos;
+//    f32 x_rot = 0.0f;
+//    f32 y_rot = 0.0f;
+//    f32 z_rot = 0.0f;
+//
+//    f32 x_pos = 0.0f;
+//    f32 y_pos = 0.0f;
+//    f32 z_pos = 0.0f;
+    vx::Transform transform;
 
     bgfx::VertexBufferHandle v_buffer;
     bgfx::IndexBufferHandle i_buffer;
@@ -166,13 +168,13 @@ void logic() {
         vx::windowhelper_state_set_fullscreen(!vx::windowhelper_state_is_fullscreen());
     }
 
-    GAMEDATA_INSTANCE.x_rot = std::remainder(vx::windowhelper_time(), 2 * VX_PI);
-    GAMEDATA_INSTANCE.y_rot = std::remainder(vx::windowhelper_time() + 0.5 * VX_PI, 2 * VX_PI);
-    GAMEDATA_INSTANCE.z_rot = std::remainder(vx::windowhelper_time() + VX_PI, 2 * VX_PI);
+    GAMEDATA_INSTANCE.transform.rotation.x = std::remainder(vx::windowhelper_time(), 2 * VX_PI);
+    GAMEDATA_INSTANCE.transform.rotation.y = std::remainder(vx::windowhelper_time() + 0.5 * VX_PI, 2 * VX_PI);
+    GAMEDATA_INSTANCE.transform.rotation.z = std::remainder(vx::windowhelper_time() + VX_PI, 2 * VX_PI);
 
-    GAMEDATA_INSTANCE.x_pos = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise,  vx::windowhelper_time(),  vx::windowhelper_time());
-    GAMEDATA_INSTANCE.y_pos = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise, -vx::windowhelper_time(),  vx::windowhelper_time());
-    GAMEDATA_INSTANCE.z_pos = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise, -vx::windowhelper_time(), -vx::windowhelper_time());
+    GAMEDATA_INSTANCE.transform.position.x = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise,  vx::windowhelper_time(),  vx::windowhelper_time()) * 3.0f;
+    GAMEDATA_INSTANCE.transform.position.y = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise, -vx::windowhelper_time(),  vx::windowhelper_time()) * 3.0f;
+    GAMEDATA_INSTANCE.transform.position.z = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise, -vx::windowhelper_time(), -vx::windowhelper_time()) * 10.0f - 11.0f;
 }
 
 void draw() {
@@ -183,10 +185,11 @@ void draw() {
     bgfx::setIndexBuffer(GAMEDATA_INSTANCE.i_buffer);
 
     float model[16];
-    float tmp[16], tmp2[16];
-    bx::mtxFromQuaternion(tmp2, bx::fromEuler(bx::Vec3(GAMEDATA_INSTANCE.x_rot, GAMEDATA_INSTANCE.y_rot, GAMEDATA_INSTANCE.z_rot)));
-    bx::mtxTranslate(tmp, GAMEDATA_INSTANCE.x_pos, GAMEDATA_INSTANCE.y_pos, GAMEDATA_INSTANCE.z_pos);
-    bx::mtxMul(model, tmp2, tmp);
+    //float tmp[16], tmp2[16];
+    //bx::mtxFromQuaternion(tmp2, bx::fromEuler(bx::Vec3(GAMEDATA_INSTANCE.x_rot, GAMEDATA_INSTANCE.y_rot, GAMEDATA_INSTANCE.z_rot)));
+    //bx::mtxTranslate(tmp, GAMEDATA_INSTANCE.x_pos, GAMEDATA_INSTANCE.y_pos, GAMEDATA_INSTANCE.z_pos);
+    //bx::mtxMul(model, tmp2, tmp);
+    vx::to_matrix(&GAMEDATA_INSTANCE.transform, model);
     bgfx::setTransform(model);
 
     bgfx::submit(0, GAMEDATA_INSTANCE.program);

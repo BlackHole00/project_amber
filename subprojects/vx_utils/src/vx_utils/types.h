@@ -37,10 +37,16 @@ struct Vec2 {
         T y;
         T height;
     };
+
+    Vec2() {}
+    Vec2(T x, T y) {
+        this->x = x;
+        this->y = y;
+    }
 };
 
 template <class T>
-inline Vec2<T> vec2_new(T v1, T v2) {
+inline constexpr Vec2<T> vec2_new(T v1, T v2) {
     return Vec2<T> { v1, v2 };
 }
 
@@ -60,10 +66,17 @@ struct Vec3 {
         T z;
         T b;
     };
+
+    Vec3() {}
+    Vec3(T x, T y, T z) {
+        this->x = x;
+        this->y = y;
+        this->z = z;
+    }
 };
 
 template <class T>
-inline Vec3<T> vec3_new(T v1, T v2, T v3) {
+inline constexpr Vec3<T> vec3_new(T v1, T v2, T v3) {
     return Vec3<T> { v1, v2, v3 };
 }
 
@@ -87,10 +100,18 @@ struct Vec4 {
         T w;
         T a;
     };
+
+    Vec4() {}
+    Vec4(T x, T y, T z, T w) {
+        this->x = x;
+        this->y = y;
+        this->z = z;
+        this->w = w;
+    }
 };
 
 template <class T>
-inline Vec4<T> vec4_new(T v1, T v2, T v3, T v4) {
+inline constexpr Vec4<T> vec4_new(T v1, T v2, T v3, T v4) {
     return Vec4<T> { v1, v2, v3, v4 };
 }
 

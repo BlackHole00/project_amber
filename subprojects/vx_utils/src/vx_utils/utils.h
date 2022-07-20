@@ -20,4 +20,5 @@
 #include "defer.h"
 #include "slice.h"
 #include "foreach.h"
+#include "casts.h"
 #include "traits/traits.h"
