@@ -7,6 +7,7 @@
 #include <vx_lib/os/context/bgfx_context.h>
 #include <vx_lib/gfx/bgfx/shader_utils.h>
 #include <vx_lib/logic/components/components.h>
+#include <vx_lib/logic/objects/objects.h>
 #include <bgfx/bgfx.h>
 #include <bx/bx.h>
 #include <bx/math.h>
@@ -20,8 +21,6 @@
 #include <GLFW/glfw3native.h>
 
 namespace am {
-
-void test(const vx::Position* pos) {}
 
 struct Vertex {
     f32 x;
@@ -103,9 +102,11 @@ struct GameData {
 //    f32 y_pos = 0.0f;
 //    f32 z_pos = 0.0f;
     //vx::Transform transform;
-    vx::Position position;
-    vx::Rotation rotation;
-    vx::Scale scale;
+    //vx::Position position;
+    //vx::Rotation rotation;
+    //vx::Scale scale;
+    vx::FullTransform cube;
+    vx::BasicCamera camera;
 
     bgfx::VertexBufferHandle v_buffer;
     bgfx::IndexBufferHandle i_buffer;
@@ -124,12 +125,24 @@ void init() {
     GAMEDATA_INSTANCE.noise.frequency = 0.2;
     GAMEDATA_INSTANCE.noise.seed = vx::windowhelper_system_time();
 
-    float view[16];
-	bx::mtxLookAt(view, GAMEDATA_INSTANCE.eye, GAMEDATA_INSTANCE.at);
-
-	float proj[16];
-	bx::mtxProj(proj, 60.0f, (f32)(window_size.width) / (f32)(window_size.height), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
-	bgfx::setViewTransform(0, view, proj);
+    GAMEDATA_INSTANCE.camera = vx::BasicCamera { 
+        vx::camera_perspective_new(90.0f, window_size, 0.1f, 100.0f),
+        vx::position_new(0.0f, 0.0f, -3.0f),
+        vx::rotation_new(0.0f, 0.0f, 0.0f)
+    };
+    vx::camera_apply(
+        &GAMEDATA_INSTANCE.camera.camera,
+        &GAMEDATA_INSTANCE.camera.position, 
+        &GAMEDATA_INSTANCE.camera.rotation, 
+        0
+    );
+//
+    //float view[16];
+	//bx::mtxLookAt(view, GAMEDATA_INSTANCE.camera.position, GAMEDATA_INSTANCE.at);
+//
+	//float proj[16];
+	//bx::mtxProj(proj, 60.0f, (f32)(window_size.width) / (f32)(window_size.height), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
+	//bgfx::setViewTransform(0, view, proj);
 
     float model[16];
     bx::mtxIdentity(model);
@@ -161,6 +174,8 @@ void init() {
     GAMEDATA_INSTANCE.program  = bgfx::createProgram(GAMEDATA_INSTANCE.v_shader, GAMEDATA_INSTANCE.f_shader, true);
 
     GAMEDATA_INSTANCE_VALID = true;
+
+    GAMEDATA_INSTANCE.cube.scale = vx::ScaleComponent { 1.0, 1.0, 1.0 };
 }
 
 void logic() {
@@ -173,18 +188,26 @@ void logic() {
         vx::windowhelper_state_set_fullscreen(!vx::windowhelper_state_is_fullscreen());
     }
 
-    GAMEDATA_INSTANCE.rotation.x = std::remainder(vx::windowhelper_time(), 2 * VX_PI);
-    GAMEDATA_INSTANCE.rotation.y = std::remainder(vx::windowhelper_time() + 0.5 * VX_PI, 2 * VX_PI);
-    GAMEDATA_INSTANCE.rotation.z = std::remainder(vx::windowhelper_time() + VX_PI, 2 * VX_PI);
-
-    GAMEDATA_INSTANCE.position.x = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise,  vx::windowhelper_time(),  0) * 3.0f;
-    GAMEDATA_INSTANCE.position.y = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise,  0,  vx::windowhelper_time()) * 3.0f;
-    GAMEDATA_INSTANCE.position.z = -4.0f;
-
+    GAMEDATA_INSTANCE.camera.rotation.x -= vx::windowhelper_delta_time();
+    vx::camera_apply(
+        &GAMEDATA_INSTANCE.camera.camera,
+        &GAMEDATA_INSTANCE.camera.position, 
+        &GAMEDATA_INSTANCE.camera.rotation, 
+        0
+    );
+    
+    GAMEDATA_INSTANCE.cube.rotation.x = std::remainder(vx::windowhelper_time(), 2 * VX_PI);
+    GAMEDATA_INSTANCE.cube.rotation.y = std::remainder(vx::windowhelper_time() + 0.5 * VX_PI, 2 * VX_PI);
+    GAMEDATA_INSTANCE.cube.rotation.z = std::remainder(vx::windowhelper_time() + VX_PI, 2 * VX_PI);
+//
+    //GAMEDATA_INSTANCE.cube.position.x = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise,  vx::windowhelper_time(),  0) * 3.0f;
+    //GAMEDATA_INSTANCE.cube.position.y = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise,  0,  vx::windowhelper_time()) * 3.0f;
+    //GAMEDATA_INSTANCE.cube.position.z = -4.0f;
+//
     f32 scale = fnlGetNoise2D(&GAMEDATA_INSTANCE.noise, vx::windowhelper_time(), vx::windowhelper_time()) + 1.1f;
-    GAMEDATA_INSTANCE.scale.x = scale;
-    GAMEDATA_INSTANCE.scale.y = scale;
-    GAMEDATA_INSTANCE.scale.z = scale;
+    GAMEDATA_INSTANCE.cube.scale.x = scale;
+    GAMEDATA_INSTANCE.cube.scale.y = scale;
+    GAMEDATA_INSTANCE.cube.scale.z = scale;
 }
 
 void draw() {
@@ -195,12 +218,8 @@ void draw() {
     bgfx::setIndexBuffer(GAMEDATA_INSTANCE.i_buffer);
 
     float model[16];
-    //float tmp[16], tmp2[16];
-    //bx::mtxFromQuaternion(tmp2, bx::fromEuler(bx::Vec3(GAMEDATA_INSTANCE.x_rot, GAMEDATA_INSTANCE.y_rot, GAMEDATA_INSTANCE.z_rot)));
-    //bx::mtxTranslate(tmp, GAMEDATA_INSTANCE.x_pos, GAMEDATA_INSTANCE.y_pos, GAMEDATA_INSTANCE.z_pos);
-    //bx::mtxMul(model, tmp2, tmp);
-    //vx::to_matrix(&GAMEDATA_INSTANCE.transform, model);
-    //bgfx::setTransform(model);
+    vx::to_matrix(&GAMEDATA_INSTANCE.cube.position, &GAMEDATA_INSTANCE.cube.rotation, &GAMEDATA_INSTANCE.cube.scale, model);
+    bgfx::setTransform(model);
 
     bgfx::submit(0, GAMEDATA_INSTANCE.program);
 

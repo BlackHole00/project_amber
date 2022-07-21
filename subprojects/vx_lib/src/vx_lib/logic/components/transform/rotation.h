@@ -6,13 +6,13 @@
 
 namespace vx {
 
-VX_BUILD_VEC3(Rotation)
+VX_BUILD_VEC3(RotationComponent)
 
-inline Rotation rotation_new(f32 x, f32 y, f32 z) {
-    return Rotation { x, y, z };
+inline RotationComponent rotation_new(f32 x, f32 y, f32 z) {
+    return RotationComponent { x, y, z };
 }
 
-inline void to_matrix(const Rotation* r, f32* matrix) {
+inline void to_matrix(const RotationComponent* r, f32* matrix) {
     bx::mtxFromQuaternion(matrix, bx::fromEuler(bx::Vec3(r->x, r->y, r->z)));
 }
 

@@ -123,6 +123,7 @@ void window_run() {
         current_time = glfwGetTime();
         delta = current_time - last_time;
         last_time = current_time;
+        _windowhelper_set_delta_time(delta);
 
         /*  Once a second update the title bar if needed.   */
         if (WINDOW_INSTANCE.info_data.show_fps_in_title) {
@@ -144,6 +145,7 @@ void window_run() {
 
         /*  Update the window input helper. */
         _windowhelper_postlogic_update();
+
 
         glfwPollEvents();
     }
