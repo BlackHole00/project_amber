@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vx_utils/casts.h>
-
-#define VX_COMPONENT_EXPORT_IMPLICIT(...) VX_IMPLICIT_CAST(__VA_ARGS__)
-#define VX_COMPONENT_EXPORT_EXPLICIT(...) VX_EXPLICIT_CAST(__VA_ARGS__)
-#define VX_COMPONENT_EXPORT(...) VX_COMPONENT_EXPORT_IMPLICIT(__VA_ARGS__)
+#include "transform/position.h"
+#include "transform/rotation.h"
+#include "transform/scale.h"

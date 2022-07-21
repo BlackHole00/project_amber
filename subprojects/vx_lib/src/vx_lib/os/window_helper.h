@@ -1,6 +1,7 @@
 #pragma once
 
 #include "keys.h"
+#include <ctime>
 #include <vx_utils/hash_table.h>
 #include "window.h"
 
@@ -77,6 +78,9 @@ inline f64 windowhelper_time() {
 }
 inline f64 windowhelper_delta_time() {
     return WINDOWHELPER_INSTANCE.delta;
+}
+inline u64 windowhelper_system_time() {
+    return std::time(nullptr);
 }
 inline void windowhelper_close_window() {
     glfwSetWindowShouldClose(WINDOW_INSTANCE.glfw_window, true);

@@ -32,10 +32,12 @@ struct Vec2 {
     union {
         T x;
         T width;
+        T yaw;
     };
     union {
         T y;
         T height;
+        T pitch;
     };
 
     Vec2() {}
@@ -56,11 +58,13 @@ struct Vec3 {
         T x;
         T width;
         T r;
+        T yaw;
     };
     union {
         T y;
         T height;
         T g;
+        T pitch;
     };
     union {
         T z;
@@ -86,11 +90,13 @@ struct Vec4 {
         T x;
         T width;
         T r;
+        T yaw;
     };
     union {
         T y;
         T height;
         T g;
+        T pitch;
     };
     union {
         T z;

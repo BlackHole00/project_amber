@@ -1,11 +1,12 @@
 #pragma once
 
 #include <vx_utils/types.h>
-#include "helpers/vector_builder.h"
+#include <bx/math.h>
+#include "../helpers/vector_builder.h"
 
 namespace vx {
 
-VX_BUILD_VEC3(f32, Rotation)
+VX_BUILD_VEC3(Rotation)
 
 inline Rotation rotation_new(f32 x, f32 y, f32 z) {
     return Rotation { x, y, z };
@@ -17,4 +18,4 @@ inline void to_matrix(const Rotation* r, f32* matrix) {
 
 };
 
-#include "helpers/vector_builder_undef.h"
+#include "../helpers/vector_builder_undef.h"
