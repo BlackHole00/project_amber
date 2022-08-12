@@ -131,11 +131,6 @@ STATE: core.Cell(State)
 init :: proc() {
 	core.cell_init(&STATE)
 
-	gl.Enable(gl.CULL_FACE)
-	gl.CullFace(gl.BACK)
-	gl.FrontFace(gl.CCW)
-	gl.Enable(gl.DEPTH_TEST)
-
 	logic.instancedmeshcomponent_init(&STATE.mesh, logic.Instanced_Mesh_Descriptor {
 		index_buffer_type = gl.UNSIGNED_INT,
 		gl_usage = gl.STATIC_DRAW,
@@ -165,6 +160,19 @@ init :: proc() {
 	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor { 
 		shader = shader,
 		layout = layout,
+
+		cull_enabled = true,
+		cull_front_face = gl.CCW,
+		cull_face = gl.BACK,
+
+		depth_enabled = true,
+		depth_func = gl.LESS,
+
+		blend_enabled = false,
+
+		wireframe = false,
+
+		clear_color = { 0.0, 0.0, 0.0, 0.0 },
 	})
 
 	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
@@ -225,8 +233,11 @@ draw :: proc() {
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
+	gfx.pipeline_apply(STATE.pipeline)
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)
 	gfx.bind(STATE.bundle)
+
+	gfx.pipeline_clear(STATE.pipeline)
 
 	logic.instancedmeshcomponent_draw(&STATE.mesh, STATE.pipeline)
 }
