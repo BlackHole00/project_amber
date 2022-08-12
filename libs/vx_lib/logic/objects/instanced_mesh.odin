@@ -8,8 +8,14 @@ Instanced_Mesh :: struct {
     transforms: logic.Dynamic_Storage(logic.Transform),
 }
 
-instancedmesh_transforms_as_matrices :: proc(transforms: ^logic.Dynamic_Storage(logic.Transform), allocator := context.allocator) -> []glsl.mat4 {
+instancedmesh_transforms_as_matrices :: proc(transforms: ^logic.Dynamic_Storage(logic.Transform)) -> []glsl.mat4 {
     _, _, _, mat := soa_unzip(transforms.values)
 
     return mat
+}
+
+instancedmesh_sort_from_camera_pos :: proc(transforms: ^logic.Dynamic_Storage(logic.Transform), camera_pos: logic.Abstract_Transform) {
+    // Do sorting for transparent textures.
+
+    panic("TODO")
 }
