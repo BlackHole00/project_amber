@@ -9,6 +9,19 @@ Position_Component :: distinct glsl.vec3
 Rotation_Component :: distinct glsl.vec3
 Scale_Component :: distinct glsl.vec3
 
+Abstract_Transform :: struct {
+    position: Position_Component,
+    rotation: Rotation_Component,
+}
+
+Transform :: struct {
+    position: Position_Component,
+    rotation: Rotation_Component,
+    scale: Scale_Component,
+
+    mat: glsl.mat4,
+}
+
 position_to_matrix :: proc(position: Position_Component) -> glsl.mat4 {
     return glsl.mat4Translate((glsl.vec3)(position))
 }
@@ -29,7 +42,7 @@ pr_to_matrix :: proc(position: Position_Component, rotation: Rotation_Component)
     return position_to_matrix(position) * rotation_to_matrix(rotation)
 }
 
-to_matrix :: proc { position_to_matrix, rotation_to_matrix, scale_to_matrix, prs_to_matrix, pr_to_matrix }
+to_matrix :: proc { position_to_matrix, rotation_to_matrix, scale_to_matrix, prs_to_matrix, pr_to_matrix, transform_to_matrix }
 
 position_move :: proc(position: ^Position_Component, offset: glsl.vec3, amount: f32 = 1.0) {
     position^ += (Position_Component)(offset * amount)
@@ -85,4 +98,59 @@ pr_apply :: proc(position: Position_Component, rotation: Rotation_Component, sha
 prs_apply :: proc(position: Position_Component, rotation: Rotation_Component, scale: Scale_Component, pipeline: ^gfx.Pipeline, uniform_name: string) {
     mat := to_matrix(position) * to_matrix(rotation) * to_matrix(scale)
     gfx.pipeline_uniform_mat4f(pipeline, uniform_name, &mat)
+}
+
+transform_move :: proc(transform: ^Transform, offset: glsl.vec3, amount: f32 = 1.0) {
+    position_move(&transform.position, offset, amount)
+
+    transform_calc_matrix(transform)
+}
+
+transform_move_cross :: proc(transform: ^Transform, cross_vec: glsl.vec3, amount: f32 = 1.0) {
+    position_move_cross(&transform.position, transform.rotation, cross_vec, amount)
+    
+    transform_calc_matrix(transform)
+}
+
+transform_move_forward :: proc(transform: ^Transform, amount: f32 = 1.0) {
+    position_move_forward(&transform.position, transform.rotation, amount)
+
+    transform_calc_matrix(transform)
+}
+
+transform_move_backward :: proc(transform: ^Transform, amount: f32 = 1.0) {
+    position_move_backward(&transform.position, transform.rotation, amount)
+
+    transform_calc_matrix(transform)
+}
+
+transform_move_right :: proc(transform: ^Transform, amount: f32 = 1.0) {
+    position_move_right(&transform.position, transform.rotation, amount)
+
+    transform_calc_matrix(transform)
+}
+
+transform_move_left :: proc(transform: ^Transform, amount: f32 = 1.0) {
+    position_move_left(&transform.position, transform.rotation, amount)
+
+    transform_calc_matrix(transform)
+}
+
+transform_rotate :: proc(transform: ^Transform, offset: glsl.vec3, amount: f32 = 1.0, resolve_wrapping := true) {
+    rotation_rotate(&transform.rotation, offset, amount, resolve_wrapping)
+
+    transform_calc_matrix(transform)
+}
+
+transform_direction :: proc(transform: Transform) -> glsl.vec3 {
+    return rotation_direction(transform.rotation)
+}
+
+transform_calc_matrix :: proc(transform: ^Transform) {
+    transform.mat = prs_to_matrix(transform.position, transform.rotation, transform.scale)
+}
+
+transform_to_matrix :: proc(transform: ^Transform) -> glsl.mat4 {
+    transform_calc_matrix(transform)
+    return transform.mat
 }

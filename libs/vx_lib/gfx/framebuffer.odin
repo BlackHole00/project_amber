@@ -23,6 +23,8 @@ Framebuffer_Descriptor :: struct {
 
 Framebuffer :: struct {
     color_attachment: Texture,
+
+    // We could need the depth as texture in future, so a render_buffer is not being used.
     depth_stencil_attachment: Texture,
 
     framebuffer_handle: u32,

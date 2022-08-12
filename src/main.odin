@@ -139,7 +139,7 @@ init :: proc() {
 		gl_draw_mode = gl.TRIANGLES,
 	})
 	logic.instancedmeshcomponent_set_data(&STATE.mesh, VERTICES, INDICES)
-	logic.dynamicstorage_init(&STATE.mesh.transforms, 1024)
+	logic.dynamicstorage_init(&STATE.mesh.transforms, 10000)
 
 	vertex_src, ok := os.read_entire_file("res/shaders/basic.vs")
 	if !ok do panic("Could not open vertex shader file")
@@ -204,13 +204,15 @@ init :: proc() {
 	gfx.texturebundle_insert_texture(&STATE.bundle, TEXTURE_NAMES[3], "res/textures/sand.png")
 	gfx.texturebundle_insert_texture(&STATE.bundle, TEXTURE_NAMES[4], "res/textures/stone.png")
 	gfx.texturebundle_set_current_texture(&STATE.bundle, TEXTURE_NAMES[0])
-	gfx.apply(STATE.bundle, &STATE.pipeline, "uTexture")
+	gfx.texturebundle_apply(STATE.bundle, &STATE.pipeline, "uTexture")
 
 	logic.instancedmeshcomponent_apply(STATE.mesh, STATE.pipeline)
 }
 
 tick :: proc() {
-	for transform, i in logic.dynamicstorage_get_all(&STATE.mesh.transforms) {
+	for i := 0; i < logic.dynamicstorage_get_size(STATE.mesh.transforms); i += 1 {
+		transform := logic.dynamicstorage_get(&STATE.mesh.transforms, i)
+
 		vec := ([2]f64){ platform.windowhelper_get_time(), platform.windowhelper_get_time() }
 		vec *= 0.1
 		vec2 := ([2]f64){ (f64)(i), (f64)(i) }
@@ -223,11 +225,13 @@ tick :: proc() {
 
 		transform.rotation = logic.Rotation_Component { (f32)(i), (f32)(i * 2), (f32)(i * 3) }
 		transform.scale = logic.Scale_Component { 1.0, 1.0, 1.0 }
+
+		logic.transform_calc_matrix(&transform)
+
+		logic.dynamicstorage_set(&STATE.mesh.transforms, transform, i)
 	}
 
-	buffer := objects.instancedmesh_transforms_as_matrices(&STATE.mesh.transforms)
-	defer delete(buffer)
-	logic.instancedmeshcomponent_set_instanced_data(&STATE.mesh, buffer, logic.dynamicstorage_get_size(STATE.mesh.transforms))
+	logic.instancedmeshcomponent_set_instanced_data(&STATE.mesh, objects.instancedmesh_transforms_as_matrices(&STATE.mesh.transforms), logic.dynamicstorage_get_size(STATE.mesh.transforms))
 
 	input_common()
 	input_camera_movement()
