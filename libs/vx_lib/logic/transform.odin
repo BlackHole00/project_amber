@@ -1,0 +1,88 @@
+package vx_lib_logic
+
+import "core:math"
+import "core:math/linalg/glsl"
+import "../gfx"
+import vx_math "../math"
+
+Position_Component :: distinct glsl.vec3
+Rotation_Component :: distinct glsl.vec3
+Scale_Component :: distinct glsl.vec3
+
+position_to_matrix :: proc(position: Position_Component) -> glsl.mat4 {
+    return glsl.mat4Translate((glsl.vec3)(position))
+}
+
+rotation_to_matrix :: proc(rotation: Rotation_Component) -> glsl.mat4 {
+    return glsl.mat4Rotate({ 1.0, 0.0, 0.0 }, rotation.x) * glsl.mat4Rotate({ 0.0, 1.0, 0.0 }, rotation.y) * glsl.mat4Rotate({ 0.0, 0.0, 1.0 }, rotation.z)
+}
+
+scale_to_matrix :: proc(scale: Scale_Component) -> glsl.mat4 {
+    return glsl.mat4Scale((glsl.vec3)(scale))
+}
+
+prs_to_matrix :: proc(position: Position_Component, rotation: Rotation_Component, scale: Scale_Component) -> glsl.mat4 {
+    return position_to_matrix(position) * rotation_to_matrix(rotation) * scale_to_matrix(scale)
+}
+
+pr_to_matrix :: proc(position: Position_Component, rotation: Rotation_Component) -> glsl.mat4 {
+    return position_to_matrix(position) * rotation_to_matrix(rotation)
+}
+
+to_matrix :: proc { position_to_matrix, rotation_to_matrix, scale_to_matrix, prs_to_matrix, pr_to_matrix }
+
+position_move :: proc(position: ^Position_Component, offset: glsl.vec3, amount: f32 = 1.0) {
+    position^ += (Position_Component)(offset * amount)
+}
+
+position_move_cross :: proc(position: ^Position_Component, rotation: Rotation_Component, cross_vec: glsl.vec3, amount: f32 = 1.0) {
+    arg: glsl.vec3 = glsl.normalize(glsl.cross(rotation_direction(rotation), cross_vec))
+
+    if rotation == { 0.0, 0.0, 0.0 } do arg = { 1.0, 0.0, 0.0 }
+    else do arg = glsl.normalize(glsl.cross(rotation_direction(rotation), cross_vec))
+
+    position_move(position, arg, amount)
+}
+
+position_move_forward :: proc(position: ^Position_Component, rotation: Rotation_Component, amount: f32 = 1.0) {
+    position_move(position, rotation_direction(rotation), amount)
+}
+
+position_move_backward :: proc(position: ^Position_Component, rotation: Rotation_Component, amount: f32 = 1.0) {
+    position_move(position, rotation_direction(rotation), -amount)
+}
+
+position_move_right :: proc(position: ^Position_Component, rotation: Rotation_Component, amount: f32 = 1.0) {
+    position_move_cross(position, rotation, { 0.0, 1.0, 0.0 }, amount)
+}
+
+position_move_left :: proc(position: ^Position_Component, rotation: Rotation_Component, amount: f32 = 1.0) {
+    position_move_cross(position, rotation, { 0.0, 1.0, 0.0 }, -amount)
+}
+
+rotation_rotate :: proc(rotation: ^Rotation_Component, offset: glsl.vec3, amount: f32 = 1.0, resolve_wrapping := true) {
+    rotation^ += (Rotation_Component)(offset * amount)
+
+    if resolve_wrapping {
+        if rotation.y >= math.PI / 2 do rotation.y = math.PI / 2 - 0.01
+        else if rotation.y <= -math.PI / 2 do rotation.y = -math.PI/2 + 0.01
+    }
+}
+
+rotation_direction :: proc(rotation: Rotation_Component) -> glsl.vec3 {
+    return vx_math.vec3_direction((glsl.vec3)(rotation))
+}
+
+pr_get_view_matrix :: proc(position: Position_Component, rotation: Rotation_Component) -> glsl.mat4 {
+    return glsl.mat4LookAt((glsl.vec3)(position), ((glsl.vec3)(position) + rotation_direction(rotation) * 0.01 ), { 0.0, 1.0, 0.0 })
+}
+
+pr_apply :: proc(position: Position_Component, rotation: Rotation_Component, shader: ^gfx.Shader, uniform_name: string) {
+    mat := to_matrix(position) * to_matrix(rotation)
+    gfx.shader_uniform_mat4f(shader, uniform_name, &mat)
+}
+
+prs_apply :: proc(position: Position_Component, rotation: Rotation_Component, scale: Scale_Component, pipeline: ^gfx.Pipeline, uniform_name: string) {
+    mat := to_matrix(position) * to_matrix(rotation) * to_matrix(scale)
+    gfx.pipeline_uniform_mat4f(pipeline, uniform_name, &mat)
+}

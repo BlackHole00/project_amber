@@ -1,0 +1,63 @@
+package vx_lib_logic
+
+import "../gfx"
+import "core:mem"
+import gl "vendor:OpenGL"
+
+Instanced_Mesh_Descriptor :: struct {
+    // using base: Mesh_Descriptor,
+    index_buffer_type: u32,
+    gl_usage: u32,
+    gl_draw_mode: u32,
+    set_uniform_proc: proc(shader: ^gfx.Shader, uniform_name: string, index: uint, data: rawptr),
+}
+
+Instanced_Mesh_Component :: struct {
+    using _base: Mesh_Component,
+
+    instance_count: int,
+    set_uniform_proc: proc(shader: ^gfx.Shader, uniform_name: string, index: uint, data: rawptr),
+}
+
+instancedmeshcomponent_init_empty :: proc(mesh: ^Instanced_Mesh_Component, desc: Instanced_Mesh_Descriptor) {
+    meshcomponent_init_empty(mesh, Mesh_Descriptor {
+        desc.index_buffer_type, desc.gl_usage, desc.gl_draw_mode,
+    })
+
+    mesh.set_uniform_proc = desc.set_uniform_proc
+}
+
+instancedmeshcomponent_init_with_data :: proc(mesh: ^Instanced_Mesh_Component, desc: Mesh_Descriptor, vertex_data: []$T, index_data: []$U, uniform_data: []$V, instance_count: int, index_count := -1) {
+    meshcomponent_init_with_data(mesh, Mesh_Descriptor {
+        desc.index_buffer_type, desc.gl_usage, desc.gl_draw_mode,
+    }, vertex_data, index_data, index_count)
+
+    mesh.set_uniform_proc = desc.set_uniform_proc
+
+    instancedmeshcomponent_set_uniorm_data(mesh, uniform_data, instance_count)
+}
+
+instancedmeshcomponent_init :: proc { instancedmeshcomponent_init_empty, instancedmeshcomponent_init_with_data }
+
+instancedmeshcomponent_free :: meshcomponent_free
+instancedmeshcomponent_set_data :: meshcomponent_set_data
+
+instancedmeshcomponent_apply :: proc(mesh: ^Instanced_Mesh_Component, shader: ^gfx.Shader, uniform_name: string, uniform_data: []$T, instance_count: int, uinform_block_size := size_of(T)) {
+    mesh.instance_count = instance_count
+
+    byte_arr := mem.slice_to_bytes(uniform_data)
+
+    count := 0
+    for i in 0..<instance_count {
+        mesh.set_uniform_proc(shader, uniform_name, (uint)(i), (rawptr)(&byte_arr[count]))
+        count += uinform_block_size
+    }
+}
+
+instancedmeshcomponent_bind :: meshcomponent_bind
+
+instancedmeshcomponent_draw :: proc(mesh: ^Instanced_Mesh_Component) {
+    instancedmeshcomponent_bind(mesh^)
+
+    gl.DrawElementsInstanced(mesh.gl_draw_mode, (i32)(mesh.index_count), mesh.index_buffer_type, nil, (i32)(mesh.instance_count))
+}
