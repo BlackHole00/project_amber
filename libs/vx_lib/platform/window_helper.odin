@@ -201,7 +201,6 @@ windowhelper_set_fullscreen :: proc(fullscreen: bool) {
 
     glfw.SetWindowMonitor(WINDOW_INSTANCE.handle, monitor, 0, 0, (c.int)(WINDOW_INSTANCE.data.size.x), (c.int)(WINDOW_INSTANCE.data.size.y), glfw.DONT_CARE)
 
-    // This is needed because Windows removes the window'decorations when in fullscreen.
     if !fullscreen {
         pos := windowhelper_get_window_pos()
         windowhelper_set_window_pos({ pos.x, pos.y + 30 })

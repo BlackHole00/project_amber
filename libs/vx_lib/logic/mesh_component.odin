@@ -69,13 +69,14 @@ meshcomponent_set_data :: proc(mesh: ^Mesh_Component, vertex_data: []$T, index_d
     }
 }
 
-meshcomponent_bind :: proc(mesh: Mesh_Component) {
-    gfx.buffer_bind(mesh.vertex_buffer)
-    gfx.buffer_bind(mesh.index_buffer)
+meshcomponent_apply :: proc(mesh: Mesh_Component, layout: gfx.Layout) {
+    gfx.layout_apply(layout, []gfx.Buffer{ 
+        mesh.vertex_buffer,
+    }, mesh.index_buffer)
 }
 
-meshcomponent_draw :: proc(mesh: Mesh_Component) {
-    meshcomponent_bind(mesh)
+meshcomponent_draw :: proc(mesh: Mesh_Component, layout: gfx.Layout) {
+    gfx.layout_bind(layout)
 
     gl.DrawElements(mesh.gl_draw_mode, (i32)(mesh.index_count), mesh.index_buffer_type, nil)
 }

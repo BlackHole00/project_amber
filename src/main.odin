@@ -131,13 +131,15 @@ STATE: core.Cell(State)
 init :: proc() {
 	core.cell_init(&STATE)
 
+	offscreen_init()
+
 	logic.instancedmeshcomponent_init(&STATE.mesh, logic.Instanced_Mesh_Descriptor {
 		index_buffer_type = gl.UNSIGNED_INT,
 		gl_usage = gl.STATIC_DRAW,
 		gl_draw_mode = gl.TRIANGLES,
 	})
 	logic.instancedmeshcomponent_set_data(&STATE.mesh, VERTICES, INDICES)
-	logic.dynamicstorage_init(&STATE.mesh.transforms, 8192)
+	logic.dynamicstorage_init(&STATE.mesh.transforms, 1024)
 
 	vertex_src, ok := os.read_entire_file("res/shaders/basic.vs")
 	if !ok do panic("Could not open vertex shader file")
@@ -171,6 +173,8 @@ init :: proc() {
 		blend_enabled = false,
 
 		wireframe = false,
+
+		viewport_size = { 640, 480 },
 
 		clear_color = { 0.0, 0.0, 0.0, 0.0 },
 	})
@@ -215,7 +219,7 @@ tick :: proc() {
 		transform.position = logic.Position_Component { noise.noise_2d(0, vec), noise.noise_2d(1, vec), noise.noise_2d(2, vec) }
 		transform.position += ({
 			noise.noise_2d(0, vec2), noise.noise_2d(1, vec2), noise.noise_2d(2, vec2),
-		} * 100.0)
+		} * 50.0)
 
 		transform.rotation = logic.Rotation_Component { (f32)(i), (f32)(i * 2), (f32)(i * 3) }
 		transform.scale = logic.Scale_Component { 1.0, 1.0, 1.0 }
@@ -230,12 +234,12 @@ tick :: proc() {
 }
 
 draw :: proc() {
-	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	offscreen_draw()
 
 	gfx.pipeline_apply(STATE.pipeline)
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)
-	gfx.bind(STATE.bundle)
+	gfx.framebuffer_apply_color_attachment(OFFSCREEN_INSTANCE.framebuffer, &STATE.pipeline, "uTexture")
+	gfx.framebuffer_bind_color_attachment(OFFSCREEN_INSTANCE.framebuffer)
 
 	gfx.pipeline_clear(STATE.pipeline)
 
@@ -243,6 +247,8 @@ draw :: proc() {
 }
 
 close :: proc() {
+	offscreen_free()
+
 	gfx.pipeline_free(&STATE.pipeline)
 	gfx.texturebundle_free(&STATE.bundle)
 	logic.meshcomponent_free(&STATE.mesh)
@@ -255,7 +261,7 @@ resize :: proc() {
 	size := platform.windowhelper_get_window_size()
 
 	logic.camera_resize_view_port(&STATE.camera, size)
-	gl.Viewport(0, 0, (i32)(size.x), (i32)(size.y))
+	gfx.pipeline_resize(&STATE.pipeline, size)
 }
 
 main :: proc() {

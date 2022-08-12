@@ -96,28 +96,49 @@ texture_free :: proc(texture: ^Texture) {
     texture.texture_handle = INVALID_HANDLE
 }
 
-texture_set_data_1d :: proc(texture: Texture, data: []$T, texture_format: u32) {
+texture_set_data_1d :: proc(texture: Texture, data: []$T, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE) {
     texture_bind(texture)
 
-    gl.TexImage1D(texture.gl_type, 0, texture.texture_format, len(data) * size_of(T), 0, texture_format, gl.UNSIGNED_BYTE, (rawptr)(&data[0]))
+    gl.TexImage1D(texture.gl_type, 0, texture.texture_format, len(data) * size_of(T), 0, texture_format, pixel_type, (rawptr)(&data[0]))
     texture_gen_mipmaps(texture)
 }
 
-texture_set_data_2d :: proc(texture: Texture, data: []$T, texture_format: u32, dimension: [2]uint) {
+texture_set_data_2d :: proc(texture: Texture, data: []$T, texture_format: u32, dimension: [2]uint, pixel_type: u32 = gl.UNSIGNED_BYTE) {
     texture_bind(texture)
 
-    gl.TexImage2D(texture.gl_type, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), 0, texture_format, gl.UNSIGNED_BYTE, (rawptr)(&data[0]))
+    gl.TexImage2D(texture.gl_type, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), 0, texture_format, pixel_type, (rawptr)(&data[0]))
     texture_gen_mipmaps(texture)
 }
 
-texture_set_data_3d :: proc(texture: Texture, data: []$T, texture_format: u32, dimension: [3]uint) {
+texture_set_data_3d :: proc(texture: Texture, data: []$T, texture_format: u32, dimension: [3]uint, pixel_type: u32 = gl.UNSIGNED_BYTE) {
     texture_bind(texture)
 
-    gl.TexImage1D(texture.gl_type, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), 0, texture_format, gl.UNSIGNED_BYTE, (rawptr)(&data[0]))
+    gl.TexImage3D(texture.gl_type, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), 0, texture_format, pixel_type, (rawptr)(&data[0]))
     texture_gen_mipmaps(texture)
 }
 
 texture_set_data :: proc { texture_set_data_1d, texture_set_data_2d, texture_set_data_3d }
+
+texture_set_size_1d :: proc(texture: Texture, size: uint, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE) {
+    texture_bind(texture)
+
+    gl.TexImage1D(texture.gl_type, 0, texture.texture_format, (i32)(size), 0, texture_format, pixel_type, nil)
+    texture_gen_mipmaps(texture)
+}
+
+texture_set_size_2d :: proc(texture: Texture, dimension: [2]uint, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE) {
+    texture_bind(texture)
+
+    gl.TexImage2D(texture.gl_type, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), 0, texture_format, pixel_type, nil)
+    texture_gen_mipmaps(texture)
+}
+
+texture_set_size_3d :: proc(texture: Texture, dimension: [3]uint, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE) {
+    texture_bind(texture)
+
+    gl.TexImage3D(texture.gl_type, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), 0, texture_format, pixel_type, nil)
+    texture_gen_mipmaps(texture)
+}
 
 texture_bind :: proc(texture: Texture) {
     gl.ActiveTexture(gl.TEXTURE0 + (u32)(texture.texture_unit))

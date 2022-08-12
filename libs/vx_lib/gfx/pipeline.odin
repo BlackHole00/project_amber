@@ -19,6 +19,8 @@ Pipeline_States :: struct {
     clear_color: [4]f32,
 
     wireframe: bool,
+
+    viewport_size: [2]uint,
 }
 
 Pipeline_Descriptor :: struct {
@@ -37,6 +39,7 @@ Pipeline_Descriptor :: struct {
     blend_dstdst_alphargb_func: u32,
     clear_color: [4]f32,
     wireframe: bool,
+    viewport_size: [2]uint,
 }
 
 Pipeline :: struct {
@@ -44,9 +47,10 @@ Pipeline :: struct {
     using layout: Layout,
 
     states: Pipeline_States,
+    render_target: Maybe(Framebuffer),
 }
 
-pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor) {
+pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer) = nil) {
     pipeline.shader = desc.shader
     pipeline.layout = desc.layout
 
@@ -62,6 +66,9 @@ pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor) {
     pipeline.states.blend_dstdst_alphargb_func = desc.blend_dstdst_alphargb_func
     pipeline.states.clear_color = desc.clear_color
     pipeline.states.wireframe = desc.wireframe
+    pipeline.states.viewport_size = desc.viewport_size
+
+    pipeline.render_target = render_target
 }
 
 pipeline_free :: proc(pipeline: ^Pipeline) {
@@ -72,6 +79,8 @@ pipeline_free :: proc(pipeline: ^Pipeline) {
 pipeline_bind :: proc(pipeline: Pipeline) {
     shader_bind(pipeline.shader)
     layout_bind(pipeline.layout)
+
+    pipeline_bind_rendertarget(pipeline)
 }
 
 pipeline_apply :: proc(pipeline: Pipeline) {
@@ -101,7 +110,13 @@ pipeline_apply :: proc(pipeline: Pipeline) {
     else do gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
 }
 
+pipeline_resize :: proc(pipeline: ^Pipeline, new_size: [2]uint) {
+    pipeline.states.viewport_size = new_size
+}
+
 pipeline_clear :: proc(pipeline: Pipeline) {
+    pipeline_bind_rendertarget(pipeline)
+
     clear_bits: u32 = gl.COLOR_BUFFER_BIT
 
     if pipeline.states.depth_enabled do clear_bits |= gl.DEPTH_BUFFER_BIT
@@ -123,4 +138,11 @@ pipeline_uniform_1i :: shader_uniform_1i
 
 pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
     pipeline.states.wireframe = wireframe
+}
+
+pipeline_bind_rendertarget :: proc(pipeline: Pipeline) {
+    if pipeline.render_target != nil do framebuffer_bind(pipeline.render_target.(Framebuffer))
+    else do bind_to_default_framebuffer()
+
+    gl.Viewport(0, 0, (i32)(pipeline.states.viewport_size.x), (i32)(pipeline.states.viewport_size.y))
 }
