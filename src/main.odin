@@ -14,7 +14,7 @@ import gl "vendor:OpenGL"
 
 Vertex :: struct #packed {
 	pos: [3]f32,
-	color: [3]f32,
+	uv:  [2]f32,
 }
 VERTEX_LAYOUT := []gfx.Layout_Element {
 	{
@@ -24,6 +24,16 @@ VERTEX_LAYOUT := []gfx.Layout_Element {
 		buffer_idx = 0,
 		divisor = 0,
 	},
+	{
+		gl_type = gl.FLOAT,
+		count = 2,
+		normalized = false,
+		buffer_idx = 0,
+		divisor = 0,
+	},
+}
+
+SKYBOX_LAYOUT := []gfx.Layout_Element {
 	{
 		gl_type = gl.FLOAT,
 		count = 3,
@@ -36,6 +46,11 @@ VERTEX_LAYOUT := []gfx.Layout_Element {
 State :: struct {
 	pipeline: gfx.Pipeline,
 	mesh: objects.Simple_Mesh,
+	texture: gfx.Texture,
+
+	skybox_pipeline: gfx.Pipeline,
+	skybox_cube: logic.Mesh_Component,
+	skybox_texture: gfx.Texture,
 
 	camera: objects.Simple_Camera,
 }
@@ -70,8 +85,42 @@ init :: proc() {
 		cull_front_face = gl.CCW,
 		cull_face = gl.BACK,
 
-		depth_enabled = false,
-		depth_func = gl.LESS,
+		depth_enabled = true,
+		depth_func = gl.LEQUAL,
+
+		blend_enabled = false,
+
+		wireframe = false,
+
+		viewport_size = { 640, 480 },
+
+		clear_color = { 0.0, 0.0, 0.0, 0.0 },
+	})
+
+	vertex_src, ok = os.read_entire_file("res/shaders/skybox.vs")
+	if !ok do panic("Could not open vertex shader file")
+	defer delete(vertex_src)
+
+	fragment_src, ok2 = os.read_entire_file("res/shaders/skybox.fs")
+	if !ok2 do panic("Could not open fragment shader file")
+	defer delete(fragment_src)
+
+	gfx.shader_init(&shader, gfx.Shader_Descriptor { 
+		vertex_source = (string)(vertex_src), 
+		fragment_source = (string)(fragment_src),
+	})
+	gfx.layout_init(&layout, gfx.Layout_Descriptor {
+		elements = SKYBOX_LAYOUT,
+	})
+
+	gfx.pipeline_init(&STATE.skybox_pipeline, gfx.Pipeline_Descriptor { 
+		shader = shader,
+		layout = layout,
+
+		cull_enabled = false,
+
+		depth_enabled = true,
+		depth_func = gl.LEQUAL,
 
 		blend_enabled = false,
 
@@ -100,24 +149,56 @@ init :: proc() {
 	utils.meshbuilder_init(&mesh_builder, utils.MeshBuilder_Descriptor {
 		gl_usage = gl.STATIC_DRAW,
 		gl_draw_mode = gl.TRIANGLES,
+		draw_to_depth_buffer = true,
 	})
 	defer utils.meshbuilder_free(mesh_builder)
 
 	utils.meshbuilder_push_quad(&mesh_builder, []Vertex {
 		{
-			pos = { -0.5, -0.5, 0.0 }, color = { 1.0, 0.0, 0.0 },
+			pos = { -0.5, -0.5, 0.0 }, uv = { 0.0, 0.0 },
 		},
 		{
-			pos = {  0.5, -0.5, 0.0 }, color = { 0.0, 1.0, 0.0 },
+			pos = {  0.5, -0.5, 0.0 }, uv = { 1.0, 0.0 },
 		},
 		{
-			pos = {  0.5,  0.5, 0.0 }, color = { 0.0, 0.0, 1.0 },
+			pos = {  0.5,  0.5, 0.0 }, uv = { 1.0, 1.0 },
 		},
 		{
-			pos = { -0.5,  0.5, 0.0 }, color = { 0.0, 1.0, 0.0 },
+			pos = { -0.5,  0.5, 0.0 }, uv = { 0.0, 1.0 },
 		},
 	})
 	utils.meshbuilder_build(mesh_builder, &STATE.mesh)
+
+	logic.meshcomponent_init(&STATE.skybox_cube, logic.Mesh_Descriptor {
+		index_buffer_type = gl.UNSIGNED_INT,
+		gl_usage = gl.STATIC_DRAW,
+		gl_draw_mode = gl.TRIANGLES,
+		draw_to_depth_buffer = false,
+	}, CUBE_VERTICES, CUBE_INDICES)
+
+	gfx.texture_init(&STATE.texture, gfx.Texture_Descriptor {
+		gl_type = gl.TEXTURE_2D,
+		internal_texture_format = gl.RGBA,
+		texture_unit = 0,
+		warp_s = gl.REPEAT,
+		warp_t = gl.REPEAT,
+		min_filter = gl.NEAREST,
+		mag_filter = gl.NEAREST,
+		gen_mipmaps = true,
+	}, "res/textures/grass.png")
+	gfx.texture_apply(STATE.texture, &STATE.pipeline, "uTexture")
+
+	gfx.texture_init(&STATE.skybox_texture, gfx.Texture_Descriptor {
+		gl_type = gl.TEXTURE_CUBE_MAP,
+		internal_texture_format = gl.RGBA,
+		texture_unit = 0,
+		warp_s = gl.REPEAT,
+		warp_t = gl.REPEAT,
+		min_filter = gl.NEAREST,
+		mag_filter = gl.NEAREST,
+		gen_mipmaps = false,
+	}, "res/textures/skybox/right.bmp", "res/textures/skybox/left.bmp", "res/textures/skybox/top.bmp", "res/textures/skybox/bottom.bmp", "res/textures/skybox/front.bmp", "res/textures/skybox/back.bmp")
+	gfx.texture_apply(STATE.texture, &STATE.skybox_pipeline, "uSkybox")
 }
 
 tick :: proc() {
@@ -127,10 +208,20 @@ tick :: proc() {
 
 draw :: proc() {
 	gfx.pipeline_apply(STATE.pipeline)
+	gfx.pipeline_clear(STATE.pipeline)
+
+	gfx.pipeline_apply(STATE.skybox_pipeline)
+	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.skybox_pipeline)
+
+	gfx.texture_bind(STATE.skybox_texture)
+	logic.meshcomponent_apply(STATE.skybox_cube, STATE.skybox_pipeline)
+	logic.meshcomponent_draw(STATE.skybox_cube, STATE.skybox_pipeline)
+
+	gfx.pipeline_apply(STATE.pipeline)
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)
 	logic.transform_apply(&STATE.mesh, &STATE.pipeline)
 
-	gfx.pipeline_clear(STATE.pipeline)
+	gfx.texture_bind(STATE.texture)
 	logic.meshcomponent_apply(STATE.mesh, STATE.pipeline)
 	logic.meshcomponent_draw(STATE.mesh, STATE.pipeline)
 }
@@ -143,9 +234,11 @@ close :: proc() {
 
 resize :: proc() {
 	size := platform.windowhelper_get_window_size()
+	_ = size
 
 	logic.camera_resize_view_port(&STATE.camera, size)
 	gfx.pipeline_resize(&STATE.pipeline, size)
+	gfx.pipeline_resize(&STATE.skybox_pipeline, size)
 }
 
 main :: proc() {

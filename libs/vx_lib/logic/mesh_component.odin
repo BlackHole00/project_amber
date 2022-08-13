@@ -7,6 +7,7 @@ Mesh_Descriptor :: struct {
     index_buffer_type: u32,
     gl_usage: u32,
     gl_draw_mode: u32,
+    draw_to_depth_buffer: bool,
 }
 
 Mesh_Component :: struct {
@@ -78,5 +79,11 @@ meshcomponent_apply :: proc(mesh: Mesh_Component, layout: gfx.Layout) {
 meshcomponent_draw :: proc(mesh: Mesh_Component, layout: gfx.Layout) {
     gfx.layout_bind(layout)
 
+    gl.DepthMask(mesh.draw_to_depth_buffer)
+
     gl.DrawElements(mesh.gl_draw_mode, (i32)(mesh.index_count), mesh.index_buffer_type, nil)
+
+    // VERY IMPORTANT NOTE: If DepthMask is set to false when clearing a screen, the depth buffer will not be properly cleared, causing a black screen.
+    // Leave the depth mask to true!
+    gl.DepthMask(true)
 }

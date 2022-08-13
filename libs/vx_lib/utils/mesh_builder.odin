@@ -7,6 +7,7 @@ import gl "vendor:OpenGL"
 MeshBuilder_Descriptor :: struct {
     gl_usage: u32,
     gl_draw_mode: u32,
+    draw_to_depth_buffer: bool,
 }
 
 Mesh_Builder :: struct {
@@ -62,6 +63,7 @@ meshbuilder_build :: proc(builder: Mesh_Builder, mesh: ^logic.Mesh_Component) {
         index_buffer_type = gl.UNSIGNED_INT,
         gl_usage = builder.desc.gl_usage,
         gl_draw_mode = builder.desc.gl_draw_mode,
+        draw_to_depth_buffer = builder.desc.draw_to_depth_buffer,
     })
 
     log.info("Vertex data:", builder.vertices)

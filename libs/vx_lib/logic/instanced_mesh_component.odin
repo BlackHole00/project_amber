@@ -8,6 +8,7 @@ Instanced_Mesh_Descriptor :: struct {
     index_buffer_type: u32,
     gl_usage: u32,
     gl_draw_mode: u32,
+    draw_to_depth_buffer: bool,
 }
 
 Instanced_Mesh_Component :: struct {
@@ -19,7 +20,7 @@ Instanced_Mesh_Component :: struct {
 
 instancedmeshcomponent_init_empty :: proc(mesh: ^Instanced_Mesh_Component, desc: Instanced_Mesh_Descriptor) {
     meshcomponent_init_empty(mesh, Mesh_Descriptor {
-        desc.index_buffer_type, desc.gl_usage, desc.gl_draw_mode,
+        desc.index_buffer_type, desc.gl_usage, desc.gl_draw_mode, desc.draw_to_depth_buffer,
     })
 
     gfx.buffer_init(&mesh.instance_buffer, gfx.Buffer_Descriptor {
@@ -60,6 +61,8 @@ instancedmeshcomponent_apply :: proc(mesh: Instanced_Mesh_Component, layout: gfx
 
 instancedmeshcomponent_draw :: proc(mesh: ^Instanced_Mesh_Component, layout: gfx.Layout) {
     gfx.layout_bind(layout)
+
+    gl.DepthMask(mesh.draw_to_depth_buffer)
 
     gl.DrawElementsInstanced(mesh.gl_draw_mode, (i32)(mesh.index_count), mesh.index_buffer_type, nil, (i32)(mesh.instance_count))
 }

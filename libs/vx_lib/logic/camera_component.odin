@@ -91,13 +91,21 @@ camera_get_proj_matrix :: proc(camera: Camera_Component) -> glsl.mat4 {
 
 camera_get_view_matrix :: pr_get_view_matrix
 
-camera_apply :: proc(camera: Camera_Component, position: Position_Component, rotation: Rotation_Component, shader: ^gfx.Shader) {
-    proj := camera_get_proj_matrix(camera)
+camera_apply_full :: proc(camera: Camera_Component, position: Position_Component, rotation: Rotation_Component, shader: ^gfx.Shader) {
     view := camera_get_view_matrix(position, rotation)
 
-    gfx.shader_uniform_mat4f(shader, gfx.PROJ_UNIFORM_NAME, &proj)
     gfx.shader_uniform_mat4f(shader, gfx.VIEW_UNIFORM_NAME, &view)
+
+    camera_apply_proj(camera, shader)
 }
+
+camera_apply_proj :: proc(camera: Camera_Component, shader: ^gfx.Shader) {
+    proj := camera_get_proj_matrix(camera)
+
+    gfx.shader_uniform_mat4f(shader, gfx.PROJ_UNIFORM_NAME, &proj)
+}
+
+camera_apply :: proc { camera_apply_full, camera_apply_proj }
 
 camera_get_fov :: proc(camera: Camera_Component) -> f32 {
     return camera.perspective_data.fov

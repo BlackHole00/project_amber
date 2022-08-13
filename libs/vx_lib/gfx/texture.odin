@@ -61,34 +61,56 @@ texture_init_with_data_3d :: proc(texture: ^Texture, desc: Texture_Descriptor, d
 texture_init_from_file :: proc(texture: ^Texture, desc: Texture_Descriptor, file_path: string, texture_format := -1) {
     if (desc.gl_type != gl.TEXTURE_2D) {
         log.error("texture_init_from_file works only with gl.TEXTURE_2D textures!")
-    }
-
-    file, ok := os.read_entire_file(file_path)
-    if !ok {
-        log.error("Could not open file", file_path)
         return
     }
-    defer delete(file)
 
-    x, y, ch_num: c.int
-    image.set_flip_vertically_on_load(1)
-    data := image.load_from_memory(([^]byte)(&file[0]), (i32)(len(file)), &x, &y, &ch_num, 0)
+    data, x, y, ch_num, real_texture_format := get_texture_content_from_file(file_path, texture_format)
     defer image.image_free(data)
-
-    real_texture_format: u32 = (u32)(texture_format)
-    if texture_format == -1 do switch ch_num {
-        case 1: real_texture_format = gl.RED
-        case 2: real_texture_format = gl.RG
-        case 3: real_texture_format = gl.RGB
-        case 4: real_texture_format = gl.RGBA
-        case: panic("Invalid ch_num")
-    }
 
     slice := mem.byte_slice(data, x * y * ch_num)
     texture_init_with_data_2d(texture, desc, slice, real_texture_format, { (uint)(x), (uint)(y) })
 }
 
-texture_init :: proc { texture_init_raw, texture_init_with_data_1d, texture_init_with_data_2d, texture_init_with_data_3d, texture_init_from_file }
+texture_init_cubemap_from_file :: proc(texture: ^Texture, desc: Texture_Descriptor, right_path, left_path, top_path, bottom_path, back_path, front_path: string, texture_format := -1) {
+    if desc.gl_type != gl.TEXTURE_CUBE_MAP {
+        log.error("texture_init_cubemap_from_file works only with gl.TEXTURE_CUBE_MAP textures!")
+        return
+    }
+
+    texture_init_raw(texture, desc)
+
+    data, x, y, ch_num, real_texture_format := get_texture_content_from_file(right_path, texture_format)
+    slice := mem.byte_slice(data, x * y * ch_num)
+    texture_set_data_2d(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, gl.UNSIGNED_BYTE, gl.TEXTURE_CUBE_MAP_POSITIVE_X)
+    image.image_free(data)
+
+    data, x, y, ch_num, real_texture_format = get_texture_content_from_file(left_path, texture_format)
+    slice = mem.byte_slice(data, x * y * ch_num)
+    texture_set_data_2d(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, gl.UNSIGNED_BYTE, gl.TEXTURE_CUBE_MAP_NEGATIVE_X)
+    image.image_free(data)
+
+    data, x, y, ch_num, real_texture_format = get_texture_content_from_file(top_path, texture_format)
+    slice = mem.byte_slice(data, x * y * ch_num)
+    texture_set_data_2d(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, gl.UNSIGNED_BYTE, gl.TEXTURE_CUBE_MAP_POSITIVE_Y)
+    image.image_free(data)
+
+    data, x, y, ch_num, real_texture_format = get_texture_content_from_file(bottom_path, texture_format)
+    slice = mem.byte_slice(data, x * y * ch_num)
+    texture_set_data_2d(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, gl.UNSIGNED_BYTE, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y)
+    image.image_free(data)
+
+    data, x, y, ch_num, real_texture_format = get_texture_content_from_file(back_path, texture_format)
+    slice = mem.byte_slice(data, x * y * ch_num)
+    texture_set_data_2d(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, gl.UNSIGNED_BYTE, gl.TEXTURE_CUBE_MAP_POSITIVE_Z)
+    image.image_free(data)
+
+    data, x, y, ch_num, real_texture_format = get_texture_content_from_file(front_path, texture_format)
+    slice = mem.byte_slice(data, x * y * ch_num)
+    texture_set_data_2d(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, gl.UNSIGNED_BYTE, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z)
+    image.image_free(data)
+}
+
+texture_init :: proc { texture_init_raw, texture_init_with_data_1d, texture_init_with_data_2d, texture_init_with_data_3d, texture_init_from_file, texture_init_cubemap_from_file }
 
 texture_free :: proc(texture: ^Texture) {
     gl.DeleteTextures(1, &texture.texture_handle)
@@ -96,22 +118,31 @@ texture_free :: proc(texture: ^Texture) {
     texture.texture_handle = INVALID_HANDLE
 }
 
-texture_set_data_1d :: proc(texture: Texture, data: []$T, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE) {
+texture_set_data_1d :: proc(texture: Texture, data: []$T, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE, bind_target := -1) {
     texture_bind(texture)
+
+    real_bind_target: u32 = (u32)(bind_target)
+    if bind_target == -1 do real_bind_target = texture.gl_type
 
     gl.TexImage1D(texture.gl_type, 0, texture.texture_format, len(data) * size_of(T), 0, texture_format, pixel_type, (rawptr)(&data[0]))
     texture_gen_mipmaps(texture)
 }
 
-texture_set_data_2d :: proc(texture: Texture, data: []$T, texture_format: u32, dimension: [2]uint, pixel_type: u32 = gl.UNSIGNED_BYTE) {
+texture_set_data_2d :: proc(texture: Texture, data: []$T, texture_format: u32, dimension: [2]uint, pixel_type: u32 = gl.UNSIGNED_BYTE, bind_target := -1) {
     texture_bind(texture)
 
-    gl.TexImage2D(texture.gl_type, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), 0, texture_format, pixel_type, (rawptr)(&data[0]))
+    real_bind_target: u32 = (u32)(bind_target)
+    if bind_target == -1 do real_bind_target = texture.gl_type
+
+    gl.TexImage2D(real_bind_target, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), 0, texture_format, pixel_type, (rawptr)(&data[0]))
     texture_gen_mipmaps(texture)
 }
 
-texture_set_data_3d :: proc(texture: Texture, data: []$T, texture_format: u32, dimension: [3]uint, pixel_type: u32 = gl.UNSIGNED_BYTE) {
+texture_set_data_3d :: proc(texture: Texture, data: []$T, texture_format: u32, dimension: [3]uint, pixel_type: u32 = gl.UNSIGNED_BYTE, bind_target := -1) {
     texture_bind(texture)
+
+    real_bind_target: u32 = (u32)(bind_target)
+    if bind_target == -1 do real_bind_target = texture.gl_type
 
     gl.TexImage3D(texture.gl_type, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), 0, texture_format, pixel_type, (rawptr)(&data[0]))
     texture_gen_mipmaps(texture)
@@ -119,22 +150,31 @@ texture_set_data_3d :: proc(texture: Texture, data: []$T, texture_format: u32, d
 
 texture_set_data :: proc { texture_set_data_1d, texture_set_data_2d, texture_set_data_3d }
 
-texture_set_size_1d :: proc(texture: Texture, size: uint, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE) {
+texture_set_size_1d :: proc(texture: Texture, size: uint, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE, bind_target := -1) {
     texture_bind(texture)
+
+    real_bind_target: u32 = (u32)(bind_target)
+    if bind_target == -1 do real_bind_target = texture.gl_type
 
     gl.TexImage1D(texture.gl_type, 0, texture.texture_format, (i32)(size), 0, texture_format, pixel_type, nil)
     texture_gen_mipmaps(texture)
 }
 
-texture_set_size_2d :: proc(texture: Texture, dimension: [2]uint, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE) {
+texture_set_size_2d :: proc(texture: Texture, dimension: [2]uint, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE, bind_target := -1) {
     texture_bind(texture)
+
+    real_bind_target: u32 = (u32)(bind_target)
+    if bind_target == -1 do real_bind_target = texture.gl_type
 
     gl.TexImage2D(texture.gl_type, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), 0, texture_format, pixel_type, nil)
     texture_gen_mipmaps(texture)
 }
 
-texture_set_size_3d :: proc(texture: Texture, dimension: [3]uint, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE) {
+texture_set_size_3d :: proc(texture: Texture, dimension: [3]uint, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE, bind_target := -1) {
     texture_bind(texture)
+
+    real_bind_target: u32 = (u32)(bind_target)
+    if bind_target == -1 do real_bind_target = texture.gl_type
 
     gl.TexImage3D(texture.gl_type, 0, texture.texture_format, (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), 0, texture_format, pixel_type, nil)
     texture_gen_mipmaps(texture)
@@ -153,5 +193,31 @@ texture_gen_mipmaps :: proc(texture: Texture) {
 
 texture_apply:: proc(texture: Texture, shader: ^Shader, uniform_name: string) {
     shader_uniform_1i(shader, uniform_name, texture.texture_unit)
+}
+
+get_texture_content_from_file :: proc(file_path: string, desired_texture_format := -1) -> (
+    data: [^]byte,
+    x, y, ch_num: c.int,
+    texture_format: u32,
+) {
+    file, ok := os.read_entire_file(file_path)
+    if !ok {
+        log.error("Could not open file", file_path)
+        return
+    }
+    defer delete(file)
+
+    data = image.load_from_memory(([^]byte)(&file[0]), (i32)(len(file)), &x, &y, &ch_num, 0)
+
+    texture_format = (u32)(desired_texture_format)
+    if desired_texture_format == -1 do switch ch_num {
+        case 1: texture_format = gl.RED
+        case 2: texture_format = gl.RG
+        case 3: texture_format = gl.RGB
+        case 4: texture_format = gl.RGBA
+        case: panic("Invalid ch_num")
+    }
+
+    return
 }
 
