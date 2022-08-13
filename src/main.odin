@@ -49,8 +49,7 @@ State :: struct {
 	texture: gfx.Texture,
 
 	skybox_pipeline: gfx.Pipeline,
-	skybox_cube: logic.Mesh_Component,
-	skybox_texture: gfx.Texture,
+	skybox: objects.Skybox,
 
 	camera: objects.Simple_Camera,
 }
@@ -169,12 +168,8 @@ init :: proc() {
 	})
 	utils.meshbuilder_build(mesh_builder, &STATE.mesh)
 
-	logic.meshcomponent_init(&STATE.skybox_cube, logic.Mesh_Descriptor {
-		index_buffer_type = gl.UNSIGNED_INT,
-		gl_usage = gl.STATIC_DRAW,
-		gl_draw_mode = gl.TRIANGLES,
-		draw_to_depth_buffer = false,
-	}, CUBE_VERTICES, CUBE_INDICES)
+	logic.skybox_init(&STATE.skybox.mesh, &STATE.skybox.texture, "res/textures/skybox/right.bmp", "res/textures/skybox/left.bmp", "res/textures/skybox/top.bmp", "res/textures/skybox/bottom.bmp", "res/textures/skybox/back.bmp", "res/textures/skybox/front.bmp")
+	logic.skybox_apply(STATE.skybox.texture, &STATE.skybox_pipeline)
 
 	gfx.texture_init(&STATE.texture, gfx.Texture_Descriptor {
 		gl_type = gl.TEXTURE_2D,
@@ -187,18 +182,6 @@ init :: proc() {
 		gen_mipmaps = true,
 	}, "res/textures/grass.png")
 	gfx.texture_apply(STATE.texture, &STATE.pipeline, "uTexture")
-
-	gfx.texture_init(&STATE.skybox_texture, gfx.Texture_Descriptor {
-		gl_type = gl.TEXTURE_CUBE_MAP,
-		internal_texture_format = gl.RGBA,
-		texture_unit = 0,
-		warp_s = gl.REPEAT,
-		warp_t = gl.REPEAT,
-		min_filter = gl.NEAREST,
-		mag_filter = gl.NEAREST,
-		gen_mipmaps = false,
-	}, "res/textures/skybox/right.bmp", "res/textures/skybox/left.bmp", "res/textures/skybox/top.bmp", "res/textures/skybox/bottom.bmp", "res/textures/skybox/front.bmp", "res/textures/skybox/back.bmp")
-	gfx.texture_apply(STATE.texture, &STATE.skybox_pipeline, "uSkybox")
 }
 
 tick :: proc() {
@@ -212,10 +195,7 @@ draw :: proc() {
 
 	gfx.pipeline_apply(STATE.skybox_pipeline)
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.skybox_pipeline)
-
-	gfx.texture_bind(STATE.skybox_texture)
-	logic.meshcomponent_apply(STATE.skybox_cube, STATE.skybox_pipeline)
-	logic.meshcomponent_draw(STATE.skybox_cube, STATE.skybox_pipeline)
+	logic.skybox_draw(STATE.skybox.mesh, STATE.skybox.texture, STATE.skybox_pipeline)
 
 	gfx.pipeline_apply(STATE.pipeline)
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)

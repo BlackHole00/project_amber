@@ -101,12 +101,12 @@ texture_init_cubemap_from_file :: proc(texture: ^Texture, desc: Texture_Descript
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(back_path, texture_format)
     slice = mem.byte_slice(data, x * y * ch_num)
-    texture_set_data_2d(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, gl.UNSIGNED_BYTE, gl.TEXTURE_CUBE_MAP_POSITIVE_Z)
+    texture_set_data_2d(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, gl.UNSIGNED_BYTE, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(front_path, texture_format)
     slice = mem.byte_slice(data, x * y * ch_num)
-    texture_set_data_2d(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, gl.UNSIGNED_BYTE, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z)
+    texture_set_data_2d(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, gl.UNSIGNED_BYTE, gl.TEXTURE_CUBE_MAP_POSITIVE_Z)
     image.image_free(data)
 }
 
