@@ -1,7 +1,7 @@
 package vx_lib_gfx
 
 import gl "vendor:OpenGL"
-import "core:log"
+// import "core:log"
 
 Layout_Resolution_Element :: struct {
     index: u32,
@@ -53,7 +53,7 @@ layout_apply_without_index_buffer :: proc(layout: Layout, vertex_buffers: []Buff
 
     for resolution in layout.layout_resolution {
         buffer_bind(vertex_buffers[resolution.buffer_idx])
-        log.info(resolution.index, resolution.size, resolution.gl_type, resolution.normalized, resolution.stride, resolution.offset)
+        //log.info(resolution.index, resolution.size, resolution.gl_type, resolution.normalized, resolution.stride, resolution.offset)
         gl.VertexAttribPointer(resolution.index, resolution.size, resolution.gl_type, resolution.normalized, resolution.stride, resolution.offset)
         gl.EnableVertexAttribArray(resolution.index)
         gl.VertexAttribDivisor(resolution.index, resolution.divisor)
@@ -89,7 +89,7 @@ layout_resolve :: proc(layout: ^Layout, elements: []Layout_Element) {
 
         offsets[elements[i].buffer_idx] -= size_of_gl_type(elements[i].gl_type) * elements[i].count
 
-        log.info((u32)(layout_index), (i32)(elements[i].count), elements[i].gl_type, elements[i].normalized, (i32)(strides[elements[i].buffer_idx]), (uintptr)(offsets[elements[i].buffer_idx]))
+        //log.info((u32)(layout_index), (i32)(elements[i].count), elements[i].gl_type, elements[i].normalized, (i32)(strides[elements[i].buffer_idx]), (uintptr)(offsets[elements[i].buffer_idx]))
         layout.layout_resolution[i] = Layout_Resolution_Element {
             index = (u32)(layout_index),
             size = (i32)(elements[i].count),

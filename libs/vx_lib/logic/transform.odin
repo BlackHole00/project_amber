@@ -51,9 +51,6 @@ position_move :: proc(position: ^Position_Component, offset: glsl.vec3, amount: 
 position_move_cross :: proc(position: ^Position_Component, rotation: Rotation_Component, cross_vec: glsl.vec3, amount: f32 = 1.0) {
     arg: glsl.vec3 = glsl.normalize(glsl.cross(rotation_direction(rotation), cross_vec))
 
-    if rotation == { 0.0, 0.0, 0.0 } do arg = { 1.0, 0.0, 0.0 }
-    else do arg = glsl.normalize(glsl.cross(rotation_direction(rotation), cross_vec))
-
     position_move(position, arg, amount)
 }
 
@@ -90,14 +87,14 @@ pr_get_view_matrix :: proc(position: Position_Component, rotation: Rotation_Comp
     return glsl.mat4LookAt((glsl.vec3)(position), ((glsl.vec3)(position) + rotation_direction(rotation) * 0.01 ), { 0.0, 1.0, 0.0 })
 }
 
-pr_apply :: proc(position: Position_Component, rotation: Rotation_Component, shader: ^gfx.Shader, uniform_name: string) {
+pr_apply :: proc(position: Position_Component, rotation: Rotation_Component, shader: ^gfx.Shader, uniform_name := gfx.MODEL_UNIFORM_NAME) {
     mat := to_matrix(position) * to_matrix(rotation)
     gfx.shader_uniform_mat4f(shader, uniform_name, &mat)
 }
 
-prs_apply :: proc(position: Position_Component, rotation: Rotation_Component, scale: Scale_Component, pipeline: ^gfx.Pipeline, uniform_name: string) {
+prs_apply :: proc(position: Position_Component, rotation: Rotation_Component, scale: Scale_Component, shader: ^gfx.Shader, uniform_name := gfx.MODEL_UNIFORM_NAME) {
     mat := to_matrix(position) * to_matrix(rotation) * to_matrix(scale)
-    gfx.pipeline_uniform_mat4f(pipeline, uniform_name, &mat)
+    gfx.shader_uniform_mat4f(shader, uniform_name, &mat)
 }
 
 transform_move :: proc(transform: ^Transform, offset: glsl.vec3, amount: f32 = 1.0) {
@@ -153,4 +150,9 @@ transform_calc_matrix :: proc(transform: ^Transform) {
 transform_to_matrix :: proc(transform: ^Transform) -> glsl.mat4 {
     transform_calc_matrix(transform)
     return transform.mat
+}
+
+transform_apply :: proc(transform: ^Transform, shader: ^gfx.Shader, uniform_name := gfx.MODEL_UNIFORM_NAME) {
+    transform_calc_matrix(transform)
+    gfx.shader_uniform_mat4f(shader, uniform_name, &transform.mat)
 }

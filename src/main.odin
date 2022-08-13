@@ -9,10 +9,33 @@ import "vx_lib:common"
 import "vx_lib:gfx"
 import "vx_lib:logic"
 import "vx_lib:logic/objects"
+import "vx_lib:utils"
 import gl "vendor:OpenGL"
+
+Vertex :: struct #packed {
+	pos: [3]f32,
+	color: [3]f32,
+}
+VERTEX_LAYOUT := []gfx.Layout_Element {
+	{
+		gl_type = gl.FLOAT,
+		count = 3,
+		normalized = false,
+		buffer_idx = 0,
+		divisor = 0,
+	},
+	{
+		gl_type = gl.FLOAT,
+		count = 3,
+		normalized = false,
+		buffer_idx = 0,
+		divisor = 0,
+	},
+}
 
 State :: struct {
 	pipeline: gfx.Pipeline,
+	mesh: objects.Simple_Mesh,
 
 	camera: objects.Simple_Camera,
 }
@@ -36,18 +59,18 @@ init :: proc() {
 	})
 	layout: gfx.Layout = ---
 	gfx.layout_init(&layout, gfx.Layout_Descriptor {
-		elements = {},
+		elements = VERTEX_LAYOUT,
 	})
 
 	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor { 
 		shader = shader,
 		layout = layout,
 
-		cull_enabled = true,
+		cull_enabled = false,
 		cull_front_face = gl.CCW,
 		cull_face = gl.BACK,
 
-		depth_enabled = true,
+		depth_enabled = false,
 		depth_func = gl.LESS,
 
 		blend_enabled = false,
@@ -66,7 +89,35 @@ init :: proc() {
 		far = 1000.0,
 	})
 	STATE.camera.position = { 0.0, 0.0, 0.0 }
-	STATE.camera.rotation = { 3.14 / 2, 0.0, 0.0 }
+	STATE.camera.rotation = { 0.0, 0.0, 0.0 }
+
+	STATE.mesh.transform.position = { 0.0, 0.0, 1.0 }
+	STATE.mesh.transform.rotation = { 0.0, 0.0, 0.0 }
+	STATE.mesh.transform.scale = { 1.0, 1.0, 1.0 }
+	logic.transform_calc_matrix(&STATE.mesh.transform)
+
+	mesh_builder: utils.Mesh_Builder = ---
+	utils.meshbuilder_init(&mesh_builder, utils.MeshBuilder_Descriptor {
+		gl_usage = gl.STATIC_DRAW,
+		gl_draw_mode = gl.TRIANGLES,
+	})
+	defer utils.meshbuilder_free(mesh_builder)
+
+	utils.meshbuilder_push_quad(&mesh_builder, []Vertex {
+		{
+			pos = { -0.5, -0.5, 0.0 }, color = { 1.0, 0.0, 0.0 },
+		},
+		{
+			pos = {  0.5, -0.5, 0.0 }, color = { 0.0, 1.0, 0.0 },
+		},
+		{
+			pos = {  0.5,  0.5, 0.0 }, color = { 0.0, 0.0, 1.0 },
+		},
+		{
+			pos = { -0.5,  0.5, 0.0 }, color = { 0.0, 1.0, 0.0 },
+		},
+	})
+	utils.meshbuilder_build(mesh_builder, &STATE.mesh)
 }
 
 tick :: proc() {
@@ -77,9 +128,11 @@ tick :: proc() {
 draw :: proc() {
 	gfx.pipeline_apply(STATE.pipeline)
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)
+	logic.transform_apply(&STATE.mesh, &STATE.pipeline)
 
 	gfx.pipeline_clear(STATE.pipeline)
-
+	logic.meshcomponent_apply(STATE.mesh, STATE.pipeline)
+	logic.meshcomponent_draw(STATE.mesh, STATE.pipeline)
 }
 
 close :: proc() {

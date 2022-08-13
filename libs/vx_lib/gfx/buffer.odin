@@ -33,8 +33,10 @@ buffer_bind :: proc(buffer: Buffer) {
 }
 
 buffer_add_data :: proc(buffer: Buffer, data: []$T) {
+    tmp := len(data) * size_of(T)
+
     buffer_bind(buffer)
-    gl.BufferData(buffer.gl_type, len(data) * size_of(T), raw_data(data), buffer.gl_usage)
+    gl.BufferData(buffer.gl_type, tmp, raw_data(data), buffer.gl_usage)
 }
 
 buffer_free :: proc(buffer: ^Buffer) {
