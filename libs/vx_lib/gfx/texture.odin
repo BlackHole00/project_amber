@@ -180,6 +180,7 @@ texture_set_size_3d :: proc(texture: Texture, dimension: [3]uint, texture_format
     texture_gen_mipmaps(texture)
 }
 
+@(private)
 texture_bind :: proc(texture: Texture) {
     gl.ActiveTexture(gl.TEXTURE0 + (u32)(texture.texture_unit))
     gl.BindTexture(texture.gl_type, texture.texture_handle)
@@ -191,10 +192,12 @@ texture_gen_mipmaps :: proc(texture: Texture) {
     if texture.gen_mipmaps do gl.GenerateMipmap(texture.gl_type)
 }
 
+@(private)
 texture_apply:: proc(texture: Texture, shader: ^Shader, uniform_name: string) {
     shader_uniform_1i(shader, uniform_name, texture.texture_unit)
 }
 
+@(private)
 get_texture_content_from_file :: proc(file_path: string, desired_texture_format := -1) -> (
     data: [^]byte,
     x, y, ch_num: c.int,

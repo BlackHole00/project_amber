@@ -52,17 +52,31 @@ instancedmeshcomponent_set_instanced_data :: proc(mesh: ^Instanced_Mesh_Componen
     gfx.buffer_add_data(mesh.instance_buffer, instance_data)
 }
 
-instancedmeshcomponent_apply :: proc(mesh: Instanced_Mesh_Component, layout: gfx.Layout) {
-    gfx.layout_apply(layout, []gfx.Buffer{ 
-        mesh.vertex_buffer,
-        mesh.instance_buffer,
-    }, mesh.index_buffer)
+instancedmeshcomponent_get_bindings :: proc(mesh: Instanced_Mesh_Component, textures: Maybe([]gfx.Texture_Binding), bindings: ^gfx.Bindings) {
+    real_textures := []gfx.Texture_Binding { }
+    if textures != nil do real_textures = textures.([]gfx.Texture_Binding)
+
+    gfx.bindings_init(bindings, 
+        []gfx.Buffer {
+            mesh.vertex_buffer,
+            mesh.instance_buffer,
+        }, mesh.index_buffer,
+        real_textures,
+    )
 }
 
-instancedmeshcomponent_draw :: proc(mesh: ^Instanced_Mesh_Component, layout: gfx.Layout) {
-    gfx.layout_bind(layout)
+instancedmeshcomponent_draw :: proc(mesh: Instanced_Mesh_Component, pipeline: ^gfx.Pipeline, textures: Maybe([]gfx.Texture_Binding)) {
+    bindings: gfx.Bindings = ---
+    instancedmeshcomponent_get_bindings(mesh, textures, &bindings)
 
-    gl.DepthMask(mesh.draw_to_depth_buffer)
-
-    gl.DrawElementsInstanced(mesh.gl_draw_mode, (i32)(mesh.index_count), mesh.index_buffer_type, nil, (i32)(mesh.instance_count))
+    gfx.pipeline_draw_elements_instanced(
+        pipeline,
+        &bindings,
+        mesh.gl_draw_mode,
+        mesh.index_buffer_type,
+        mesh.index_count,
+        nil,
+        mesh.instance_count,
+        mesh.draw_to_depth_buffer,
+    )
 }

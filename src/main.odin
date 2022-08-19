@@ -50,6 +50,7 @@ State :: struct {
 
 	skybox_pipeline: gfx.Pipeline,
 	skybox: objects.Skybox,
+	skybox_bindings: gfx.Bindings,
 
 	camera: objects.Simple_Camera,
 }
@@ -60,11 +61,9 @@ init :: proc() {
 
 	vertex_src, ok := os.read_entire_file("res/shaders/basic.vs")
 	if !ok do panic("Could not open vertex shader file")
-	defer delete(vertex_src)
 
 	fragment_src, ok2 := os.read_entire_file("res/shaders/basic.fs")
 	if !ok2 do panic("Could not open fragment shader file")
-	defer delete(fragment_src)
 
 	shader: gfx.Shader = ---
 	gfx.shader_init(&shader, gfx.Shader_Descriptor { 
@@ -81,7 +80,7 @@ init :: proc() {
 		layout = layout,
 
 		cull_enabled = false,
-		cull_front_face = gl.CCW,
+		cull_front_face = gl.CW,
 		cull_face = gl.BACK,
 
 		depth_enabled = true,
@@ -96,10 +95,12 @@ init :: proc() {
 		clear_color = { 0.0, 0.0, 0.0, 0.0 },
 	})
 
+	delete(vertex_src)
 	vertex_src, ok = os.read_entire_file("res/shaders/skybox.vs")
 	if !ok do panic("Could not open vertex shader file")
 	defer delete(vertex_src)
 
+	delete(fragment_src)
 	fragment_src, ok2 = os.read_entire_file("res/shaders/skybox.fs")
 	if !ok2 do panic("Could not open fragment shader file")
 	defer delete(fragment_src)
@@ -169,7 +170,6 @@ init :: proc() {
 	utils.meshbuilder_build(mesh_builder, &STATE.mesh)
 
 	logic.skybox_init(&STATE.skybox.mesh, &STATE.skybox.texture, "res/textures/skybox/right.bmp", "res/textures/skybox/left.bmp", "res/textures/skybox/top.bmp", "res/textures/skybox/bottom.bmp", "res/textures/skybox/back.bmp", "res/textures/skybox/front.bmp")
-	logic.skybox_apply(STATE.skybox.texture, &STATE.skybox_pipeline)
 
 	gfx.texture_init(&STATE.texture, gfx.Texture_Descriptor {
 		gl_type = gl.TEXTURE_2D,
@@ -181,7 +181,6 @@ init :: proc() {
 		mag_filter = gl.NEAREST,
 		gen_mipmaps = true,
 	}, "res/textures/grass.png")
-	gfx.texture_apply(STATE.texture, &STATE.pipeline, "uTexture")
 }
 
 tick :: proc() {
@@ -190,20 +189,19 @@ tick :: proc() {
 }
 
 draw :: proc() {
-	gfx.pipeline_apply(STATE.pipeline)
 	gfx.pipeline_clear(STATE.pipeline)
 
-	gfx.pipeline_apply(STATE.skybox_pipeline)
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.skybox_pipeline)
-	logic.skybox_draw(STATE.skybox.mesh, STATE.skybox.texture, STATE.skybox_pipeline)
+	logic.skybox_draw(&STATE.skybox_pipeline, STATE.skybox.mesh, STATE.skybox.texture)
 
-	gfx.pipeline_apply(STATE.pipeline)
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)
 	logic.transform_apply(&STATE.mesh, &STATE.pipeline)
-
-	gfx.texture_bind(STATE.texture)
-	logic.meshcomponent_apply(STATE.mesh, STATE.pipeline)
-	logic.meshcomponent_draw(STATE.mesh, STATE.pipeline)
+	logic.meshcomponent_draw(STATE.mesh, &STATE.pipeline, []gfx.Texture_Binding {
+		{
+			texture = STATE.texture,
+			uniform_name = "uTexture",
+		},
+	})
 }
 
 close :: proc() {
@@ -251,7 +249,7 @@ main :: proc() {
 	desc.draw_proc = draw
 	desc.resize_proc = resize
 	desc.close_proc = close
-	desc.vsync = true
+	desc.vsync = false
 	desc.resizable = true
 
 	platform.window_init(desc)

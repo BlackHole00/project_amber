@@ -20,6 +20,7 @@ renderbuffer_init :: proc(buffer: ^Render_Buffer, desc: Render_Buffer_Descriptor
     renderbuffer_set_size(buffer, desc.buffer_size)
 }
 
+@(private)
 renderbuffer_bind :: proc(buffer: Render_Buffer) {
     gl.BindRenderbuffer(gl.RENDERBUFFER, buffer.renderbuffer_handle)
 }

@@ -37,6 +37,7 @@ layout_init :: proc(layout: ^Layout, desc: Layout_Descriptor) {
     layout_resolve(layout, desc.elements)
 }
 
+@(private)
 layout_bind :: proc(layout: Layout) {
     gl.BindVertexArray(layout.layout_handle)
 }
@@ -48,6 +49,7 @@ layout_free :: proc(layout: ^Layout) {
     layout.layout_handle = INVALID_HANDLE
 }
 
+@(private)
 layout_apply_without_index_buffer :: proc(layout: Layout, vertex_buffers: []Buffer) {
     layout_bind(layout)
 
@@ -60,11 +62,13 @@ layout_apply_without_index_buffer :: proc(layout: Layout, vertex_buffers: []Buff
     }
 }
 
+@(private)
 layout_apply_with_index_buffer :: proc(layout: Layout, vertex_buffers: []Buffer, index_buffer: Buffer) {
     layout_apply_without_index_buffer(layout, vertex_buffers)
     buffer_bind(index_buffer)
 }
 
+@(private)
 layout_apply :: proc { layout_apply_without_index_buffer, layout_apply_with_index_buffer }
 
 @(private)

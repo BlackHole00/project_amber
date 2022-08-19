@@ -79,6 +79,7 @@ framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor
     bind_to_default_framebuffer()
 }
 
+@(private)
 framebuffer_bind :: proc(framebuffer: Framebuffer) {
     gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer_handle)
 }
@@ -89,6 +90,7 @@ framebuffer_free :: proc(framebuffer: ^Framebuffer) {
     framebuffer.framebuffer_handle = INVALID_HANDLE
 }
 
+@(private)
 bind_to_default_framebuffer :: proc() {
     gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 }
@@ -107,10 +109,11 @@ framebuffer_apply_depth_stencil_attachment :: proc(framebuffer: Framebuffer, sha
         log.warn("This framebuffer do not support depth_stencil_attachment")
         return
     }
-    
+
     texture_apply(framebuffer.depth_stencil_attachment, shader, depth_stencil_texture_uniform)
 }
 
+@(private)
 framebuffer_bind_color_attachment :: proc(framebuffer: Framebuffer) {
     if !framebuffer.use_color_attachment {
         log.warn("This framebuffer do not support color_attachment")
@@ -120,6 +123,7 @@ framebuffer_bind_color_attachment :: proc(framebuffer: Framebuffer) {
     texture_bind(framebuffer.color_attachment)
 }
 
+@(private)
 framebuffer_bind_color_depth_stencil_attachment :: proc(framebuffer: Framebuffer) {
     if !framebuffer.use_depth_stencil_attachment {
         log.warn("This framebuffer do not support depth_stencil_attachment")

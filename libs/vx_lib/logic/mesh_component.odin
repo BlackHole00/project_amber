@@ -70,20 +70,36 @@ meshcomponent_set_data :: proc(mesh: ^Mesh_Component, vertex_data: []$T, index_d
     }
 }
 
-meshcomponent_apply :: proc(mesh: Mesh_Component, layout: gfx.Layout) {
-    gfx.layout_apply(layout, []gfx.Buffer{ 
-        mesh.vertex_buffer,
-    }, mesh.index_buffer)
+meshcomponent_get_bindings :: proc(mesh: Mesh_Component, textures: Maybe([]gfx.Texture_Binding), bindings: ^gfx.Bindings) {
+    real_textures := []gfx.Texture_Binding { }
+    if textures != nil do real_textures = textures.([]gfx.Texture_Binding)
+
+    gfx.bindings_init(bindings, 
+        []gfx.Buffer {
+            mesh.vertex_buffer,
+        }, mesh.index_buffer,
+        real_textures,
+    )
+    //bindings^ = gfx.Bindings {
+    //    vertex_buffers = []gfx.Buffer {
+    //        mesh.vertex_buffer,
+    //    },
+    //    index_buffer = mesh.index_buffer,
+    //    textures = real_textures,
+    //}
 }
 
-meshcomponent_draw :: proc(mesh: Mesh_Component, layout: gfx.Layout) {
-    gfx.layout_bind(layout)
+meshcomponent_draw :: proc(mesh: Mesh_Component, pipeline: ^gfx.Pipeline, textures: Maybe([]gfx.Texture_Binding)) {
+    bindings: gfx.Bindings = ---
+    meshcomponent_get_bindings(mesh, textures, &bindings)
 
-    gl.DepthMask(mesh.draw_to_depth_buffer)
-
-    gl.DrawElements(mesh.gl_draw_mode, (i32)(mesh.index_count), mesh.index_buffer_type, nil)
-
-    // VERY IMPORTANT NOTE: If DepthMask is set to false when clearing a screen, the depth buffer will not be properly cleared, causing a black screen.
-    // Leave the depth mask to true!
-    gl.DepthMask(true)
+    gfx.pipeline_draw_elements(
+        pipeline,
+        &bindings,
+        mesh.gl_draw_mode,
+        mesh.index_buffer_type,
+        mesh.index_count,
+        nil,
+        mesh.draw_to_depth_buffer,
+    )
 }

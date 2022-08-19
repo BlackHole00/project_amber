@@ -76,6 +76,7 @@ pipeline_free :: proc(pipeline: ^Pipeline) {
     layout_free(&pipeline.layout)
 }
 
+@(private)
 pipeline_bind :: proc(pipeline: Pipeline) {
     shader_bind(pipeline.shader)
     layout_bind(pipeline.layout)
@@ -83,6 +84,7 @@ pipeline_bind :: proc(pipeline: Pipeline) {
     pipeline_bind_rendertarget(pipeline)
 }
 
+@(private)
 pipeline_apply :: proc(pipeline: Pipeline) {
     pipeline_bind(pipeline)
 
@@ -115,6 +117,12 @@ pipeline_resize :: proc(pipeline: ^Pipeline, new_size: [2]uint) {
 }
 
 pipeline_clear :: proc(pipeline: Pipeline) {
+    pipeline_bind(pipeline)
+
+    // VERY IMPORTANT NOTE: If DepthMask is set to false when clearing a screen, the depth buffer will not be properly cleared, causing a black screen.
+    // Leave the depth mask to true!
+    gl.DepthMask(true)
+
     pipeline_bind_rendertarget(pipeline)
 
     clear_bits: u32 = gl.COLOR_BUFFER_BIT
@@ -140,6 +148,36 @@ pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
     pipeline.states.wireframe = wireframe
 }
 
+pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int, draw_to_depth_buffer := true) {
+    pipeline_bind(pipeline^)
+    bindings_apply(pipeline, bindings)
+
+    gl.DrawArrays(primitive, (i32)(first), (i32)(count))
+}
+
+pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, type: u32, count: int, indices: rawptr, draw_to_depth_buffer := true) {
+    pipeline_bind(pipeline^)
+    bindings_apply(pipeline, bindings)
+
+    gl.DrawElements(primitive, (i32)(count), type, indices)
+    //gl.DrawElements(primitive, (i32)(count), gl.UNSIGNED_INT, indices)
+}
+
+pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int, instance_count: int, draw_to_depth_buffer := true) {
+    pipeline_bind(pipeline^)
+    bindings_apply(pipeline, bindings)
+
+    gl.DrawArraysInstanced(primitive, (i32)(first), (i32)(count), (i32)(instance_count))
+}
+
+pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, type: u32, count: int, indices: rawptr, instance_count: int, draw_to_depth_buffer := true) {
+    pipeline_bind(pipeline^)
+    bindings_apply(pipeline, bindings)
+
+    gl.DrawElementsInstanced(primitive, (i32)(count), type, indices, (i32)(instance_count))
+}
+
+@(private)
 pipeline_bind_rendertarget :: proc(pipeline: Pipeline) {
     if pipeline.render_target != nil do framebuffer_bind(pipeline.render_target.(Framebuffer))
     else do bind_to_default_framebuffer()

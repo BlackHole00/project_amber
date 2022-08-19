@@ -28,6 +28,7 @@ buffer_init_with_data :: proc(buffer: ^Buffer, desc: Buffer_Descriptor, data: []
 
 buffer_init :: proc { buffer_init_empty, buffer_init_with_data }
 
+@(private)
 buffer_bind :: proc(buffer: Buffer) {
     gl.BindBuffer(buffer.gl_type, buffer.buffer_handle)
 }

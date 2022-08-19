@@ -26,6 +26,7 @@ shader_free :: proc(shader: ^Shader) {
     gl.DeleteProgram(shader.shader_handle)
 }
 
+@(private)
 shader_bind :: proc(shader: Shader) {
     gl.UseProgram(shader.shader_handle)
 }

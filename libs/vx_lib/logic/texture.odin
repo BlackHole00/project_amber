@@ -5,6 +5,7 @@ import "../common"
 import gl "vendor:OpenGL"
 
 Texture_Component :: gfx.Texture
+Skybox_Texture_Component :: Texture_Component
 
 skybox_init :: proc(mesh: ^Mesh_Component, texture: ^gfx.Texture, right_path, left_path, top_path, bottom_path, back_path, front_path: string) {
     meshcomponent_init(mesh, Mesh_Descriptor {
@@ -26,12 +27,20 @@ skybox_init :: proc(mesh: ^Mesh_Component, texture: ^gfx.Texture, right_path, le
 	}, right_path, left_path, top_path, bottom_path, back_path, front_path)
 }
 
-skybox_apply :: proc(texture: gfx.Texture, shader: ^gfx.Shader, skyblock_uniform := gfx.SKYBOX_UNIFORM_NAME) {
-    gfx.texture_apply(texture, shader, skyblock_uniform)
+skybox_get_bindings :: proc(mesh: Mesh_Component, texture: Skybox_Texture_Component, bindings: ^gfx.Bindings, skyblock_uniform := gfx.SKYBOX_UNIFORM_NAME) {
+	meshcomponent_get_bindings(mesh, []gfx.Texture_Binding {
+		{
+			texture = texture,
+			uniform_name = skyblock_uniform,
+		},
+	}, bindings)
 }
 
-skybox_draw :: proc(mesh: Mesh_Component, texture: gfx.Texture, layout: gfx.Layout) {
-    gfx.texture_bind(texture)
-	meshcomponent_apply(mesh, layout)
-	meshcomponent_draw(mesh, layout)
+skybox_draw :: proc(pipeline: ^gfx.Pipeline, mesh: Mesh_Component, texture: Skybox_Texture_Component, skyblock_uniform := gfx.SKYBOX_UNIFORM_NAME) {
+	meshcomponent_draw(mesh, pipeline, []gfx.Texture_Binding {
+		{
+			texture = texture,
+			uniform_name = skyblock_uniform,
+		},
+	})
 }
