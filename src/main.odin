@@ -47,6 +47,7 @@ State :: struct {
 	pipeline: gfx.Pipeline,
 	mesh: objects.Simple_Mesh,
 	texture: gfx.Texture,
+	atlas: utils.Texture_Atlas,
 
 	skybox_pipeline: gfx.Pipeline,
 	skybox: objects.Skybox,
@@ -78,7 +79,11 @@ init :: proc() {
 		depth_enabled = true,
 		depth_func = gl.LEQUAL,
 
-		blend_enabled = false,
+		blend_enabled = true,
+		blend_src_rgb_func = gl.SRC_ALPHA,
+		blend_dst_rgb_func = gl.ONE_MINUS_SRC_ALPHA,
+		blend_src_alpha_func = gl.ONE,
+		blend_dstdst_alphargb_func = gl.ZERO,
 
 		wireframe = false,
 
@@ -131,6 +136,18 @@ init :: proc() {
 	STATE.mesh.transform.scale = { 1.0, 1.0, 1.0 }
 	logic.transform_calc_matrix(&STATE.mesh.transform)
 
+	utils.textureatlas_init_from_file(&STATE.atlas, utils.Texture_Atlas_Descriptor {
+		internal_texture_format = gl.RGBA8,
+		texture_unit = 0,
+		warp_s = gl.REPEAT,
+		warp_t = gl.REPEAT,
+		min_filter = gl.NEAREST,
+		mag_filter = gl.NEAREST,
+		gen_mipmaps = true,
+	}, "res/textures/font_atlas.png", "res/textures/font_atlas.csv")
+	top, bottom, left, right := utils.textureatlas_get_uv(&STATE.atlas, "char_65")
+	log.info(top, bottom, left, right)
+
 	mesh_builder: utils.Mesh_Builder = ---
 	utils.meshbuilder_init(&mesh_builder, utils.MeshBuilder_Descriptor {
 		gl_usage = gl.STATIC_DRAW,
@@ -141,16 +158,16 @@ init :: proc() {
 
 	utils.meshbuilder_push_quad(&mesh_builder, []Vertex {
 		{
-			pos = { -0.5, -0.5, 0.0 }, uv = { 0.0, 0.0 },
+			pos = { -0.5, -0.5, 0.0 }, uv = { left, bottom },
 		},
 		{
-			pos = {  0.5, -0.5, 0.0 }, uv = { 1.0, 0.0 },
+			pos = {  0.5, -0.5, 0.0 }, uv = { right, bottom },
 		},
 		{
-			pos = {  0.5,  0.5, 0.0 }, uv = { 1.0, 1.0 },
+			pos = {  0.5,  0.5, 0.0 }, uv = { right, top },
 		},
 		{
-			pos = { -0.5,  0.5, 0.0 }, uv = { 0.0, 1.0 },
+			pos = { -0.5,  0.5, 0.0 }, uv = { left, top },
 		},
 	})
 	utils.meshbuilder_build(mesh_builder, &STATE.mesh)
@@ -167,6 +184,8 @@ init :: proc() {
 		mag_filter = gl.NEAREST,
 		gen_mipmaps = true,
 	}, "res/textures/grass.png")
+
+	gfx.texture_resize_2d(&STATE.texture, { 64, 64 })
 }
 
 tick :: proc() {
@@ -180,13 +199,12 @@ draw :: proc() {
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.skybox_pipeline)
 	logic.skybox_draw(&STATE.skybox_pipeline, STATE.skybox.mesh, STATE.skybox.texture)
 
+	atlas_bind := utils.textureatlas_get_texture_bindings(STATE.atlas, "uTexture")
+
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)
 	logic.transform_apply(&STATE.mesh, &STATE.pipeline)
 	logic.meshcomponent_draw(STATE.mesh, &STATE.pipeline, []gfx.Texture_Binding {
-		{
-			texture = STATE.texture,
-			uniform_name = "uTexture",
-		},
+		atlas_bind,
 	})
 }
 

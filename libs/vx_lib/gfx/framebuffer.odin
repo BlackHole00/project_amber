@@ -5,7 +5,6 @@ import gl "vendor:OpenGL"
 Framebuffer_Descriptor :: struct {
     use_color_attachment: bool,
     use_depth_stencil_attachment: bool,
-    // use_stencil_attachment: bool,
 
     internal_texture_format: i32,
     color_texture_unit: i32,
@@ -46,9 +45,7 @@ framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor
             min_filter = gl.LINEAR,
             mag_filter = gl.LINEAR,
             gen_mipmaps = false,
-        })
-
-        texture_set_size_2d(framebuffer.depth_stencil_attachment, desc.framebuffer_size)
+        }, desc.framebuffer_size)
 
         gl.NamedFramebufferTexture(framebuffer.framebuffer_handle, gl.DEPTH_STENCIL_ATTACHMENT, framebuffer.depth_stencil_attachment.texture_handle, 0)
     } 
@@ -63,9 +60,7 @@ framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor
             min_filter = desc.color_texture_min_filter,
             mag_filter = desc.color_texture_mag_filter,
             gen_mipmaps = desc.color_texture_gen_mipmaps,
-        })
-
-        texture_set_size_2d(framebuffer.color_attachment, desc.framebuffer_size)
+        }, desc.framebuffer_size)
 
         gl.NamedFramebufferTexture(framebuffer.framebuffer_handle, gl.COLOR_ATTACHMENT0, framebuffer.color_attachment.texture_handle, 0)
     }
