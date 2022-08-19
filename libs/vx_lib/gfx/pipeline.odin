@@ -129,6 +129,7 @@ pipeline_clear :: proc(pipeline: Pipeline) {
 
     if pipeline.states.depth_enabled do clear_bits |= gl.DEPTH_BUFFER_BIT
 
+    // We could use glClearNamedFramebufferfv but I don't care about dsa in this case.
     gl.ClearColor(pipeline.states.clear_color[0],
         pipeline.states.clear_color[1],
         pipeline.states.clear_color[2],
@@ -160,7 +161,6 @@ pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primiti
     bindings_apply(pipeline, bindings)
 
     gl.DrawElements(primitive, (i32)(count), type, indices)
-    //gl.DrawElements(primitive, (i32)(count), gl.UNSIGNED_INT, indices)
 }
 
 pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int, instance_count: int, draw_to_depth_buffer := true) {

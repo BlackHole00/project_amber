@@ -10,4 +10,5 @@
 - [ ] decide what to do about gfx.Texture_Bundle (moved to gfx.old)
 - [ ] make gfx.Gl_State_Manager to not bind already bound stuff
 - [ ] rename gl_drawmode into gl_primitive
-- [ ] use DMA and DSA since I'm using opengl 4.6
+- [X] use DMA and DSA since I'm using opengl 4.6
+- [ ] test framebuffer

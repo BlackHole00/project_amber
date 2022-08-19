@@ -8,10 +8,14 @@ Layout_Resolution_Element :: struct {
     size:  i32,
     gl_type: u32,
     normalized: bool,
-    stride: i32,
-    offset: uintptr,
-    buffer_idx: uint,
+    offset: u32,
+    buffer_idx: u32,
     divisor: u32,
+}
+
+Layout_Resolution :: struct {
+    strides: []i32,
+    resolutions: []Layout_Resolution_Element,
 }
 
 Layout_Element :: struct {
@@ -28,7 +32,7 @@ Layout_Descriptor :: struct {
 
 Layout :: struct {
     layout_handle: u32,
-    layout_resolution: []Layout_Resolution_Element,
+    layout_resolution: Layout_Resolution,
 }
 
 layout_init :: proc(layout: ^Layout, desc: Layout_Descriptor) {
@@ -44,28 +48,29 @@ layout_bind :: proc(layout: Layout) {
 
 layout_free :: proc(layout: ^Layout) {
     gl.DeleteVertexArrays(1, &layout.layout_handle)
-    delete(layout.layout_resolution)
+    delete(layout.layout_resolution.resolutions)
+    delete(layout.layout_resolution.strides)
 
     layout.layout_handle = INVALID_HANDLE
 }
 
 @(private)
 layout_apply_without_index_buffer :: proc(layout: Layout, vertex_buffers: []Buffer) {
-    layout_bind(layout)
+    //layout_bind(layout)
 
-    for resolution in layout.layout_resolution {
-        buffer_bind(vertex_buffers[resolution.buffer_idx])
-        //log.info(resolution.index, resolution.size, resolution.gl_type, resolution.normalized, resolution.stride, resolution.offset)
-        gl.VertexAttribPointer(resolution.index, resolution.size, resolution.gl_type, resolution.normalized, resolution.stride, resolution.offset)
-        gl.EnableVertexAttribArray(resolution.index)
-        gl.VertexAttribDivisor(resolution.index, resolution.divisor)
+    for buffer, i in vertex_buffers do gl.VertexArrayVertexBuffer(layout.layout_handle, (u32)(i), buffer.buffer_handle, 0, layout.layout_resolution.strides[i])
+
+    for resolution, i in layout.layout_resolution.resolutions {
+        gl.EnableVertexArrayAttrib(layout.layout_handle, (u32)(i))
+        gl.VertexArrayAttribFormat(layout.layout_handle, (u32)(i), resolution.size, resolution.gl_type, resolution.normalized, resolution.offset)
+        gl.VertexArrayAttribBinding(layout.layout_handle, (u32)(i), resolution.buffer_idx)
     }
 }
 
 @(private)
 layout_apply_with_index_buffer :: proc(layout: Layout, vertex_buffers: []Buffer, index_buffer: Buffer) {
     layout_apply_without_index_buffer(layout, vertex_buffers)
-    buffer_bind(index_buffer)
+    gl.VertexArrayElementBuffer(layout.layout_handle, index_buffer.buffer_handle)
 }
 
 @(private)
@@ -73,9 +78,10 @@ layout_apply :: proc { layout_apply_without_index_buffer, layout_apply_with_inde
 
 @(private)
 layout_resolve :: proc(layout: ^Layout, elements: []Layout_Element) {
-    layout_bind(layout^)
+    //layout_bind(layout^)
 
-    layout.layout_resolution = make([]Layout_Resolution_Element, len(elements))
+    layout.layout_resolution.resolutions = make([]Layout_Resolution_Element, len(elements))
+    layout.layout_resolution.strides = make([]i32, len(elements))
 
     buffer_count := layout_find_buffer_count(elements)
     
@@ -94,16 +100,16 @@ layout_resolve :: proc(layout: ^Layout, elements: []Layout_Element) {
         offsets[elements[i].buffer_idx] -= size_of_gl_type(elements[i].gl_type) * elements[i].count
 
         //log.info((u32)(layout_index), (i32)(elements[i].count), elements[i].gl_type, elements[i].normalized, (i32)(strides[elements[i].buffer_idx]), (uintptr)(offsets[elements[i].buffer_idx]))
-        layout.layout_resolution[i] = Layout_Resolution_Element {
+        layout.layout_resolution.resolutions[i] = Layout_Resolution_Element {
             index = (u32)(layout_index),
             size = (i32)(elements[i].count),
             gl_type = elements[i].gl_type,
             normalized = elements[i].normalized,
-            stride = (i32)(strides[elements[i].buffer_idx]),
-            offset = (uintptr)(offsets[elements[i].buffer_idx]),
-            buffer_idx = elements[i].buffer_idx,
+            offset = (u32)(offsets[elements[i].buffer_idx]),
+            buffer_idx = (u32)(elements[i].buffer_idx),
             divisor = (u32)(elements[i].divisor),
         }
+        layout.layout_resolution.strides[i] = (i32)(strides[elements[i].buffer_idx])
     }
 }
 

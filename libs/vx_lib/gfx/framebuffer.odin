@@ -1,6 +1,5 @@
 package vx_lib_gfx
 
-import "core:log"
 import gl "vendor:OpenGL"
 
 Framebuffer_Descriptor :: struct {
@@ -35,8 +34,7 @@ Framebuffer :: struct {
 }
 
 framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor) {
-    gl.GenFramebuffers(1, &framebuffer.framebuffer_handle)
-    framebuffer_bind(framebuffer^)
+    gl.CreateFramebuffers(1, &framebuffer.framebuffer_handle)
 
     if desc.use_depth_stencil_attachment {
         texture_init(&framebuffer.depth_stencil_attachment, Texture_Descriptor {
@@ -50,9 +48,9 @@ framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor
             gen_mipmaps = false,
         })
 
-        texture_set_size_2d(framebuffer.depth_stencil_attachment, desc.framebuffer_size, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8)
+        texture_set_size_2d(framebuffer.depth_stencil_attachment, desc.framebuffer_size)
 
-        gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, framebuffer.depth_stencil_attachment.texture_handle, 0)
+        gl.NamedFramebufferTexture(framebuffer.framebuffer_handle, gl.DEPTH_STENCIL_ATTACHMENT, framebuffer.depth_stencil_attachment.texture_handle, 0)
     } 
 
     if desc.use_color_attachment {
@@ -67,9 +65,9 @@ framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor
             gen_mipmaps = desc.color_texture_gen_mipmaps,
         })
 
-        texture_set_size_2d(framebuffer.color_attachment, desc.framebuffer_size, (u32)(desc.internal_texture_format))
+        texture_set_size_2d(framebuffer.color_attachment, desc.framebuffer_size)
 
-        gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, framebuffer.color_attachment.texture_handle, 0)
+        gl.NamedFramebufferTexture(framebuffer.framebuffer_handle, gl.COLOR_ATTACHMENT0, framebuffer.color_attachment.texture_handle, 0)
     }
 
     framebuffer.framebuffer_size = desc.framebuffer_size
@@ -95,40 +93,20 @@ bind_to_default_framebuffer :: proc() {
     gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 }
 
-framebuffer_apply_color_attachment :: proc(framebuffer: Framebuffer, shader: ^Shader, color_texture_uniform: string) {
-    if !framebuffer.use_color_attachment {
-        log.warn("This framebuffer do not support color_attachment")
-        return
-    }
+framebuffer_get_color_texture_bindings :: proc(framebuffer: Framebuffer, color_texture_uniform: string) -> Texture_Binding {
+    if !framebuffer.use_color_attachment do panic("This framebuffer do not support color_attachment")
 
-    texture_apply(framebuffer.color_attachment, shader, color_texture_uniform)
+    return Texture_Binding {
+        texture = framebuffer.color_attachment,
+        uniform_name = color_texture_uniform,
+    }
 }
 
-framebuffer_apply_depth_stencil_attachment :: proc(framebuffer: Framebuffer, shader: ^Shader, depth_stencil_texture_uniform: string) {
-    if !framebuffer.use_depth_stencil_attachment {
-        log.warn("This framebuffer do not support depth_stencil_attachment")
-        return
+framebuffer_get_depth_stencilr_texture_bindings:: proc(framebuffer: Framebuffer, depth_stencil_texture_uniform: string) -> Texture_Binding {
+    if !framebuffer.use_depth_stencil_attachment do panic("This framebuffer do not support depth_stencil_attachment")
+
+    return Texture_Binding {
+        texture = framebuffer.depth_stencil_attachment,
+        uniform_name = depth_stencil_texture_uniform,
     }
-
-    texture_apply(framebuffer.depth_stencil_attachment, shader, depth_stencil_texture_uniform)
-}
-
-@(private)
-framebuffer_bind_color_attachment :: proc(framebuffer: Framebuffer) {
-    if !framebuffer.use_color_attachment {
-        log.warn("This framebuffer do not support color_attachment")
-        return
-    }
-
-    texture_bind(framebuffer.color_attachment)
-}
-
-@(private)
-framebuffer_bind_color_depth_stencil_attachment :: proc(framebuffer: Framebuffer) {
-    if !framebuffer.use_depth_stencil_attachment {
-        log.warn("This framebuffer do not support depth_stencil_attachment")
-        return
-    }
-
-    texture_bind(framebuffer.depth_stencil_attachment)
 }

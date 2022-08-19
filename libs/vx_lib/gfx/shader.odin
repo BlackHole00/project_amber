@@ -35,8 +35,7 @@ shader_uniform_1f :: proc(shader: ^Shader, uniform_name: string, value: f32) {
     if loc, ok := shader_find_uniform_location(shader, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in shader", shader.shader_handle)
     } else {
-        shader_bind(shader^)
-        gl.Uniform1f(loc, value)
+        gl.ProgramUniform1f(shader.shader_handle, loc, value)
     }
 }
 
@@ -44,8 +43,7 @@ shader_uniform_2f :: proc(shader: ^Shader, uniform_name: string, value: glsl.vec
     if loc, ok := shader_find_uniform_location(shader, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in shader", shader.shader_handle)
     } else {
-        shader_bind(shader^)
-        gl.Uniform2f(loc, value.x, value.y)
+        gl.ProgramUniform2f(shader.shader_handle, loc, value.x, value.y)
     }
 }
 
@@ -53,8 +51,7 @@ shader_uniform_3f :: proc(shader: ^Shader, uniform_name: string, value: glsl.vec
     if loc, ok := shader_find_uniform_location(shader, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in shader", shader.shader_handle)
     } else {
-        shader_bind(shader^)
-        gl.Uniform3f(loc, value.x, value.y, value.z)
+        gl.ProgramUniform3f(shader.shader_handle, loc, value.x, value.y, value.z)
     }
 }
 
@@ -62,8 +59,7 @@ shader_uniform_4f :: proc(shader: ^Shader, uniform_name: string, value: glsl.vec
     if loc, ok := shader_find_uniform_location(shader, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in shader", shader.shader_handle)
     } else {
-        shader_bind(shader^)
-        gl.Uniform4f(loc, value.x, value.y, value.z, value.w)
+        gl.ProgramUniform4f(shader.shader_handle, loc, value.x, value.y, value.z, value.w)
     }
 }
 
@@ -71,8 +67,7 @@ shader_uniform_mat4f :: proc(shader: ^Shader, uniform_name: string, value: ^glsl
     if loc, ok := shader_find_uniform_location(shader, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in shader", shader.shader_handle)
     } else {
-        shader_bind(shader^)
-        gl.UniformMatrix4fv(loc, 1, false, &value[0, 0])
+        gl.ProgramUniformMatrix4fv(shader.shader_handle, loc, 1, false, &value[0, 0])
     }
 }
 
@@ -80,8 +75,7 @@ shader_uniform_1i :: proc(shader: ^Shader, uniform_name: string, value: i32) {
     if loc, ok := shader_find_uniform_location(shader, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in shader", shader.shader_handle)
     } else {
-        shader_bind(shader^)
-        gl.Uniform1i(loc, value)
+        gl.ProgramUniform1i(shader.shader_handle, loc, value)
     }
 }
 

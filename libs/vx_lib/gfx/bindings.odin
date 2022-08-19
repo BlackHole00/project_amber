@@ -36,6 +36,7 @@ bindings_apply :: proc(pipeline: ^Pipeline, bindings: ^Bindings) {
 
     for i in 0..<bindings.texture_count {
         texture_apply(bindings.textures[i].texture, pipeline, bindings.textures[i].uniform_name)
+        texture_bind(bindings.textures[i].texture)
 
         if used_units[bindings.textures[i].texture.texture_unit] do log.warn("Texture unit", bindings.textures[i].texture.texture_unit, "is already used")
         else do used_units[bindings.textures[i].texture.texture_unit] = true

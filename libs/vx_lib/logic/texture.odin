@@ -7,7 +7,7 @@ import gl "vendor:OpenGL"
 Texture_Component :: gfx.Texture
 Skybox_Texture_Component :: Texture_Component
 
-skybox_init :: proc(mesh: ^Mesh_Component, texture: ^gfx.Texture, right_path, left_path, top_path, bottom_path, back_path, front_path: string) {
+skybox_init :: proc(mesh: ^Mesh_Component, texture: ^gfx.Texture, right_path, left_path, top_path, bottom_path, front_path, back_path: string) {
     meshcomponent_init(mesh, Mesh_Descriptor {
 		index_buffer_type = gl.UNSIGNED_INT,
 		gl_usage = gl.STATIC_DRAW,
@@ -17,7 +17,7 @@ skybox_init :: proc(mesh: ^Mesh_Component, texture: ^gfx.Texture, right_path, le
 
     gfx.texture_init(texture, gfx.Texture_Descriptor {
 		gl_type = gl.TEXTURE_CUBE_MAP,
-		internal_texture_format = gl.RGBA,
+		internal_texture_format = gl.RGBA8,
 		texture_unit = 0,
 		warp_s = gl.REPEAT,
 		warp_t = gl.REPEAT,

@@ -169,11 +169,11 @@ init :: proc() {
 	})
 	utils.meshbuilder_build(mesh_builder, &STATE.mesh)
 
-	logic.skybox_init(&STATE.skybox.mesh, &STATE.skybox.texture, "res/textures/skybox/right.bmp", "res/textures/skybox/left.bmp", "res/textures/skybox/top.bmp", "res/textures/skybox/bottom.bmp", "res/textures/skybox/back.bmp", "res/textures/skybox/front.bmp")
+	logic.skybox_init(&STATE.skybox.mesh, &STATE.skybox.texture, "res/textures/skybox/right.bmp", "res/textures/skybox/left.bmp", "res/textures/skybox/top.bmp", "res/textures/skybox/bottom.bmp", "res/textures/skybox/front.bmp", "res/textures/skybox/back.bmp")
 
 	gfx.texture_init(&STATE.texture, gfx.Texture_Descriptor {
 		gl_type = gl.TEXTURE_2D,
-		internal_texture_format = gl.RGBA,
+		internal_texture_format = gl.RGBA8,
 		texture_unit = 0,
 		warp_s = gl.REPEAT,
 		warp_t = gl.REPEAT,
