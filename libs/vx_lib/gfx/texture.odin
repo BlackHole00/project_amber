@@ -164,15 +164,19 @@ texture_set_size_3d :: proc(texture: Texture, dimension: [3]uint) {
     texture_gen_mipmaps(texture)
 }
 
+texture_gen_mipmaps :: proc(texture: Texture) {
+    if texture.gen_mipmaps do gl.GenerateTextureMipmap(texture.texture_handle)
+}
+
+/**************************************************************************************************
+***************************************************************************************************
+**************************************************************************************************/
+
 @(private)
 texture_bind :: proc(texture: Texture) {
     //gl.ActiveTexture(gl.TEXTURE0 + (u32)(texture.texture_unit))
     //gl.BindTexture(texture.gl_type, texture.texture_handle)
     gl.BindTextureUnit((u32)(texture.texture_unit), texture.texture_handle)
-}
-
-texture_gen_mipmaps :: proc(texture: Texture) {
-    if texture.gen_mipmaps do gl.GenerateTextureMipmap(texture.texture_handle)
 }
 
 @(private)

@@ -27,6 +27,10 @@ bindings_init :: proc(bindings: ^Bindings, vertex_buffers: []Buffer, index_buffe
     mem.copy(&bindings.textures[0], &textures[0], len(vertex_buffers) * size_of(Texture_Binding))
 }
 
+/**************************************************************************************************
+***************************************************************************************************
+**************************************************************************************************/
+
 @(private)
 bindings_apply :: proc(pipeline: ^Pipeline, bindings: ^Bindings) {
     if bindings.index_buffer == nil do pipeline_layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count])

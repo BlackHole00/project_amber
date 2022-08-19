@@ -117,42 +117,6 @@ pipeline_free :: proc(pipeline: ^Pipeline) {
     pipeline.layout_handle = INVALID_HANDLE
 }
 
-@(private)
-pipeline_bind :: proc(pipeline: Pipeline) {
-    pipeline_shader_bind(pipeline)
-    pipeline_layout_bind(pipeline)
-
-    pipeline_bind_rendertarget(pipeline)
-}
-
-@(private)
-pipeline_apply :: proc(pipeline: Pipeline) {
-    pipeline_bind(pipeline)
-
-    if pipeline.states.cull_enabled {
-        gl.Enable(gl.CULL_FACE)
-        gl.FrontFace(pipeline.states.cull_front_face)
-        gl.CullFace(pipeline.states.cull_face)
-    } else do gl.Disable(gl.CULL_FACE)
-
-    if pipeline.states.depth_enabled {
-        gl.Enable(gl.DEPTH_TEST)
-        gl.DepthFunc(pipeline.states.depth_func)
-    } else do gl.Disable(gl.DEPTH_TEST)
-
-    if pipeline.states.blend_enabled {
-        gl.Enable(gl.BLEND)
-        gl.BlendFuncSeparate(pipeline.states.blend_src_rgb_func,
-            pipeline.states.blend_dst_rgb_func,
-            pipeline.states.blend_src_alpha_func,
-            pipeline.states.blend_dstdst_alphargb_func,
-        )
-    } else do gl.Disable(gl.BLEND)
-
-    if pipeline.states.wireframe do gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
-    else do gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
-}
-
 pipeline_resize :: proc(pipeline: ^Pipeline, new_size: [2]uint) {
     pipeline.states.viewport_size = new_size
 }
@@ -211,6 +175,94 @@ pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Binding
     gl.DrawElementsInstanced(primitive, (i32)(count), type, indices, (i32)(instance_count))
 }
 
+pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_name: string, value: f32) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniform1f(pipeline.shader_handle, loc, value)
+    }
+}
+
+pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec2) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniform2f(pipeline.shader_handle, loc, value.x, value.y)
+    }
+}
+
+pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec3) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniform3f(pipeline.shader_handle, loc, value.x, value.y, value.z)
+    }
+}
+
+pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec4) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniform4f(pipeline.shader_handle, loc, value.x, value.y, value.z, value.w)
+    }
+}
+
+pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: ^glsl.mat4) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniformMatrix4fv(pipeline.shader_handle, loc, 1, false, &value[0, 0])
+    }
+}
+
+pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_name: string, value: i32) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniform1i(pipeline.shader_handle, loc, value)
+    }
+}
+
+/**************************************************************************************************
+***************************************************************************************************
+**************************************************************************************************/
+
+@(private)
+pipeline_bind :: proc(pipeline: Pipeline) {
+    pipeline_shader_bind(pipeline)
+    pipeline_layout_bind(pipeline)
+
+    pipeline_bind_rendertarget(pipeline)
+}
+
+@(private)
+pipeline_apply :: proc(pipeline: Pipeline) {
+    pipeline_bind(pipeline)
+
+    if pipeline.states.cull_enabled {
+        gl.Enable(gl.CULL_FACE)
+        gl.FrontFace(pipeline.states.cull_front_face)
+        gl.CullFace(pipeline.states.cull_face)
+    } else do gl.Disable(gl.CULL_FACE)
+
+    if pipeline.states.depth_enabled {
+        gl.Enable(gl.DEPTH_TEST)
+        gl.DepthFunc(pipeline.states.depth_func)
+    } else do gl.Disable(gl.DEPTH_TEST)
+
+    if pipeline.states.blend_enabled {
+        gl.Enable(gl.BLEND)
+        gl.BlendFuncSeparate(pipeline.states.blend_src_rgb_func,
+            pipeline.states.blend_dst_rgb_func,
+            pipeline.states.blend_src_alpha_func,
+            pipeline.states.blend_dstdst_alphargb_func,
+        )
+    } else do gl.Disable(gl.BLEND)
+
+    if pipeline.states.wireframe do gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+    else do gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
+}
+
 @(private)
 pipeline_bind_rendertarget :: proc(pipeline: Pipeline) {
     if pipeline.render_target != nil do framebuffer_bind(pipeline.render_target.(Framebuffer))
@@ -266,17 +318,15 @@ pipeline_layout_find_buffer_count :: proc(elements: []Layout_Element) -> (count:
 
 @(private)
 pipeline_layout_apply_without_index_buffer :: proc(pipeline: Pipeline, vertex_buffers: []Buffer) {
-    //layout_bind(layout)
-//
     for buffer, i in vertex_buffers do gl.VertexArrayVertexBuffer(pipeline.layout_handle, (u32)(i), buffer.buffer_handle, 0, pipeline.layout_resolution.strides[i])
-//
+
     for resolution, i in pipeline.layout_resolution.resolutions {
         gl.EnableVertexArrayAttrib(pipeline.layout_handle, (u32)(i))
         gl.VertexArrayAttribFormat(pipeline.layout_handle, (u32)(i), resolution.size, resolution.gl_type, resolution.normalized, resolution.offset)
         gl.VertexArrayAttribBinding(pipeline.layout_handle, (u32)(i), resolution.buffer_idx)
     }
 }
-//
+
 @(private)
 pipeline_layout_apply_with_index_buffer :: proc(pipeline: Pipeline, vertex_buffers: []Buffer, index_buffer: Buffer) {
     pipeline_layout_apply_without_index_buffer(pipeline, vertex_buffers)
@@ -294,54 +344,6 @@ pipeline_layout_bind :: proc(pipeline: Pipeline) {
 @(private)
 pipeline_shader_bind :: proc(pipeline: Pipeline) {
     gl.UseProgram(pipeline.shader_handle)
-}
-
-pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_name: string, value: f32) {
-    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniform1f(pipeline.shader_handle, loc, value)
-    }
-}
-
-pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec2) {
-    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniform2f(pipeline.shader_handle, loc, value.x, value.y)
-    }
-}
-
-pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec3) {
-    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniform3f(pipeline.shader_handle, loc, value.x, value.y, value.z)
-    }
-}
-
-pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec4) {
-    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniform4f(pipeline.shader_handle, loc, value.x, value.y, value.z, value.w)
-    }
-}
-
-pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: ^glsl.mat4) {
-    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniformMatrix4fv(pipeline.shader_handle, loc, 1, false, &value[0, 0])
-    }
-}
-
-pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_name: string, value: i32) {
-    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniform1i(pipeline.shader_handle, loc, value)
-    }
 }
 
 @(private)

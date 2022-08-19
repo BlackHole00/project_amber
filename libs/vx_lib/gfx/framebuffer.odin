@@ -77,20 +77,10 @@ framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor
     bind_to_default_framebuffer()
 }
 
-@(private)
-framebuffer_bind :: proc(framebuffer: Framebuffer) {
-    gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer_handle)
-}
-
 framebuffer_free :: proc(framebuffer: ^Framebuffer) {
     gl.DeleteFramebuffers(1, &framebuffer.framebuffer_handle)
 
     framebuffer.framebuffer_handle = INVALID_HANDLE
-}
-
-@(private)
-bind_to_default_framebuffer :: proc() {
-    gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 }
 
 framebuffer_get_color_texture_bindings :: proc(framebuffer: Framebuffer, color_texture_uniform: string) -> Texture_Binding {
@@ -109,4 +99,18 @@ framebuffer_get_depth_stencilr_texture_bindings:: proc(framebuffer: Framebuffer,
         texture = framebuffer.depth_stencil_attachment,
         uniform_name = depth_stencil_texture_uniform,
     }
+}
+
+/**************************************************************************************************
+***************************************************************************************************
+**************************************************************************************************/
+
+@(private)
+framebuffer_bind :: proc(framebuffer: Framebuffer) {
+    gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer_handle)
+}
+
+@(private)
+bind_to_default_framebuffer :: proc() {
+    gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 }
