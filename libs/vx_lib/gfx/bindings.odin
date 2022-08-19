@@ -29,8 +29,8 @@ bindings_init :: proc(bindings: ^Bindings, vertex_buffers: []Buffer, index_buffe
 
 @(private)
 bindings_apply :: proc(pipeline: ^Pipeline, bindings: ^Bindings) {
-    if bindings.index_buffer == nil do layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count])
-    else do layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count], bindings.index_buffer.(Buffer))
+    if bindings.index_buffer == nil do pipeline_layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count])
+    else do pipeline_layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count], bindings.index_buffer.(Buffer))
 
     used_units: [32]bool
 

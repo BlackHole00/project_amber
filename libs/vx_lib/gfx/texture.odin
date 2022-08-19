@@ -176,8 +176,8 @@ texture_gen_mipmaps :: proc(texture: Texture) {
 }
 
 @(private)
-texture_apply:: proc(texture: Texture, shader: ^Shader, uniform_name: string) {
-    shader_uniform_1i(shader, uniform_name, texture.texture_unit)
+texture_apply:: proc(texture: Texture, shader: ^Pipeline, uniform_name: string) {
+    pipeline_uniform_1i(shader, uniform_name, texture.texture_unit)
 }
 
 @(private)

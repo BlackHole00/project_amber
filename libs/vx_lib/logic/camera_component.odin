@@ -91,18 +91,18 @@ camera_get_proj_matrix :: proc(camera: Camera_Component) -> glsl.mat4 {
 
 camera_get_view_matrix :: pr_get_view_matrix
 
-camera_apply_full :: proc(camera: Camera_Component, position: Position_Component, rotation: Rotation_Component, shader: ^gfx.Shader) {
+camera_apply_full :: proc(camera: Camera_Component, position: Position_Component, rotation: Rotation_Component, pipeline: ^gfx.Pipeline) {
     view := camera_get_view_matrix(position, rotation)
 
-    gfx.shader_uniform_mat4f(shader, gfx.VIEW_UNIFORM_NAME, &view)
+    gfx.pipeline_uniform_mat4f(pipeline, gfx.VIEW_UNIFORM_NAME, &view)
 
-    camera_apply_proj(camera, shader)
+    camera_apply_proj(camera, pipeline)
 }
 
-camera_apply_proj :: proc(camera: Camera_Component, shader: ^gfx.Shader) {
+camera_apply_proj :: proc(camera: Camera_Component, pipeline: ^gfx.Pipeline) {
     proj := camera_get_proj_matrix(camera)
 
-    gfx.shader_uniform_mat4f(shader, gfx.PROJ_UNIFORM_NAME, &proj)
+    gfx.pipeline_uniform_mat4f(pipeline, gfx.PROJ_UNIFORM_NAME, &proj)
 }
 
 camera_apply :: proc { camera_apply_full, camera_apply_proj }

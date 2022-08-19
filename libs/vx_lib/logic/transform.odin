@@ -87,14 +87,14 @@ pr_get_view_matrix :: proc(position: Position_Component, rotation: Rotation_Comp
     return glsl.mat4LookAt((glsl.vec3)(position), ((glsl.vec3)(position) + rotation_direction(rotation) * 0.01 ), { 0.0, 1.0, 0.0 })
 }
 
-pr_apply :: proc(position: Position_Component, rotation: Rotation_Component, shader: ^gfx.Shader, uniform_name := gfx.MODEL_UNIFORM_NAME) {
+pr_apply :: proc(position: Position_Component, rotation: Rotation_Component, pipeline: ^gfx.Pipeline, uniform_name := gfx.MODEL_UNIFORM_NAME) {
     mat := to_matrix(position) * to_matrix(rotation)
-    gfx.shader_uniform_mat4f(shader, uniform_name, &mat)
+    gfx.pipeline_uniform_mat4f(pipeline, uniform_name, &mat)
 }
 
-prs_apply :: proc(position: Position_Component, rotation: Rotation_Component, scale: Scale_Component, shader: ^gfx.Shader, uniform_name := gfx.MODEL_UNIFORM_NAME) {
+prs_apply :: proc(position: Position_Component, rotation: Rotation_Component, scale: Scale_Component, pipeline: ^gfx.Pipeline, uniform_name := gfx.MODEL_UNIFORM_NAME) {
     mat := to_matrix(position) * to_matrix(rotation) * to_matrix(scale)
-    gfx.shader_uniform_mat4f(shader, uniform_name, &mat)
+    gfx.pipeline_uniform_mat4f(pipeline, uniform_name, &mat)
 }
 
 transform_move :: proc(transform: ^Transform, offset: glsl.vec3, amount: f32 = 1.0) {
@@ -152,7 +152,7 @@ transform_to_matrix :: proc(transform: ^Transform) -> glsl.mat4 {
     return transform.mat
 }
 
-transform_apply :: proc(transform: ^Transform, shader: ^gfx.Shader, uniform_name := gfx.MODEL_UNIFORM_NAME) {
+transform_apply :: proc(transform: ^Transform, pipeline: ^gfx.Pipeline, uniform_name := gfx.MODEL_UNIFORM_NAME) {
     transform_calc_matrix(transform)
-    gfx.shader_uniform_mat4f(shader, uniform_name, &transform.mat)
+    gfx.pipeline_uniform_mat4f(pipeline, uniform_name, &transform.mat)
 }

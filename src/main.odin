@@ -65,19 +65,11 @@ init :: proc() {
 	fragment_src, ok2 := os.read_entire_file("res/shaders/basic.fs")
 	if !ok2 do panic("Could not open fragment shader file")
 
-	shader: gfx.Shader = ---
-	gfx.shader_init(&shader, gfx.Shader_Descriptor { 
-		vertex_source = (string)(vertex_src), 
+	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
+		vertex_source = (string)(vertex_src),
 		fragment_source = (string)(fragment_src),
-	})
-	layout: gfx.Layout = ---
-	gfx.layout_init(&layout, gfx.Layout_Descriptor {
-		elements = VERTEX_LAYOUT,
-	})
 
-	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor { 
-		shader = shader,
-		layout = layout,
+		layout_elements = VERTEX_LAYOUT,
 
 		cull_enabled = false,
 		cull_front_face = gl.CW,
@@ -105,17 +97,11 @@ init :: proc() {
 	if !ok2 do panic("Could not open fragment shader file")
 	defer delete(fragment_src)
 
-	gfx.shader_init(&shader, gfx.Shader_Descriptor { 
-		vertex_source = (string)(vertex_src), 
-		fragment_source = (string)(fragment_src),
-	})
-	gfx.layout_init(&layout, gfx.Layout_Descriptor {
-		elements = SKYBOX_LAYOUT,
-	})
-
 	gfx.pipeline_init(&STATE.skybox_pipeline, gfx.Pipeline_Descriptor { 
-		shader = shader,
-		layout = layout,
+		vertex_source = (string)(vertex_src),
+		fragment_source = (string)(fragment_src),
+
+		layout_elements = SKYBOX_LAYOUT,
 
 		cull_enabled = false,
 
@@ -249,7 +235,7 @@ main :: proc() {
 	desc.draw_proc = draw
 	desc.resize_proc = resize
 	desc.close_proc = close
-	desc.vsync = false
+	desc.vsync = true
 	desc.resizable = true
 
 	platform.window_init(desc)

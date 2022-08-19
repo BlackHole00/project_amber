@@ -1,6 +1,9 @@
 package vx_lib_gfx
 
 import gl "vendor:OpenGL"
+import "core:log"
+import "core:strings"
+import "core:math/linalg/glsl"
 
 Pipeline_States :: struct {
     cull_enabled: bool,
@@ -24,9 +27,6 @@ Pipeline_States :: struct {
 }
 
 Pipeline_Descriptor :: struct {
-    shader: Shader,
-    layout: Layout,
-
     cull_enabled: bool,
     cull_front_face: u32,
     cull_face: u32,
@@ -40,19 +40,56 @@ Pipeline_Descriptor :: struct {
     clear_color: [4]f32,
     wireframe: bool,
     viewport_size: [2]uint,
+
+    vertex_source: string,
+    fragment_source: string,
+
+    layout_elements: []Layout_Element,
+}
+
+Layout_Resolution_Element :: struct {
+    index: u32,
+    size:  i32,
+    gl_type: u32,
+    normalized: bool,
+    offset: u32,
+    buffer_idx: u32,
+    divisor: u32,
+}
+
+Layout_Resolution :: struct {
+    strides: []i32,
+    resolutions: []Layout_Resolution_Element,
+}
+
+Layout_Element :: struct {
+    gl_type: u32,
+    count: uint,
+    normalized: bool,
+    buffer_idx: uint,
+    divisor: uint,
 }
 
 Pipeline :: struct {
-    using shader: Shader,
-    using layout: Layout,
+    //using shader: Shader,
+    //using layout: Layout,
+    shader_handle: u32,
+    uniform_locations: map[string]i32,
+
+    layout_handle: u32,
+    layout_resolution: Layout_Resolution,
 
     states: Pipeline_States,
     render_target: Maybe(Framebuffer),
 }
 
 pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer) = nil) {
-    pipeline.shader = desc.shader
-    pipeline.layout = desc.layout
+    gl.CreateVertexArrays(1, &pipeline.layout_handle)
+    pipeline_layout_resolve(pipeline, desc.layout_elements)
+
+    if program, ok := gl.load_shaders_source(desc.vertex_source, desc.fragment_source); !ok {
+		panic("Could not compile shaders")
+	} else do pipeline.shader_handle = program
 
     pipeline.states.cull_enabled = desc.cull_enabled
     pipeline.states.cull_face = desc.cull_face
@@ -72,14 +109,18 @@ pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_tar
 }
 
 pipeline_free :: proc(pipeline: ^Pipeline) {
-    shader_free(&pipeline.shader)
-    layout_free(&pipeline.layout)
+    gl.DeleteProgram(pipeline.shader_handle)
+
+    gl.DeleteVertexArrays(1, &pipeline.layout_handle)
+    delete(pipeline.layout_resolution.resolutions)
+    delete(pipeline.layout_resolution.strides)
+    pipeline.layout_handle = INVALID_HANDLE
 }
 
 @(private)
 pipeline_bind :: proc(pipeline: Pipeline) {
-    shader_bind(pipeline.shader)
-    layout_bind(pipeline.layout)
+    pipeline_shader_bind(pipeline)
+    pipeline_layout_bind(pipeline)
 
     pipeline_bind_rendertarget(pipeline)
 }
@@ -138,13 +179,6 @@ pipeline_clear :: proc(pipeline: Pipeline) {
     gl.Clear(clear_bits)
 }
 
-pipeline_uniform_1f :: shader_uniform_1f
-pipeline_uniform_2f :: shader_uniform_2f
-pipeline_uniform_3f :: shader_uniform_3f
-pipeline_uniform_4f :: shader_uniform_4f
-pipeline_uniform_mat4f :: shader_uniform_mat4f
-pipeline_uniform_1i :: shader_uniform_1i
-
 pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
     pipeline.states.wireframe = wireframe
 }
@@ -183,4 +217,139 @@ pipeline_bind_rendertarget :: proc(pipeline: Pipeline) {
     else do bind_to_default_framebuffer()
 
     gl.Viewport(0, 0, (i32)(pipeline.states.viewport_size.x), (i32)(pipeline.states.viewport_size.y))
+}
+
+@(private)
+pipeline_layout_resolve :: proc(pipeline: ^Pipeline, elements: []Layout_Element) {
+    pipeline.layout_resolution.resolutions = make([]Layout_Resolution_Element, len(elements))
+    pipeline.layout_resolution.strides = make([]i32, len(elements))
+
+    buffer_count := pipeline_layout_find_buffer_count(elements)
+    
+    strides := make([]uint, buffer_count)
+    defer delete(strides)
+
+    offsets := make([]uint, buffer_count)
+    defer delete(offsets)
+
+    for elem in elements do strides[elem.buffer_idx] += size_of_gl_type(elem.gl_type) * elem.count
+    for stride, i in strides do offsets[i] = stride
+
+    for i := len(elements) - 1; i >= 0; i -= 1 {
+        layout_index := i
+
+        offsets[elements[i].buffer_idx] -= size_of_gl_type(elements[i].gl_type) * elements[i].count
+
+        //log.info((u32)(layout_index), (i32)(elements[i].count), elements[i].gl_type, elements[i].normalized, (i32)(strides[elements[i].buffer_idx]), (uintptr)(offsets[elements[i].buffer_idx]))
+        pipeline.layout_resolution.resolutions[i] = Layout_Resolution_Element {
+            index = (u32)(layout_index),
+            size = (i32)(elements[i].count),
+            gl_type = elements[i].gl_type,
+            normalized = elements[i].normalized,
+            offset = (u32)(offsets[elements[i].buffer_idx]),
+            buffer_idx = (u32)(elements[i].buffer_idx),
+            divisor = (u32)(elements[i].divisor),
+        }
+        pipeline.layout_resolution.strides[i] = (i32)(strides[elements[i].buffer_idx])
+    }
+}
+
+@(private)
+pipeline_layout_find_buffer_count :: proc(elements: []Layout_Element) -> (count: uint = 0) {
+    for elem in elements {
+        if elem.buffer_idx > count do count = elem.buffer_idx
+    }
+    count += 1
+
+    return
+}
+
+@(private)
+pipeline_layout_apply_without_index_buffer :: proc(pipeline: Pipeline, vertex_buffers: []Buffer) {
+    //layout_bind(layout)
+//
+    for buffer, i in vertex_buffers do gl.VertexArrayVertexBuffer(pipeline.layout_handle, (u32)(i), buffer.buffer_handle, 0, pipeline.layout_resolution.strides[i])
+//
+    for resolution, i in pipeline.layout_resolution.resolutions {
+        gl.EnableVertexArrayAttrib(pipeline.layout_handle, (u32)(i))
+        gl.VertexArrayAttribFormat(pipeline.layout_handle, (u32)(i), resolution.size, resolution.gl_type, resolution.normalized, resolution.offset)
+        gl.VertexArrayAttribBinding(pipeline.layout_handle, (u32)(i), resolution.buffer_idx)
+    }
+}
+//
+@(private)
+pipeline_layout_apply_with_index_buffer :: proc(pipeline: Pipeline, vertex_buffers: []Buffer, index_buffer: Buffer) {
+    pipeline_layout_apply_without_index_buffer(pipeline, vertex_buffers)
+    gl.VertexArrayElementBuffer(pipeline.layout_handle, index_buffer.buffer_handle)
+}
+
+@(private)
+pipeline_layout_apply :: proc { pipeline_layout_apply_without_index_buffer, pipeline_layout_apply_with_index_buffer }
+
+@(private)
+pipeline_layout_bind :: proc(pipeline: Pipeline) {
+    gl.BindVertexArray(pipeline.layout_handle)
+}
+
+@(private)
+pipeline_shader_bind :: proc(pipeline: Pipeline) {
+    gl.UseProgram(pipeline.shader_handle)
+}
+
+pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_name: string, value: f32) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniform1f(pipeline.shader_handle, loc, value)
+    }
+}
+
+pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec2) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniform2f(pipeline.shader_handle, loc, value.x, value.y)
+    }
+}
+
+pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec3) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniform3f(pipeline.shader_handle, loc, value.x, value.y, value.z)
+    }
+}
+
+pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec4) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniform4f(pipeline.shader_handle, loc, value.x, value.y, value.z, value.w)
+    }
+}
+
+pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: ^glsl.mat4) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniformMatrix4fv(pipeline.shader_handle, loc, 1, false, &value[0, 0])
+    }
+}
+
+pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_name: string, value: i32) {
+    if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
+        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
+    } else {
+        gl.ProgramUniform1i(pipeline.shader_handle, loc, value)
+    }
+}
+
+@(private)
+pipeline_find_uniform_location :: proc(pipeline: ^Pipeline, uniform_name: string) -> (i32, bool) {
+    if uniform_name in pipeline.uniform_locations do return pipeline.uniform_locations[uniform_name], true
+
+    loc := gl.GetUniformLocation(pipeline.shader_handle, strings.clone_to_cstring(uniform_name, context.temp_allocator))
+    pipeline.uniform_locations[uniform_name] = loc
+
+    return loc, loc != -1
 }
