@@ -149,11 +149,7 @@ init :: proc() {
 	log.info(top, bottom, left, right)
 
 	mesh_builder: utils.Mesh_Builder = ---
-	utils.meshbuilder_init(&mesh_builder, utils.MeshBuilder_Descriptor {
-		gl_usage = gl.STATIC_DRAW,
-		gl_draw_mode = gl.TRIANGLES,
-		draw_to_depth_buffer = true,
-	})
+	utils.meshbuilder_init(&mesh_builder)
 	defer utils.meshbuilder_free(mesh_builder)
 
 	utils.meshbuilder_push_quad(&mesh_builder, []Vertex {
@@ -169,6 +165,13 @@ init :: proc() {
 		{
 			pos = { -0.5,  0.5, 0.0 }, uv = { left, top },
 		},
+	})
+
+	logic.meshcomponent_init(&STATE.mesh, logic.Mesh_Descriptor {
+		index_buffer_type = gl.UNSIGNED_INT,
+		gl_usage = gl.STATIC_DRAW,
+		gl_draw_mode = gl.TRIANGLES,
+		draw_to_depth_buffer = true,
 	})
 	utils.meshbuilder_build(mesh_builder, &STATE.mesh)
 
