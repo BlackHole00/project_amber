@@ -1,3 +1,2 @@
-builddir
-**/builddir
-temp
+build
+toold/build

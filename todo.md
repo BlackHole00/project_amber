@@ -18,3 +18,5 @@
 - [ ] text rendering
 - [ ] immediate mode graphics
 - [ ] microui
+
+- [ ] figure out why the skybox pipeline needs to have the depth disabled

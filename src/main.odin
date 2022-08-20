@@ -110,7 +110,7 @@ init :: proc() {
 
 		cull_enabled = false,
 
-		depth_enabled = true,
+		depth_enabled = false,
 		depth_func = gl.LEQUAL,
 
 		blend_enabled = false,
@@ -183,7 +183,7 @@ init :: proc() {
 		min_filter = gl.NEAREST,
 		mag_filter = gl.NEAREST,
 		gen_mipmaps = true,
-	}, "res/textures/grass.png")
+	}, "res/textures/dirt.png")
 
 	gfx.texture_resize_2d(&STATE.texture, { 64, 64 })
 }

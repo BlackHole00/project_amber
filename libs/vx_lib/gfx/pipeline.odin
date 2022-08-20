@@ -128,8 +128,6 @@ pipeline_clear :: proc(pipeline: Pipeline) {
     // Leave the depth mask to true!
     gl.DepthMask(true)
 
-    pipeline_bind_rendertarget(pipeline)
-
     clear_bits: u32 = gl.COLOR_BUFFER_BIT
 
     if pipeline.states.depth_enabled do clear_bits |= gl.DEPTH_BUFFER_BIT
@@ -148,6 +146,7 @@ pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
 }
 
 pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int, draw_to_depth_buffer := true) {
+    pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
 
@@ -155,6 +154,7 @@ pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive
 }
 
 pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, type: u32, count: int, indices: rawptr, draw_to_depth_buffer := true) {
+    pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
 
@@ -162,6 +162,7 @@ pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primiti
 }
 
 pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int, instance_count: int, draw_to_depth_buffer := true) {
+    pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
 
@@ -169,6 +170,7 @@ pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings,
 }
 
 pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, type: u32, count: int, indices: rawptr, instance_count: int, draw_to_depth_buffer := true) {
+    pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
 

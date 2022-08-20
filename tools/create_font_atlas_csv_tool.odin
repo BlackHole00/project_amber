@@ -1,3 +1,4 @@
+
 package main
 
 import "core:fmt"
@@ -11,7 +12,7 @@ main :: proc() {
     x_count := 0
     y_count := 0
 
-    fd, _ := os.open("font_atlas.csv", os.O_CREATE | os.O_WRONLY | os.O_TRUNC)
+    fd, _ := os.open("../res/textures/font_atlas.csv", os.O_CREATE | os.O_WRONLY | os.O_TRUNC)
     w := io.to_writer(os.stream_from_handle(fd))
 
     for i in 0..<256 {
