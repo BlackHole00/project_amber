@@ -10,7 +10,6 @@ import "vendor:stb/image"
 Texture_Descriptor :: struct {
     gl_type: u32,
     internal_texture_format: i32,
-    texture_unit: i32,
     warp_s: i32,
     warp_t: i32,
     min_filter: i32,
@@ -212,13 +211,13 @@ texture_copy_3d :: proc(src: Texture, dest: Texture, src_offset: [3]i32 = { 0, 0
 **************************************************************************************************/
 
 @(private)
-texture_full_bind :: proc(texture: Texture) {
-    gl.BindTextureUnit((u32)(texture.texture_unit), texture.texture_handle)
+texture_full_bind :: proc(texture: Texture, texture_unit: u32) {
+    gl.BindTextureUnit(texture_unit, texture.texture_handle)
 }
 
 @(private)
-texture_apply:: proc(texture: Texture, shader: ^Pipeline, uniform_name: string) {
-    pipeline_uniform_1i(shader, uniform_name, texture.texture_unit)
+texture_apply:: proc(texture: Texture, texture_unit: u32, shader: ^Pipeline, uniform_name: string) {
+    pipeline_uniform_1i(shader, uniform_name, (i32)(texture_unit))
 }
 
 @(private)

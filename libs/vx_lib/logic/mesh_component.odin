@@ -7,7 +7,6 @@ Mesh_Descriptor :: struct {
     index_buffer_type: u32,
     gl_usage: u32,
     gl_draw_mode: u32,
-    draw_to_depth_buffer: bool,
 }
 
 Mesh_Component :: struct {
@@ -100,6 +99,5 @@ meshcomponent_draw :: proc(mesh: Mesh_Component, pipeline: ^gfx.Pipeline, textur
         mesh.index_buffer_type,
         mesh.index_count,
         nil,
-        mesh.draw_to_depth_buffer,
     )
 }

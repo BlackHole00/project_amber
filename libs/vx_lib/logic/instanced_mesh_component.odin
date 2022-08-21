@@ -4,11 +4,9 @@ import "../gfx"
 import gl "vendor:OpenGL"
 
 Instanced_Mesh_Descriptor :: struct {
-    // using base: Mesh_Descriptor,
     index_buffer_type: u32,
     gl_usage: u32,
     gl_draw_mode: u32,
-    draw_to_depth_buffer: bool,
 }
 
 Instanced_Mesh_Component :: struct {
@@ -19,9 +17,13 @@ Instanced_Mesh_Component :: struct {
 }
 
 instancedmeshcomponent_init_empty :: proc(mesh: ^Instanced_Mesh_Component, desc: Instanced_Mesh_Descriptor) {
-    meshcomponent_init_empty(mesh, Mesh_Descriptor {
-        desc.index_buffer_type, desc.gl_usage, desc.gl_draw_mode, desc.draw_to_depth_buffer,
-    })
+    meshcomponent_init_empty(mesh,
+        Mesh_Descriptor {
+            desc.index_buffer_type,
+            desc.gl_usage,
+            desc.gl_draw_mode,
+        },
+    )
 
     gfx.buffer_init(&mesh.instance_buffer, gfx.Buffer_Descriptor {
         gl_type = gl.ARRAY_BUFFER,
@@ -77,6 +79,5 @@ instancedmeshcomponent_draw :: proc(mesh: Instanced_Mesh_Component, pipeline: ^g
         mesh.index_count,
         nil,
         mesh.instance_count,
-        mesh.draw_to_depth_buffer,
     )
 }

@@ -12,13 +12,11 @@ skybox_init :: proc(mesh: ^Mesh_Component, texture: ^gfx.Texture, right_path, le
 		index_buffer_type = gl.UNSIGNED_INT,
 		gl_usage = gl.STATIC_DRAW,
 		gl_draw_mode = gl.TRIANGLES,
-		draw_to_depth_buffer = false,
 	}, common.CUBE_VERTICES, common.CUBE_INDICES)
 
     gfx.texture_init(texture, gfx.Texture_Descriptor {
 		gl_type = gl.TEXTURE_CUBE_MAP,
 		internal_texture_format = gl.RGBA8,
-		texture_unit = 0,
 		warp_s = gl.REPEAT,
 		warp_t = gl.REPEAT,
 		min_filter = gl.NEAREST,

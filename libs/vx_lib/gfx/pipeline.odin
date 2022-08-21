@@ -131,7 +131,7 @@ pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
     pipeline.states.wireframe = wireframe
 }
 
-pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int, draw_to_depth_buffer := true) {
+pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int,) {
     pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
@@ -139,7 +139,7 @@ pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive
     gl.DrawArrays(primitive, (i32)(first), (i32)(count))
 }
 
-pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, type: u32, count: int, indices: rawptr, draw_to_depth_buffer := true) {
+pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, type: u32, count: int, indices: rawptr) {
     pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
@@ -147,7 +147,7 @@ pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primiti
     gl.DrawElements(primitive, (i32)(count), type, indices)
 }
 
-pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int, instance_count: int, draw_to_depth_buffer := true) {
+pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int, instance_count: int) {
     pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
@@ -155,7 +155,7 @@ pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings,
     gl.DrawArraysInstanced(primitive, (i32)(first), (i32)(count), (i32)(instance_count))
 }
 
-pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, type: u32, count: int, indices: rawptr, instance_count: int, draw_to_depth_buffer := true) {
+pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, type: u32, count: int, indices: rawptr, instance_count: int) {
     pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)

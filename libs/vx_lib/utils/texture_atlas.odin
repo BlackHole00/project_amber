@@ -36,7 +36,6 @@ textureatlas_init :: proc(atlas: ^Texture_Atlas, desc: Texture_Atlas_Descriptor)
     gfx.texture_init(&atlas.texture, gfx.Texture_Descriptor {
         gl_type = gl.TEXTURE_2D,
         internal_texture_format = desc.internal_texture_format,
-        texture_unit = desc.texture_unit,
         warp_s = desc.warp_s,
         warp_t = desc.warp_t,
         min_filter = desc.min_filter,
@@ -49,7 +48,6 @@ textureatlas_init_from_file :: proc(atlas: ^Texture_Atlas, desc: Texture_Atlas_D
     gfx.texture_init(&atlas.texture, gfx.Texture_Descriptor {
         gl_type = gl.TEXTURE_2D,
         internal_texture_format = desc.internal_texture_format,
-        texture_unit = desc.texture_unit,
         warp_s = desc.warp_s,
         warp_t = desc.warp_t,
         min_filter = desc.min_filter,

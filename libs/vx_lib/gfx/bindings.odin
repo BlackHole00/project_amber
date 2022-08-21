@@ -1,6 +1,5 @@
 package vx_lib_gfx
 
-import "core:log"
 import "core:mem"
 
 Texture_Binding :: struct {
@@ -36,13 +35,8 @@ bindings_apply :: proc(pipeline: ^Pipeline, bindings: ^Bindings) {
     if bindings.index_buffer == nil do pipeline_layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count])
     else do pipeline_layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count], bindings.index_buffer.(Buffer))
 
-    used_units: [32]bool
-
     for i in 0..<bindings.texture_count {
-        texture_apply(bindings.textures[i].texture, pipeline, bindings.textures[i].uniform_name)
-        texture_full_bind(bindings.textures[i].texture)
-
-        if used_units[bindings.textures[i].texture.texture_unit] do log.warn("Texture unit", bindings.textures[i].texture.texture_unit, "is already used")
-        else do used_units[bindings.textures[i].texture.texture_unit] = true
+        texture_apply(bindings.textures[i].texture, (u32)(i), pipeline, bindings.textures[i].uniform_name)
+        texture_full_bind(bindings.textures[i].texture, (u32)(i))
     }
 }

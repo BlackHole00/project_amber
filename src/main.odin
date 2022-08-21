@@ -138,7 +138,6 @@ init :: proc() {
 
 	utils.textureatlas_init_from_file(&STATE.atlas, utils.Texture_Atlas_Descriptor {
 		internal_texture_format = gl.RGBA8,
-		texture_unit = 0,
 		warp_s = gl.REPEAT,
 		warp_t = gl.REPEAT,
 		min_filter = gl.NEAREST,
@@ -171,7 +170,6 @@ init :: proc() {
 		index_buffer_type = gl.UNSIGNED_INT,
 		gl_usage = gl.STATIC_DRAW,
 		gl_draw_mode = gl.TRIANGLES,
-		draw_to_depth_buffer = true,
 	})
 	utils.meshbuilder_build(mesh_builder, &STATE.mesh)
 
@@ -180,7 +178,6 @@ init :: proc() {
 	gfx.texture_init(&STATE.texture, gfx.Texture_Descriptor {
 		gl_type = gl.TEXTURE_2D,
 		internal_texture_format = gl.RGBA8,
-		texture_unit = 0,
 		warp_s = gl.REPEAT,
 		warp_t = gl.REPEAT,
 		min_filter = gl.NEAREST,
