@@ -12,6 +12,7 @@
 - [ ] rename gl_drawmode into gl_primitive
 - [X] use DMA and DSA since I'm using opengl 4.6
 - [ ] test framebuffer
+- [X] layout should not need gl.VertexArrayAttribFormat for every bind. Fix.
 
 - [ ] light stuff
 

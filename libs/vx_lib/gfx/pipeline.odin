@@ -47,21 +47,6 @@ Pipeline_Descriptor :: struct {
     layout_elements: []Layout_Element,
 }
 
-Layout_Resolution_Element :: struct {
-    index: u32,
-    size:  i32,
-    gl_type: u32,
-    normalized: bool,
-    offset: u32,
-    buffer_idx: u32,
-    divisor: u32,
-}
-
-Layout_Resolution :: struct {
-    strides: []i32,
-    resolutions: []Layout_Resolution_Element,
-}
-
 Layout_Element :: struct {
     gl_type: u32,
     count: uint,
@@ -71,13 +56,12 @@ Layout_Element :: struct {
 }
 
 Pipeline :: struct {
-    //using shader: Shader,
-    //using layout: Layout,
     shader_handle: u32,
     uniform_locations: map[string]i32,
 
     layout_handle: u32,
-    layout_resolution: Layout_Resolution,
+    layout_strides: []i32,
+    layout_buffers: []u32,
 
     states: Pipeline_States,
     render_target: Maybe(Framebuffer),
@@ -110,11 +94,13 @@ pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_tar
 
 pipeline_free :: proc(pipeline: ^Pipeline) {
     gl.DeleteProgram(pipeline.shader_handle)
+    pipeline.shader_handle = INVALID_HANDLE
 
     gl.DeleteVertexArrays(1, &pipeline.layout_handle)
-    delete(pipeline.layout_resolution.resolutions)
-    delete(pipeline.layout_resolution.strides)
     pipeline.layout_handle = INVALID_HANDLE
+
+    delete(pipeline.layout_strides)
+    delete(pipeline.layout_buffers)
 }
 
 pipeline_resize :: proc(pipeline: ^Pipeline, new_size: [2]uint) {
@@ -275,11 +261,11 @@ pipeline_bind_rendertarget :: proc(pipeline: Pipeline) {
 
 @(private)
 pipeline_layout_resolve :: proc(pipeline: ^Pipeline, elements: []Layout_Element) {
-    pipeline.layout_resolution.resolutions = make([]Layout_Resolution_Element, len(elements))
-    pipeline.layout_resolution.strides = make([]i32, len(elements))
-
     buffer_count := pipeline_layout_find_buffer_count(elements)
-    
+
+    pipeline.layout_buffers = make([]u32, len(elements))
+    pipeline.layout_strides = make([]i32, len(elements))
+
     strides := make([]uint, buffer_count)
     defer delete(strides)
 
@@ -290,21 +276,13 @@ pipeline_layout_resolve :: proc(pipeline: ^Pipeline, elements: []Layout_Element)
     for stride, i in strides do offsets[i] = stride
 
     for i := len(elements) - 1; i >= 0; i -= 1 {
-        layout_index := i
-
         offsets[elements[i].buffer_idx] -= size_of_gl_type(elements[i].gl_type) * elements[i].count
 
-        //log.info((u32)(layout_index), (i32)(elements[i].count), elements[i].gl_type, elements[i].normalized, (i32)(strides[elements[i].buffer_idx]), (uintptr)(offsets[elements[i].buffer_idx]))
-        pipeline.layout_resolution.resolutions[i] = Layout_Resolution_Element {
-            index = (u32)(layout_index),
-            size = (i32)(elements[i].count),
-            gl_type = elements[i].gl_type,
-            normalized = elements[i].normalized,
-            offset = (u32)(offsets[elements[i].buffer_idx]),
-            buffer_idx = (u32)(elements[i].buffer_idx),
-            divisor = (u32)(elements[i].divisor),
-        }
-        pipeline.layout_resolution.strides[i] = (i32)(strides[elements[i].buffer_idx])
+        gl.EnableVertexArrayAttrib(pipeline.layout_handle, (u32)(i))
+        gl.VertexArrayAttribFormat(pipeline.layout_handle, (u32)(i), (i32)(elements[i].count), elements[i].gl_type, elements[i].normalized, (u32)(offsets[elements[i].buffer_idx]))
+
+        pipeline.layout_buffers[i] = (u32)(elements[i].buffer_idx)
+        pipeline.layout_strides[i] = (i32)(strides[elements[i].buffer_idx])
     }
 }
 
@@ -320,12 +298,10 @@ pipeline_layout_find_buffer_count :: proc(elements: []Layout_Element) -> (count:
 
 @(private)
 pipeline_layout_apply_without_index_buffer :: proc(pipeline: Pipeline, vertex_buffers: []Buffer) {
-    for buffer, i in vertex_buffers do gl.VertexArrayVertexBuffer(pipeline.layout_handle, (u32)(i), buffer.buffer_handle, 0, pipeline.layout_resolution.strides[i])
+    for buffer, i in vertex_buffers do gl.VertexArrayVertexBuffer(pipeline.layout_handle, (u32)(i), buffer.buffer_handle, 0, pipeline.layout_strides[i])
 
-    for resolution, i in pipeline.layout_resolution.resolutions {
-        gl.EnableVertexArrayAttrib(pipeline.layout_handle, (u32)(i))
-        gl.VertexArrayAttribFormat(pipeline.layout_handle, (u32)(i), resolution.size, resolution.gl_type, resolution.normalized, resolution.offset)
-        gl.VertexArrayAttribBinding(pipeline.layout_handle, (u32)(i), resolution.buffer_idx)
+    for buffer, i in pipeline.layout_buffers {
+        gl.VertexArrayAttribBinding(pipeline.layout_handle, (u32)(i), buffer)
     }
 }
 
