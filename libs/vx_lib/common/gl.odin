@@ -1,6 +1,7 @@
 package vx_lib_common
 
 import "../platform"
+import glsm "../gfx/glstatemanager"
 import "vendor:glfw"
 import gl "vendor:OpenGL"
 
@@ -14,6 +15,8 @@ init_opengl :: proc(handle: glfw.WindowHandle, desc: platform.Window_Descriptor)
     gl.load_up_to(OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR, glfw.gl_set_proc_address)
 
     if desc.vsync do glfw.SwapInterval(1)
+
+    glsm.init()
 
     return true, ""
 }
@@ -32,9 +35,15 @@ post_frame_proc :: proc(handle: glfw.WindowHandle) {
     glfw.SwapBuffers(handle)
 }
 
+@(private="file")
+close_opengl :: proc() {
+    glsm.free()
+}
+
 windowcontext_init_with_gl :: proc() {
     platform.windowcontext_init()
     platform.WINDOWCONTEXT_INSTANCE.pre_window_init_proc = pre_window_init_opengl
     platform.WINDOWCONTEXT_INSTANCE.post_window_init_proc = init_opengl
     platform.WINDOWCONTEXT_INSTANCE.post_frame_proc = post_frame_proc
+    platform.WINDOWCONTEXT_INSTANCE.close_proc = close_opengl
 }

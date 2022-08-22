@@ -1,5 +1,6 @@
 package vx_lib_gfx
 
+import glsm "glstatemanager"
 import gl "vendor:OpenGL"
 import "core:log"
 import "core:strings"
@@ -112,14 +113,14 @@ pipeline_clear :: proc(pipeline: Pipeline) {
 
     // VERY IMPORTANT NOTE: If DepthMask is set to false when clearing a screen, the depth buffer will not be properly cleared, causing a black screen.
     // Leave the depth mask to true!
-    gl.DepthMask(true)
+    glsm.DepthMask(true)
 
     clear_bits: u32 = gl.COLOR_BUFFER_BIT
 
     if pipeline.states.depth_enabled do clear_bits |= gl.DEPTH_BUFFER_BIT
 
     // We could use glClearNamedFramebufferfv but I don't care about dsa in this case.
-    gl.ClearColor(pipeline.states.clear_color[0],
+    glsm.ClearColor(pipeline.states.clear_color[0],
         pipeline.states.clear_color[1],
         pipeline.states.clear_color[2],
         pipeline.states.clear_color[3],
@@ -228,27 +229,27 @@ pipeline_apply :: proc(pipeline: Pipeline) {
     pipeline_bind(pipeline)
 
     if pipeline.states.cull_enabled {
-        gl.Enable(gl.CULL_FACE)
-        gl.FrontFace(pipeline.states.cull_front_face)
-        gl.CullFace(pipeline.states.cull_face)
-    } else do gl.Disable(gl.CULL_FACE)
+        glsm.Enable(gl.CULL_FACE)
+        glsm.FrontFace(pipeline.states.cull_front_face)
+        glsm.CullFace(pipeline.states.cull_face)
+    } else do glsm.Disable(gl.CULL_FACE)
 
     if pipeline.states.depth_enabled {
-        gl.Enable(gl.DEPTH_TEST)
-        gl.DepthFunc(pipeline.states.depth_func)
+        glsm.Enable(gl.DEPTH_TEST)
+        glsm.DepthFunc(pipeline.states.depth_func)
     } else do gl.Disable(gl.DEPTH_TEST)
 
     if pipeline.states.blend_enabled {
-        gl.Enable(gl.BLEND)
-        gl.BlendFuncSeparate(pipeline.states.blend_src_rgb_func,
+        glsm.Enable(gl.BLEND)
+        glsm.BlendFuncSeparate(pipeline.states.blend_src_rgb_func,
             pipeline.states.blend_dst_rgb_func,
             pipeline.states.blend_src_alpha_func,
             pipeline.states.blend_dstdst_alphargb_func,
         )
-    } else do gl.Disable(gl.BLEND)
+    } else do glsm.Disable(gl.BLEND)
 
-    if pipeline.states.wireframe do gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
-    else do gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
+    if pipeline.states.wireframe do glsm.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+    else do glsm.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
 }
 
 @(private)
@@ -256,7 +257,7 @@ pipeline_bind_rendertarget :: proc(pipeline: Pipeline) {
     if pipeline.render_target != nil do framebuffer_bind(pipeline.render_target.(Framebuffer))
     else do bind_to_default_framebuffer()
 
-    gl.Viewport(0, 0, (i32)(pipeline.states.viewport_size.x), (i32)(pipeline.states.viewport_size.y))
+    glsm.Viewport(0, 0, (i32)(pipeline.states.viewport_size.x), (i32)(pipeline.states.viewport_size.y))
 }
 
 @(private)
@@ -280,6 +281,7 @@ pipeline_layout_resolve :: proc(pipeline: ^Pipeline, elements: []Layout_Element)
 
         gl.EnableVertexArrayAttrib(pipeline.layout_handle, (u32)(i))
         gl.VertexArrayAttribFormat(pipeline.layout_handle, (u32)(i), (i32)(elements[i].count), elements[i].gl_type, elements[i].normalized, (u32)(offsets[elements[i].buffer_idx]))
+        gl.VertexArrayBindingDivisor(pipeline.layout_handle, (u32)(i), (u32)(elements[i].divisor))
 
         pipeline.layout_buffers[i] = (u32)(elements[i].buffer_idx)
         pipeline.layout_strides[i] = (i32)(strides[elements[i].buffer_idx])
@@ -316,12 +318,12 @@ pipeline_layout_apply :: proc { pipeline_layout_apply_without_index_buffer, pipe
 
 @(private)
 pipeline_layout_bind :: proc(pipeline: Pipeline) {
-    gl.BindVertexArray(pipeline.layout_handle)
+    glsm.BindVertexArray(pipeline.layout_handle)
 }
 
 @(private)
 pipeline_shader_bind :: proc(pipeline: Pipeline) {
-    gl.UseProgram(pipeline.shader_handle)
+    glsm.UseProgram(pipeline.shader_handle)
 }
 
 @(private)
