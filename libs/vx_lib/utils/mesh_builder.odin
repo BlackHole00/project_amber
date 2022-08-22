@@ -1,5 +1,6 @@
 package vx_lib_utils
 
+import "../gfx"
 import "../logic"
 
 Mesh_Builder :: struct {
@@ -61,9 +62,25 @@ meshbuilder_clear :: proc(builder: ^Mesh_Builder) {
     builder.index_count = 0
 }
 
-meshbuilder_build :: proc(builder: Mesh_Builder, mesh: ^logic.Mesh_Component) {
+meshbuilder_build_to_mesh :: proc(builder: Mesh_Builder, mesh: ^logic.Mesh_Component) {
     logic.meshcomponent_set_data(mesh, builder.vertices[:], builder.indices[:], len(builder.indices))
 }
+
+meshbuilder_build_to_buffers :: proc(builder: Mesh_Builder, vertex_buffer: gfx.Buffer, index_buffer: gfx.Buffer) {
+    gfx.buffer_set_data(vertex_buffer, builder.vertices[:])
+    gfx.buffer_set_data(index_buffer, builder.indices[:])
+}
+
+meshbuilder_build_to_abstractbuffers :: proc(builder: Mesh_Builder, vertex_buffer: ^gfx.Abstract_Buffer, index_buffer: ^gfx.Abstract_Buffer) {
+    gfx.abstractbuffer_set_data(vertex_buffer, builder.vertices[:])
+    gfx.abstractbuffer_set_data(index_buffer, builder.indices[:])
+}
+
+meshbuilder_build_to_abstractmesh :: proc(builder: Mesh_Builder, abstract_mesh: ^logic.Abstract_Mesh) {
+    logic.abstractmesh_set_data(abstract_mesh, builder.vertices[:], builder.indices[:])
+}
+
+meshbuilder_build :: proc { meshbuilder_build_to_mesh, meshbuilder_build_to_buffers, meshbuilder_build_to_abstractbuffers, meshbuilder_build_to_abstractmesh }
 
 meshbuilder_free :: proc(builder: Mesh_Builder) {
     delete(builder.vertices)

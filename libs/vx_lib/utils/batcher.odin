@@ -1,6 +1,7 @@
 package vx_lib_utils
 
 import "../gfx"
+import "../logic"
 import gl "vendor:OpenGL"
 
 Batcher_Descriptor :: struct {
@@ -10,24 +11,17 @@ Batcher_Descriptor :: struct {
 Batcher :: struct {
     using mesh_builder: Mesh_Builder,
 
-    vertex_buffer: gfx.Buffer,
-    index_buffer: gfx.Buffer,
-    primitive: u32,
+    mesh: logic.Mesh_Component,
 }
 
 batcher_init :: proc(batcher: ^Batcher, desc: Batcher_Descriptor) {
     meshbuilder_init(batcher)
 
-    gfx.buffer_init(&batcher.vertex_buffer, gfx.Buffer_Descriptor {
-        gl_type = gl.ARRAY_BUFFER,
+    logic.meshcomponent_init(&batcher.mesh, logic.Mesh_Descriptor {
+        index_buffer_type = gl.UNSIGNED_INT,
         gl_usage = gl.DYNAMIC_DRAW,
+        gl_draw_mode = desc.primitive,
     })
-    gfx.buffer_init(&batcher.index_buffer, gfx.Buffer_Descriptor {
-        gl_type = gl.ELEMENT_ARRAY_BUFFER,
-        gl_usage = gl.DYNAMIC_DRAW,
-    })
-
-    batcher.primitive = desc.primitive
 }
 
 batcher_push_vertex :: proc(batcher: ^Batcher, vertex: $T) {
@@ -55,14 +49,6 @@ batcher_clear :: proc(batcher: ^Batcher) {
 }
 
 batcher_draw :: proc(batcher: ^Batcher, pipeline: ^gfx.Pipeline, texture_bindings: []gfx.Texture_Binding = {}) {
-    bindings: gfx.Bindings = ---
-    gfx.bindings_init(&bindings, 
-        []gfx.Buffer{
-            batcher.vertex_buffer,
-        }, 
-        batcher.index_buffer, 
-        texture_bindings,
-    )
-
-    gfx.pipeline_draw_elements(pipeline, &bindings, batcher.primitive, gl.UNSIGNED_INT, (int)(batcher.index_count), nil)
+    logic.meshcomponent_set_data(&batcher.mesh, batcher.indices[:], batcher.vertices[:])
+    logic.meshcomponent_draw(batcher.mesh, pipeline, texture_bindings)
 }

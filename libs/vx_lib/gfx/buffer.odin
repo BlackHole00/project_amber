@@ -23,12 +23,18 @@ buffer_init_empty :: proc(buffer: ^Buffer, desc: Buffer_Descriptor) {
 buffer_init_with_data :: proc(buffer: ^Buffer, desc: Buffer_Descriptor, data: []$T) {
     buffer_init_empty(buffer, desc)
 
-    buffer_add_data(buffer^, data)
+    buffer_set_data(buffer^, data)
+}
+
+buffer_init_from_abstractbuffer :: proc(buffer: ^Buffer, desc: Buffer_Descriptor, abstractbuffer: Abstract_Buffer) {
+    buffer_init_empty(buffer, desc)
+
+    buffer_set_data(buffer^, abstractbuffer.data)
 }
 
 buffer_init :: proc { buffer_init_empty, buffer_init_with_data }
 
-buffer_add_data :: proc(buffer: Buffer, data: []$T) {
+buffer_set_data :: proc(buffer: Buffer, data: []$T) {
     tmp := len(data) * size_of(T)
 
     gl.NamedBufferData(buffer.buffer_handle, tmp, raw_data(data), buffer.gl_usage)

@@ -60,8 +60,8 @@ meshcomponent_free :: proc(mesh: ^Mesh_Component) {
 }
 
 meshcomponent_set_data :: proc(mesh: ^Mesh_Component, vertex_data: []$T, index_data: []$U, index_count := -1) {
-    gfx.buffer_add_data(mesh.vertex_buffer, vertex_data)
-    gfx.buffer_add_data(mesh.index_buffer, index_data)
+    gfx.buffer_set_data(mesh.vertex_buffer, vertex_data)
+    gfx.buffer_set_data(mesh.index_buffer, index_data)
 
     mesh.index_count = index_count
     if index_count == -1 {
@@ -69,28 +69,18 @@ meshcomponent_set_data :: proc(mesh: ^Mesh_Component, vertex_data: []$T, index_d
     }
 }
 
-meshcomponent_get_bindings :: proc(mesh: Mesh_Component, textures: Maybe([]gfx.Texture_Binding), bindings: ^gfx.Bindings) {
-    real_textures := []gfx.Texture_Binding { }
-    if textures != nil do real_textures = textures.([]gfx.Texture_Binding)
-
+meshcomponent_get_bindings :: proc(bindings: ^gfx.Bindings, mesh: Mesh_Component, textures: []gfx.Texture_Binding = {}) {
     gfx.bindings_init(bindings, 
         []gfx.Buffer {
             mesh.vertex_buffer,
         }, mesh.index_buffer,
-        real_textures,
+        textures,
     )
-    //bindings^ = gfx.Bindings {
-    //    vertex_buffers = []gfx.Buffer {
-    //        mesh.vertex_buffer,
-    //    },
-    //    index_buffer = mesh.index_buffer,
-    //    textures = real_textures,
-    //}
 }
 
-meshcomponent_draw :: proc(mesh: Mesh_Component, pipeline: ^gfx.Pipeline, textures: Maybe([]gfx.Texture_Binding)) {
+meshcomponent_draw :: proc(mesh: Mesh_Component, pipeline: ^gfx.Pipeline, textures: []gfx.Texture_Binding = {}) {
     bindings: gfx.Bindings = ---
-    meshcomponent_get_bindings(mesh, textures, &bindings)
+    meshcomponent_get_bindings(&bindings, mesh, textures)
 
     gfx.pipeline_draw_elements(
         pipeline,

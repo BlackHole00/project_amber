@@ -26,12 +26,16 @@ skybox_init :: proc(mesh: ^Mesh_Component, texture: ^gfx.Texture, right_path, le
 }
 
 skybox_get_bindings :: proc(mesh: Mesh_Component, texture: Skybox_Texture_Component, bindings: ^gfx.Bindings, skyblock_uniform := gfx.SKYBOX_UNIFORM_NAME) {
-	meshcomponent_get_bindings(mesh, []gfx.Texture_Binding {
-		{
-			texture = texture,
-			uniform_name = skyblock_uniform,
+	meshcomponent_get_bindings(
+		bindings, 
+		mesh, 
+		[]gfx.Texture_Binding {
+			{
+				texture = texture,
+				uniform_name = skyblock_uniform,
+			},
 		},
-	}, bindings)
+	)
 }
 
 skybox_draw :: proc(pipeline: ^gfx.Pipeline, mesh: Mesh_Component, texture: Skybox_Texture_Component, skyblock_uniform := gfx.SKYBOX_UNIFORM_NAME) {

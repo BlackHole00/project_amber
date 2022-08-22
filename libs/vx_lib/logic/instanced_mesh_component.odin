@@ -51,25 +51,22 @@ instancedmeshcomponent_set_data :: meshcomponent_set_data
 instancedmeshcomponent_set_instanced_data :: proc(mesh: ^Instanced_Mesh_Component, instance_data: []$T, instance_count: int) {
     mesh.instance_count = instance_count
 
-    gfx.buffer_add_data(mesh.instance_buffer, instance_data)
+    gfx.buffer_set_data(mesh.instance_buffer, instance_data)
 }
 
-instancedmeshcomponent_get_bindings :: proc(mesh: Instanced_Mesh_Component, textures: Maybe([]gfx.Texture_Binding), bindings: ^gfx.Bindings) {
-    real_textures := []gfx.Texture_Binding { }
-    if textures != nil do real_textures = textures.([]gfx.Texture_Binding)
-
+instancedmeshcomponent_get_bindings :: proc(bindings: ^gfx.Bindings, mesh: Instanced_Mesh_Component, textures: []gfx.Texture_Binding = {}) {
     gfx.bindings_init(bindings, 
         []gfx.Buffer {
             mesh.vertex_buffer,
             mesh.instance_buffer,
         }, mesh.index_buffer,
-        real_textures,
+        textures,
     )
 }
 
-instancedmeshcomponent_draw :: proc(mesh: Instanced_Mesh_Component, pipeline: ^gfx.Pipeline, textures: Maybe([]gfx.Texture_Binding)) {
+instancedmeshcomponent_draw :: proc(mesh: Instanced_Mesh_Component, pipeline: ^gfx.Pipeline, textures: []gfx.Texture_Binding = {}) {
     bindings: gfx.Bindings = ---
-    instancedmeshcomponent_get_bindings(mesh, textures, &bindings)
+    instancedmeshcomponent_get_bindings(&bindings, mesh, textures)
 
     gfx.pipeline_draw_elements_instanced(
         pipeline,
