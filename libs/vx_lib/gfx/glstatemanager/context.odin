@@ -11,7 +11,6 @@ Context :: struct {
 
     vertex_array: u32,
     program: u32,
-    framebuffers: map[u32]u32,
 
     // We do not use the depth mask, instead we use a pipeline with depth
     // disabled, but whatever.
@@ -41,13 +40,11 @@ init :: proc() {
 
     CONTEXT_INSTANCE.enables = make(map[u32]bool)
     CONTEXT_INSTANCE.polygon_modes = make(map[u32]u32)
-    CONTEXT_INSTANCE.framebuffers = make(map[u32]u32)
 }
 
 free :: proc() {
     delete(CONTEXT_INSTANCE.enables)
     delete(CONTEXT_INSTANCE.polygon_modes)
-    delete(CONTEXT_INSTANCE.framebuffers)
 
     core.cell_free(&CONTEXT_INSTANCE)
 }

@@ -3,6 +3,7 @@ package main
 import "core:log"
 import "core:os"
 import "core:mem"
+import "core:math"
 import "vx_lib:core"
 import "vx_lib:platform"
 import "vx_lib:common"
@@ -64,6 +65,8 @@ init :: proc() {
 	immediate.context_init(immediate.Context_Descriptor {
 		target_framebuffer = nil,
 		viewport_size = { 640, 480 },
+		clear_color = false,
+		clear_depth_buffer = true,
 	})
 
 	vertex_src, ok := os.read_entire_file("res/shaders/basic.vs")
@@ -95,7 +98,9 @@ init :: proc() {
 
 		viewport_size = { 640, 480 },
 
-		clear_color = { 0.0, 0.0, 0.0, 0.0 },
+		clearing_color = { 0.0, 0.0, 0.0, 0.0 },
+		clear_color = true,
+		clear_depth = true,
 	})
 
 	delete(vertex_src)
@@ -115,17 +120,15 @@ init :: proc() {
 		layout = SKYBOX_LAYOUT,
 
 		cull_enabled = false,
-
 		depth_enabled = false,
-		depth_func = gl.LEQUAL,
-
 		blend_enabled = false,
 
 		wireframe = false,
 
 		viewport_size = { 640, 480 },
 
-		clear_color = { 0.0, 0.0, 0.0, 0.0 },
+		clear_color = false,
+		clear_depth = false,
 	})
 
 	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
@@ -135,9 +138,9 @@ init :: proc() {
 		far = 1000.0,
 	})
 	STATE.camera.position = { 0.0, 0.0, 0.0 }
-	STATE.camera.rotation = { 0.0, 0.0, 0.0 }
+	STATE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
 
-	STATE.mesh.transform.position = { 0.0, 0.0, 1.0 }
+	STATE.mesh.transform.position = { 0.0, 0.0, -1.0 }
 	STATE.mesh.transform.rotation = { 0.0, 0.0, 0.0 }
 	STATE.mesh.transform.scale = { 1.0, 1.0, 1.0 }
 	logic.transform_calc_matrix(&STATE.mesh.transform)
@@ -213,7 +216,7 @@ draw :: proc() {
 		atlas_bind,
 	})
 
-	immediate.push_string({ -1.0, -1.0 }, immediate.DEFAULT_FONT_SIZE, "Hello Font!")
+	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE, "Hello Font!")
 	immediate.draw()
 }
 

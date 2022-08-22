@@ -134,17 +134,3 @@ UseProgram :: proc(program: u32) {
         gl.UseProgram(program)
     }
 }
-
-BindFramebuffer :: proc(target: u32, framebuffer: u32) {
-    if !(target in CONTEXT_INSTANCE.framebuffers) { 
-        map_insert(&CONTEXT_INSTANCE.framebuffers, target, framebuffer)
-        gl.BindFramebuffer(target, framebuffer)
-
-        return
-    }
-
-    if CONTEXT_INSTANCE.framebuffers[target] != framebuffer {
-        CONTEXT_INSTANCE.framebuffers[target] = framebuffer
-        gl.BindFramebuffer(target, framebuffer)
-    }
-}

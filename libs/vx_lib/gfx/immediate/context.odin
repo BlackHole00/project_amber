@@ -3,12 +3,18 @@ package vx_lib_gfx_immediate
 import "../../gfx"
 import "../../core"
 import "../../utils"
+import "../../logic"
+import "../../logic/objects"
 import "core:os"
+import "core:math"
 import gl "vendor:OpenGL"
 
 Context_Descriptor :: struct {
     target_framebuffer: Maybe(gfx.Framebuffer),
     viewport_size: [2]uint,
+
+    clear_depth_buffer: bool,
+    clear_color: bool,
 }
 
 @(private)
@@ -20,6 +26,8 @@ Context :: struct {
 
     color_batcher: utils.Batcher,
     textured_batcher: utils.Batcher,
+
+    camera: objects.Simple_Camera,
 }
 @(private)
 CONTEXT_INSTANCE: core.Cell(Context)
@@ -62,10 +70,12 @@ context_init :: proc(desc: Context_Descriptor) {
 
 		viewport_size = desc.viewport_size,
 
-		clear_color = { 0.0, 0.0, 0.0, 0.0 },
-
         vertex_source = (string)(immediate_textured_vertex_src),
         fragment_source = (string)(immediate_textured_fragment_src),
+
+		clearing_color = { 0.0, 0.0, 0.0, 0.0 },
+        clear_depth = desc.clear_depth_buffer,
+        clear_color = desc.clear_color,
 
         layout = TEXTURED_LAYOUT,
     }, desc.target_framebuffer)
@@ -89,7 +99,9 @@ context_init :: proc(desc: Context_Descriptor) {
 
 		viewport_size = desc.viewport_size,
 
-		clear_color = { 0.0, 0.0, 0.0, 0.0 },
+		clearing_color = { 0.0, 0.0, 0.0, 0.0 },
+        clear_depth = desc.clear_depth_buffer,
+        clear_color = desc.clear_color,
 
         vertex_source = (string)(immediate_colored_vertex_src),
         fragment_source = (string)(immediate_colored_fragment_src),
@@ -113,6 +125,17 @@ context_init :: proc(desc: Context_Descriptor) {
 		mag_filter = gl.NEAREST,
 		gen_mipmaps = true,
 	}, "res/textures/font_atlas.png", "res/textures/font_atlas.csv")
+
+    logic.camera_init(&CONTEXT_INSTANCE.camera, logic.Orthographic_Camera_Descriptor {
+        left   = 0.0,
+        right  = (f32)(desc.viewport_size.x),
+        top    = (f32)(desc.viewport_size.y),
+        bottom = 0.0,
+        near   = 0.0001,
+        far    = 1000.0,
+    })
+    CONTEXT_INSTANCE.camera.position = { 0.0, 0.0, 1.0 }
+	CONTEXT_INSTANCE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
 }
 
 context_free :: proc() {

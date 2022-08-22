@@ -1,7 +1,9 @@
 package vx_lib_gfx_immediate
 
+import "../../logic"
 import "../../utils"
 import "../../gfx"
+//import "core:math/linalg/glsl"
 import "core:fmt"
 
 push_triangle :: proc(vertices: []Color_Vertex) {
@@ -51,11 +53,24 @@ push_string :: proc(pos: [2]f32, char_size: [2]f32, str: string) {
 resize_viewport :: proc(viewport: [2]uint) {
     gfx.pipeline_resize(&CONTEXT_INSTANCE.color_pipeline, viewport)
     gfx.pipeline_resize(&CONTEXT_INSTANCE.textured_pipeline, viewport)
+
+    logic.camera_set_othographic_data(&CONTEXT_INSTANCE.camera, logic.Orthographic_Data {
+        left   = 0.0,
+        right  = (f32)(viewport.x),
+        top    = (f32)(viewport.y),
+        bottom = 0.0,
+    })
 }
 
 draw :: proc() {
+    gfx.pipeline_clear(CONTEXT_INSTANCE.color_pipeline)
+
+    logic.camera_apply(CONTEXT_INSTANCE.camera, CONTEXT_INSTANCE.camera.position, CONTEXT_INSTANCE.camera.rotation, &CONTEXT_INSTANCE.textured_pipeline)
+
     utils.batcher_draw(&CONTEXT_INSTANCE.color_batcher, &CONTEXT_INSTANCE.color_pipeline)
-    utils.batcher_draw(&CONTEXT_INSTANCE.textured_batcher, &CONTEXT_INSTANCE.textured_pipeline)
+    utils.batcher_draw(&CONTEXT_INSTANCE.textured_batcher, &CONTEXT_INSTANCE.textured_pipeline, []gfx.Texture_Binding {
+        utils.textureatlas_get_texture_bindings(CONTEXT_INSTANCE.font_atlas, "uTexture"),
+    })
 
     utils.batcher_clear(&CONTEXT_INSTANCE.color_batcher)
     utils.batcher_clear(&CONTEXT_INSTANCE.textured_batcher)

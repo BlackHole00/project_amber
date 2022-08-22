@@ -20,11 +20,13 @@ Pipeline_States :: struct {
     blend_src_alpha_func: u32,
     blend_dstdst_alphargb_func: u32,
 
-    clear_color: [4]f32,
-
     wireframe: bool,
 
     viewport_size: [2]uint,
+
+    clearing_color: [4]f32,
+    clear_depth: bool,
+    clear_color: bool,
 }
 
 Pipeline_Descriptor :: struct {
@@ -38,7 +40,6 @@ Pipeline_Descriptor :: struct {
     blend_dst_rgb_func: u32,
     blend_src_alpha_func: u32,
     blend_dstdst_alphargb_func: u32,
-    clear_color: [4]f32,
     wireframe: bool,
     viewport_size: [2]uint,
 
@@ -46,6 +47,10 @@ Pipeline_Descriptor :: struct {
     fragment_source: string,
 
     layout: Pipeline_Layout,
+
+    clearing_color: [4]f32,
+    clear_depth: bool,
+    clear_color: bool,
 }
 
 Layout_Element :: struct {
@@ -91,6 +96,8 @@ pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_tar
     pipeline.states.clear_color = desc.clear_color
     pipeline.states.wireframe = desc.wireframe
     pipeline.states.viewport_size = desc.viewport_size
+    pipeline.states.clearing_color = desc.clearing_color
+    pipeline.states.clear_depth = desc.clear_depth
 
     pipeline.render_target = render_target
 }
@@ -117,16 +124,20 @@ pipeline_clear :: proc(pipeline: Pipeline) {
     // Leave the depth mask to true!
     glsm.DepthMask(true)
 
-    clear_bits: u32 = gl.COLOR_BUFFER_BIT
+    clear_bits: u32 = 0
 
-    if pipeline.states.depth_enabled do clear_bits |= gl.DEPTH_BUFFER_BIT
+    if pipeline.states.clear_depth && pipeline.states.clear_depth do clear_bits |= gl.DEPTH_BUFFER_BIT
+    if pipeline.states.clear_color {
+        clear_bits |= gl.COLOR_BUFFER_BIT
 
-    // We could use glClearNamedFramebufferfv but I don't care about dsa in this case.
-    glsm.ClearColor(pipeline.states.clear_color[0],
-        pipeline.states.clear_color[1],
-        pipeline.states.clear_color[2],
-        pipeline.states.clear_color[3],
-    )
+        // We could use glClearNamedFramebufferfv but I don't care about dsa in this case.
+        glsm.ClearColor(pipeline.states.clearing_color[0],
+            pipeline.states.clearing_color[1],
+            pipeline.states.clearing_color[2],
+            pipeline.states.clearing_color[3],
+        )
+    }
+
     gl.Clear(clear_bits)
 }
 
@@ -239,7 +250,7 @@ pipeline_apply :: proc(pipeline: Pipeline) {
     if pipeline.states.depth_enabled {
         glsm.Enable(gl.DEPTH_TEST)
         glsm.DepthFunc(pipeline.states.depth_func)
-    } else do gl.Disable(gl.DEPTH_TEST)
+    } else do glsm.Disable(gl.DEPTH_TEST)
 
     if pipeline.states.blend_enabled {
         glsm.Enable(gl.BLEND)

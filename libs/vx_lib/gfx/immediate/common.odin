@@ -39,7 +39,8 @@ COLOR_LAYOUT := gfx.Pipeline_Layout {
     },
 }
 
-DEFAULT_FONT_SIZE: [2]f32 = { 0.075, 0.1 }
+DEFAULT_FONT_SIZE: [2]f32 = { 60, 80 }
+DEFAULT_FONT_SIZE_RATEO: [2]f32 = { 0.75, 1.0 }
 
 Color_Vertex :: struct #packed {
     position: [3]f32,

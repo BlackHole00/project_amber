@@ -22,8 +22,8 @@ Perspective_Data :: struct {
 
 Orthographic_Camera_Descriptor :: struct {
     //using base: Orthographic_Data,
-    right   : f32,
     left    : f32,
+    right   : f32,
     top     : f32,
     bottom  : f32,
     near: f32,
@@ -111,10 +111,18 @@ camera_get_fov :: proc(camera: Camera_Component) -> f32 {
     return camera.perspective_data.fov
 }
 
+camera_set_othographic_data :: proc(camera: ^Camera_Component, data: Orthographic_Data) {
+    if camera.mode != .Orthographic do panic("Not orthographic camera")
+
+    camera.orthographic_data = data
+}
+
 camera_resize_view_port :: proc(camera: ^Camera_Component, viewport_size: [2]uint) {
+    if camera.mode != .Perspective do panic("Not perspective camera")
     camera.perspective_data.viewport_size = viewport_size
 }
 
 camera_set_fov :: proc(camera: ^Camera_Component, fov: f32) {
+    if camera.mode != .Perspective do panic("Not perspective camera")
     camera.perspective_data.fov = fov
 }

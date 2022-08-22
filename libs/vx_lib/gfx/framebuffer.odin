@@ -1,6 +1,5 @@
 package vx_lib_gfx
 
-import glsm "glstatemanager"
 import gl "vendor:OpenGL"
 
 Framebuffer_Descriptor :: struct {
@@ -98,10 +97,10 @@ framebuffer_get_depth_stencilr_texture_bindings:: proc(framebuffer: Framebuffer,
 
 @(private)
 framebuffer_bind :: proc(framebuffer: Framebuffer) {
-    glsm.BindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer_handle)
+    gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer.framebuffer_handle)
 }
 
 @(private)
 bind_to_default_framebuffer :: proc() {
-    glsm.BindFramebuffer(gl.FRAMEBUFFER, 0)
+    gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 }
