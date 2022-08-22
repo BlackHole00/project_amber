@@ -73,7 +73,8 @@ meshcomponent_get_bindings :: proc(bindings: ^gfx.Bindings, mesh: Mesh_Component
     gfx.bindings_init(bindings, 
         []gfx.Buffer {
             mesh.vertex_buffer,
-        }, mesh.index_buffer,
+        }, 
+        mesh.index_buffer,
         textures,
     )
 }

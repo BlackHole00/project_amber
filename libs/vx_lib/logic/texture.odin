@@ -1,7 +1,7 @@
 package vx_lib_logic
 
 import "../gfx"
-import "../common"
+import "../math"
 import gl "vendor:OpenGL"
 
 Texture_Component :: gfx.Texture
@@ -12,7 +12,7 @@ skybox_init :: proc(mesh: ^Mesh_Component, texture: ^gfx.Texture, right_path, le
 		index_buffer_type = gl.UNSIGNED_INT,
 		gl_usage = gl.STATIC_DRAW,
 		gl_draw_mode = gl.TRIANGLES,
-	}, common.CUBE_VERTICES, common.CUBE_INDICES)
+	}, math.CUBE_VERTICES, math.CUBE_INDICES)
 
     gfx.texture_init(texture, gfx.Texture_Descriptor {
 		gl_type = gl.TEXTURE_CUBE_MAP,

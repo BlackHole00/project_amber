@@ -2,6 +2,7 @@ package vx_lib_utils
 
 import "../gfx"
 import "../logic"
+import "core:slice"
 
 Mesh_Builder :: struct {
     vertices: [dynamic]byte,
@@ -9,6 +10,7 @@ Mesh_Builder :: struct {
 
     vertex_count: uint,
     index_count: uint,
+    max_index: u32,
 }
 
 meshbuilder_init :: proc(builder: ^Mesh_Builder) {
@@ -48,7 +50,10 @@ meshbuilder_push_quad :: proc(builder: ^Mesh_Builder, vertices: []$T, indices: [
 }
 
 meshbuilder_raw_push :: proc(builder: ^Mesh_Builder, vertices: []$T, indices: []u32) {
-    starting_idx := len(builder.indices)
+    starting_idx := builder.max_index
+
+    max, _ := slice.max(indices)
+    builder.max_index += max + 1
 
     for vertex in vertices do meshbuilder_push_vertex(builder, vertex)
     for index in indices do meshbuilder_push_index(builder, (u32)(starting_idx) + index)
@@ -60,6 +65,7 @@ meshbuilder_clear :: proc(builder: ^Mesh_Builder) {
 
     builder.vertex_count = 0
     builder.index_count = 0
+    builder.max_index = 0
 }
 
 meshbuilder_build_to_mesh :: proc(builder: Mesh_Builder, mesh: ^logic.Mesh_Component) {

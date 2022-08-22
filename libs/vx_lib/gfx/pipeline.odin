@@ -45,7 +45,7 @@ Pipeline_Descriptor :: struct {
     vertex_source: string,
     fragment_source: string,
 
-    layout_elements: []Layout_Element,
+    layout: Pipeline_Layout,
 }
 
 Layout_Element :: struct {
@@ -55,6 +55,8 @@ Layout_Element :: struct {
     buffer_idx: uint,
     divisor: uint,
 }
+
+Pipeline_Layout :: []Layout_Element
 
 Pipeline :: struct {
     shader_handle: u32,
@@ -70,7 +72,7 @@ Pipeline :: struct {
 
 pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer) = nil) {
     gl.CreateVertexArrays(1, &pipeline.layout_handle)
-    pipeline_layout_resolve(pipeline, desc.layout_elements)
+    pipeline_layout_resolve(pipeline, desc.layout)
 
     if program, ok := gl.load_shaders_source(desc.vertex_source, desc.fragment_source); !ok {
 		panic("Could not compile shaders")

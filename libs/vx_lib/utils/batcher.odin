@@ -49,6 +49,11 @@ batcher_clear :: proc(batcher: ^Batcher) {
 }
 
 batcher_draw :: proc(batcher: ^Batcher, pipeline: ^gfx.Pipeline, texture_bindings: []gfx.Texture_Binding = {}) {
-    logic.meshcomponent_set_data(&batcher.mesh, batcher.indices[:], batcher.vertices[:])
+    logic.meshcomponent_set_data(&batcher.mesh, batcher.vertices[:], batcher.indices[:])
     logic.meshcomponent_draw(batcher.mesh, pipeline, texture_bindings)
+}
+
+batcher_free :: proc(batcher: ^Batcher) {
+    logic.meshcomponent_free(&batcher.mesh)
+    meshbuilder_free(batcher)
 }

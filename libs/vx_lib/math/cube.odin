@@ -1,4 +1,4 @@
-package vx_lib_common
+package vx_lib_math
 
 CUBE_VERTICES := []f32 {
     // FRONT FACE

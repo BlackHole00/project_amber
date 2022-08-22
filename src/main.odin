@@ -7,6 +7,7 @@ import "vx_lib:core"
 import "vx_lib:platform"
 import "vx_lib:common"
 import "vx_lib:gfx"
+import "vx_lib:gfx/immediate"
 import "vx_lib:logic"
 import "vx_lib:logic/objects"
 import "vx_lib:utils"
@@ -60,6 +61,11 @@ STATE: core.Cell(State)
 init :: proc() {
 	core.cell_init(&STATE)
 
+	immediate.context_init(immediate.Context_Descriptor {
+		target_framebuffer = nil,
+		viewport_size = { 640, 480 },
+	})
+
 	vertex_src, ok := os.read_entire_file("res/shaders/basic.vs")
 	if !ok do panic("Could not open vertex shader file")
 
@@ -70,7 +76,7 @@ init :: proc() {
 		vertex_source = (string)(vertex_src),
 		fragment_source = (string)(fragment_src),
 
-		layout_elements = VERTEX_LAYOUT,
+		layout = VERTEX_LAYOUT,
 
 		cull_enabled = false,
 		cull_front_face = gl.CW,
@@ -106,7 +112,7 @@ init :: proc() {
 		vertex_source = (string)(vertex_src),
 		fragment_source = (string)(fragment_src),
 
-		layout_elements = SKYBOX_LAYOUT,
+		layout = SKYBOX_LAYOUT,
 
 		cull_enabled = false,
 
@@ -206,21 +212,25 @@ draw :: proc() {
 	logic.meshcomponent_draw(STATE.mesh, &STATE.pipeline, []gfx.Texture_Binding {
 		atlas_bind,
 	})
+
+	immediate.push_string({ -1.0, -1.0 }, immediate.DEFAULT_FONT_SIZE, "Hello Font!")
+	immediate.draw()
 }
 
 close :: proc() {
 	gfx.pipeline_free(&STATE.pipeline)
 
+	immediate.context_free()
 	core.cell_free(&STATE)
 }
 
 resize :: proc() {
 	size := platform.windowhelper_get_window_size()
-	_ = size
 
 	logic.camera_resize_view_port(&STATE.camera, size)
 	gfx.pipeline_resize(&STATE.pipeline, size)
 	gfx.pipeline_resize(&STATE.skybox_pipeline, size)
+	immediate.resize_viewport(size)
 }
 
 main :: proc() {

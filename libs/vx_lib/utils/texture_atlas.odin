@@ -4,7 +4,6 @@ import "../gfx"
 import "core:os"
 import "core:encoding/csv"
 import "core:strconv"
-import "core:log"
 import "core:strings"
 import gl "vendor:OpenGL"
 
@@ -61,16 +60,12 @@ textureatlas_init_from_file :: proc(atlas: ^Texture_Atlas, desc: Texture_Atlas_D
     defer delete(config_file_contents)
     if !ok do panic("could not open configuration file")
 
-    log.info((string)(config_file_contents))
-
     elems, _ := csv.read_all_from_string((string)(config_file_contents))
     defer for elem in elems do delete(elem)
     defer delete(elems)
 
     for line in elems {
         if len(line) != 5 do panic("invalid configuration file format")
-
-        log.info(line)
 
         elem := Texture_Atlas_Elem {
             start_pos = {
@@ -101,8 +96,6 @@ textureatlas_resize :: proc(atlas: ^Texture_Atlas, new_size: [2]uint) {
 textureatlas_get_uv :: proc(atlas: ^Texture_Atlas, texture: string) -> (
     top, bottom, left, right: f32,
 ) {
-    log.info(atlas)
-
     elem := atlas.textures[texture]
     atlas_size := atlas.texture.texture_size
 
@@ -112,4 +105,10 @@ textureatlas_get_uv :: proc(atlas: ^Texture_Atlas, texture: string) -> (
     top = (f32)(elem.start_pos.y) / (f32)(atlas_size.y)
 
     return
+}
+
+textureatlas_free :: proc(atlas: ^Texture_Atlas) {
+    delete(atlas.textures)
+
+    gfx.texture_free(&atlas.texture)
 }
