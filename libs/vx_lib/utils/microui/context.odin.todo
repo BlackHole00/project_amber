@@ -1,0 +1,113 @@
+package vx_lib_microui
+
+import gl "vendor:OpenGL"
+import ui "vendor:microui"
+import glfw "vendor:glfw"
+import "../../gfx"
+import "../../gfx/immediate"
+import "../../core"
+import "../../platform"
+
+Context :: struct {
+    ui_context: ui.Context,
+
+    log_buf:         [1<<16]byte,
+	log_buf_len:     int,
+	log_buf_updated: bool,
+	bg: ui.Color,
+
+    ui_texture_atlas: gfx.Texture,
+}
+CONTEXT_INSTANCE: core.Cell(Context)
+
+init :: proc() {
+    core.cell_init(&CONTEXT_INSTANCE)
+
+    texture_data := make([]u8, ui.DEFAULT_ATLAS_WIDTH * ui.DEFAULT_ATLAS_HEIGHT)
+    for alpha, i in ui.default_atlas_alpha {
+		texture_data[i] = alpha
+	}
+
+    gfx.texture_init(&CONTEXT_INSTANCE.ui_texture_atlas, 
+        gfx.Texture_Descriptor {
+            gl_type = gl.TEXTURE_2D,
+            internal_texture_format = gl.R8,
+            warp_s = gl.MIRROR_CLAMP_TO_EDGE,
+            warp_t = gl.MIRROR_CLAMP_TO_EDGE,
+            min_filter = gl.NEAREST,
+            mag_filter = gl.NEAREST,
+            gen_mipmaps = true,
+        },
+        [2]uint { ui.DEFAULT_ATLAS_WIDTH, ui.DEFAULT_ATLAS_HEIGHT },
+    )
+    gfx.texture_set_data_2d(CONTEXT_INSTANCE.ui_texture_atlas, texture_data, gl.RED, [2]uint { ui.DEFAULT_ATLAS_WIDTH, ui.DEFAULT_ATLAS_HEIGHT })
+
+    ui.init(&CONTEXT_INSTANCE.ui_context)
+
+    CONTEXT_INSTANCE.ui_context.text_width = ui.default_atlas_text_width
+	CONTEXT_INSTANCE.ui_context.text_height = ui.default_atlas_text_height
+}
+
+update :: proc() {
+    mouse_pos := platform.windowhelper_get_mouse_pos()
+    mouse_offset := platform.windowhelper_get_mouse_offset()
+
+    ui.input_mouse_move(&CONTEXT_INSTANCE.ui_context, (i32)(mouse_offset.x), (i32)(mouse_offset.y))
+
+    mouse_buttons := platform.windowhelper_get_mouse_keystates()
+    for btn, state in mouse_buttons {
+        ui_btn: ui.Mouse = ---
+        switch btn {
+            case glfw.MOUSE_BUTTON_LEFT: ui_btn = .LEFT
+            case glfw.MOUSE_BUTTON_RIGHT: ui_btn = .RIGHT
+            case glfw.MOUSE_BUTTON_MIDDLE: ui_btn = .MIDDLE
+        }
+
+        if state.just_pressed do ui.input_mouse_down(&CONTEXT_INSTANCE.ui_context, (i32)(mouse_pos.x), (i32)(mouse_pos.y), ui_btn)
+        else if state.just_released do ui.input_mouse_up(&CONTEXT_INSTANCE.ui_context, (i32)(mouse_pos.x), (i32)(mouse_pos.y), ui_btn)
+    }
+
+    keyboard_keys := platform.windowhelper_get_keyboard_keystates()
+    for key, state in keyboard_keys {
+        ui_key: ui.Key
+        switch key {
+            case glfw.KEY_LEFT_SHIFT: fallthrough
+            case glfw.KEY_RIGHT_SHIFT: ui_key = .SHIFT
+            case glfw.KEY_LEFT_CONTROL: fallthrough
+            case glfw.KEY_RIGHT_CONTROL: ui_key = .CTRL
+            case glfw.KEY_LEFT_ALT: fallthrough
+            case glfw.KEY_RIGHT_ALT: ui_key = .ALT
+            case glfw.KEY_ENTER: ui_key = .RETURN
+            case glfw.KEY_BACKSPACE: ui_key = .BACKSPACE
+        }
+
+        if state.just_pressed do ui.input_key_down(&CONTEXT_INSTANCE.ui_context, ui_key)
+        else if state.just_released do ui.input_key_up(&CONTEXT_INSTANCE.ui_context, ui_key)
+    }
+}
+
+free :: proc() {
+    core.cell_free(&CONTEXT_INSTANCE)
+}
+
+render :: proc() {
+	command_backing: ^ui.Command
+	for variant in ui.next_command_iterator(&CONTEXT_INSTANCE.ui_context, &command_backing) {
+		switch cmd in variant {
+            case ^ui.Command_Text: {
+                immediate.push_string({ (f32)(cmd.pos.x), (f32)(cmd.pos.y) }, immediate.DEFAULT_FONT_SIZE / 8.0, cmd.str)
+            }
+            case ^ui.Command_Rect:
+            case ^ui.Command_Icon:
+            case ^ui.Command_Clip:
+            case ^ui.Command_Jump:
+                unreachable()
+        }
+	}
+}
+
+get_context :: proc() -> ^ui.Context {
+    return &CONTEXT_INSTANCE.ui_context
+}
+
+

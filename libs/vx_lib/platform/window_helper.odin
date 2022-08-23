@@ -106,6 +106,14 @@ windowhelper_get_window_pos :: proc() -> [2]uint {
     return { (uint)(x), (uint)(y) }
 }
 
+windowhelper_get_mouse_keystates :: proc() -> map[Glfw_Key]Key_State {
+    return WINDOWHELPER_INSTANCE.input.mouse.buttons
+}
+
+windowhelper_get_keyboard_keystates :: proc() -> map[Glfw_Key]Key_State {
+    return WINDOWHELPER_INSTANCE.input.keyboard.keys
+}
+
 windowhelper_is_fullscreen :: proc() -> bool {
     return WINDOW_INSTANCE.data.fullscreen
 }

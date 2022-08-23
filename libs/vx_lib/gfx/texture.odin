@@ -120,7 +120,7 @@ texture_free :: proc(texture: ^Texture) {
 }
 
 texture_set_data_1d :: proc(texture: Texture, data: []$T, texture_format: u32, pixel_type: u32 = gl.UNSIGNED_BYTE, offset := 0) {
-    gl.TextureSubImage1D(texture.texture_handle, 0, (i32)(offset), len(data), 0, texture_format, pixel_type, &data[0])
+    gl.TextureSubImage1D(texture.texture_handle, 0, (i32)(offset), (i32)(len(data)), texture_format, pixel_type, &data[0])
     texture_gen_mipmaps(texture)
 }
 

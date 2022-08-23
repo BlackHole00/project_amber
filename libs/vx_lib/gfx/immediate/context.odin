@@ -32,7 +32,7 @@ Context :: struct {
 @(private)
 CONTEXT_INSTANCE: core.Cell(Context)
 
-context_init :: proc(desc: Context_Descriptor) {
+init :: proc(desc: Context_Descriptor) {
     core.cell_init(&CONTEXT_INSTANCE)
 
     immediate_textured_vertex_src, ok := os.read_entire_file("res/vx_lib/shaders/immediate_textured.vs")
@@ -138,7 +138,7 @@ context_init :: proc(desc: Context_Descriptor) {
 	CONTEXT_INSTANCE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
 }
 
-context_free :: proc() {
+free :: proc() {
     utils.textureatlas_free(&CONTEXT_INSTANCE.font_atlas)
 
     gfx.pipeline_free(&CONTEXT_INSTANCE.textured_pipeline)

@@ -62,7 +62,7 @@ STATE: core.Cell(State)
 init :: proc() {
 	core.cell_init(&STATE)
 
-	immediate.context_init(immediate.Context_Descriptor {
+	immediate.init(immediate.Context_Descriptor {
 		target_framebuffer = nil,
 		viewport_size = { 640, 480 },
 		clear_color = false,
@@ -216,14 +216,14 @@ draw :: proc() {
 		atlas_bind,
 	})
 
-	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE, "Hello Font!")
+	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, "Hello Font!")
 	immediate.draw()
 }
 
 close :: proc() {
 	gfx.pipeline_free(&STATE.pipeline)
 
-	immediate.context_free()
+	immediate.free()
 	core.cell_free(&STATE)
 }
 
