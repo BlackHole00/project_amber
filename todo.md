@@ -21,3 +21,6 @@
 - [ ] microui
 
 - [ ] figure out why the skybox pipeline needs to have the depth disabled
+
+- [ ] chunk should have different meshes, depending on the type of the block
+- [ ] chunk should not own a mesh, instead should own an abstract mesh and the renderer will apply it to a real mesh.

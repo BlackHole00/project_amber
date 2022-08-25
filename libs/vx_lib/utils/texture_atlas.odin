@@ -10,7 +10,6 @@ import gl "vendor:OpenGL"
 Texture_Atlas_Descriptor :: struct {
     initial_size: [2]uint,
     internal_texture_format: i32,
-    texture_unit: i32,
     warp_s: i32,
     warp_t: i32,
     min_filter: i32,
@@ -29,7 +28,7 @@ Texture_Atlas :: struct {
     texture: gfx.Texture,
 }
 
-textureatlas_init :: proc(atlas: ^Texture_Atlas, desc: Texture_Atlas_Descriptor) {
+textureatlas_init_empty :: proc(atlas: ^Texture_Atlas, desc: Texture_Atlas_Descriptor) {
     atlas.textures = make(map[string]Texture_Atlas_Elem)
 
     gfx.texture_init(&atlas.texture, gfx.Texture_Descriptor {
@@ -82,6 +81,8 @@ textureatlas_init_from_file :: proc(atlas: ^Texture_Atlas, desc: Texture_Atlas_D
     }
 }
 
+textureatlas_init :: proc { textureatlas_init_empty, textureatlas_init_from_file }
+
 textureatlas_get_texture_bindings :: proc(atlas: Texture_Atlas, uniform_name: string) -> gfx.Texture_Binding {
     return gfx.Texture_Binding {
         texture = atlas.texture,
@@ -96,6 +97,8 @@ textureatlas_resize :: proc(atlas: ^Texture_Atlas, new_size: [2]uint) {
 textureatlas_get_uv :: proc(atlas: ^Texture_Atlas, texture: string) -> (
     top, bottom, left, right: f32,
 ) {
+    if !(texture in atlas.textures) do panic("Could not find texture!")
+
     elem := atlas.textures[texture]
     atlas_size := atlas.texture.texture_size
 

@@ -17,10 +17,10 @@ skybox_init :: proc(mesh: ^Mesh_Component, texture: ^gfx.Texture, right_path, le
     gfx.texture_init(texture, gfx.Texture_Descriptor {
 		gl_type = gl.TEXTURE_CUBE_MAP,
 		internal_texture_format = gl.RGBA8,
-		warp_s = gl.REPEAT,
-		warp_t = gl.REPEAT,
-		min_filter = gl.NEAREST,
-		mag_filter = gl.NEAREST,
+		warp_s = gl.CLAMP_TO_EDGE,
+		warp_t = gl.CLAMP_TO_EDGE,
+		min_filter = gl.LINEAR,
+		mag_filter = gl.LINEAR,
 		gen_mipmaps = false,
 	}, right_path, left_path, top_path, bottom_path, back_path, front_path)
 }

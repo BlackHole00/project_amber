@@ -17,7 +17,7 @@ main :: proc() {
 
     for i in 0..<256 {
         str := fmt.aprint(args = {
-            "char_", i, ", ", x_count, ", ", y_count, ", ", CHAR_SIZE, ", ", CHAR_SIZE, "\n",
+            "char_", i, ", ", x_count, ", ", y_count, ", ", CHAR_SIZE.x, ", ", CHAR_SIZE.y, "\n",
         }, sep = "")
         defer delete(str)
 
@@ -25,14 +25,14 @@ main :: proc() {
 
         if i >= 33 && i < 127 && i != 34 {
             str2 := fmt.aprint(args = {
-                "\"", (rune)(i), "\", ", x_count, ", ", y_count, ", ", CHAR_SIZE, ", ", CHAR_SIZE, "\n",
+                "\"", (rune)(i), "\", ", x_count, ", ", y_count, ", ", CHAR_SIZE.x, ", ", CHAR_SIZE.y, "\n",
             }, sep = "")
             defer delete(str2)
 
             io.write_string(w, str2)
         } else if i == 34 {
             str2 := fmt.aprint(args = {
-                "\"\"", (rune)(i), "\", ", x_count, ", ", y_count, ", ", CHAR_SIZE, ", ", CHAR_SIZE, "\n",
+                "\"\"", (rune)(i), "\", ", x_count, ", ", y_count, ", ", CHAR_SIZE.x, ", ", CHAR_SIZE.y, "\n",
             }, sep = "")
             defer delete(str2)
 

@@ -79,8 +79,6 @@ texture_init_cubemap_from_file :: proc(texture: ^Texture, desc: Texture_Descript
     texture_init_raw(texture, desc)
 
     data, x, y, ch_num, real_texture_format := get_texture_content_from_file(right_path, texture_format)
-    texture_set_size_2d(texture, { (uint)(x), (uint)(y) })
-
     slice := mem.byte_slice(data, x * y * ch_num)
     texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 0)
     image.image_free(data)
@@ -140,7 +138,28 @@ texture_set_data_cubemap_face :: proc(texture: Texture, data: []$T, texture_form
         return
     }
 
-    gl.TextureSubImage3D(texture.texture_handle, 0, 0, 0, (i32)(face), (i32)(dimension.x), (i32)(dimension.y), 1, texture_format, pixel_type, &data[0])
+    when true {
+        texture_non_dsa_bind(texture)
+
+        target: u32 = ---
+        switch face {
+            case 0: target = gl.TEXTURE_CUBE_MAP_POSITIVE_X
+            case 1: target = gl.TEXTURE_CUBE_MAP_NEGATIVE_X
+            case 2: target = gl.TEXTURE_CUBE_MAP_POSITIVE_Y
+            case 3: target = gl.TEXTURE_CUBE_MAP_NEGATIVE_Y
+            case 4: target = gl.TEXTURE_CUBE_MAP_POSITIVE_Z
+            case 5: target = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z
+            case: panic("Unknown face")
+        }
+
+        gl.TexImage2D(target, 0, texture.internal_texture_format, (i32)(dimension.x), (i32)(dimension.y), 0, texture_format, pixel_type, &data[0])
+
+        texture_non_dsa_unbind(texture.gl_type)
+    } else {
+        texture_set_size_2d(texture, { (uint)(x), (uint)(y) })
+
+        gl.TextureSubImage3D(texture.texture_handle, 0, 0, 0, (i32)(face), (i32)(dimension.x), (i32)(dimension.y), 1, texture_format, pixel_type, &data[0])
+    }
     texture_gen_mipmaps(texture)
 }
 
@@ -209,6 +228,16 @@ texture_copy_3d :: proc(src: Texture, dest: Texture, src_offset: [3]i32 = { 0, 0
 /**************************************************************************************************
 ***************************************************************************************************
 **************************************************************************************************/
+
+@(private)
+texture_non_dsa_bind :: proc(texture: Texture) {
+    gl.BindTexture(texture.gl_type, texture.texture_handle)
+}
+
+@(private)
+texture_non_dsa_unbind :: proc(target: u32) {
+    gl.BindTexture(target, 0)
+}
 
 @(private)
 texture_full_bind :: proc(texture: Texture, texture_unit: u32) {

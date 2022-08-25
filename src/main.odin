@@ -12,6 +12,8 @@ import "vx_lib:gfx/immediate"
 import "vx_lib:logic"
 import "vx_lib:logic/objects"
 import "vx_lib:utils"
+import "project_amber:world"
+import "project_amber:renderer"
 import gl "vendor:OpenGL"
 
 Vertex :: struct #packed {
@@ -56,11 +58,15 @@ State :: struct {
 	skybox_bindings: gfx.Bindings,
 
 	camera: objects.Simple_Camera,
+
+	chunk: world.Chunk,
 }
 STATE: core.Cell(State)
 
 init :: proc() {
 	core.cell_init(&STATE)
+
+	renderer.renderer_init()
 
 	immediate.init(immediate.Context_Descriptor {
 		target_framebuffer = nil,
@@ -194,7 +200,21 @@ init :: proc() {
 		gen_mipmaps = true,
 	}, "res/textures/dirt.png")
 
-	gfx.texture_resize_2d(&STATE.texture, { 64, 64 })
+	world.blockregistar_init()
+	world.blockregistar_register_block("dirt", world.Block_Behaviour {
+		mesh = world.Full_Block_Mesh {
+			texturing = "Dirt",
+			natural_texture = true,
+		},
+	})
+
+	world.chunk_init(&STATE.chunk, world.Chunk_Descriptor {
+		chunk_pos = { 0, 0, 0 },
+	})
+	for x in 0..<16 do for y in 0..<16 do for z in 0..<16 do world.chunk_set_block(&STATE.chunk, (uint)(x), (uint)(y), (uint)(z), world.Block_Instance_Descriptor {
+		block = "dirt",
+	})
+	world.chunk_remesh(&STATE.chunk)
 }
 
 tick :: proc() {
@@ -216,6 +236,9 @@ draw :: proc() {
 		atlas_bind,
 	})
 
+	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
+	world.draw_chunk(&STATE.chunk)
+
 	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, "Hello Font!")
 	immediate.draw()
 }
@@ -233,6 +256,9 @@ resize :: proc() {
 	logic.camera_resize_view_port(&STATE.camera, size)
 	gfx.pipeline_resize(&STATE.pipeline, size)
 	gfx.pipeline_resize(&STATE.skybox_pipeline, size)
+
+	renderer.renderer_resize(size)
+
 	immediate.resize_viewport(size)
 }
 

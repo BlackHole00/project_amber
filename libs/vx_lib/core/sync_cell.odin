@@ -1,6 +1,6 @@
 package vx_lib_core
 
-import "core:sync"
+//import "core:sync"
 
 RWSync_Cell_Lock_Mode :: enum {
     Read,
