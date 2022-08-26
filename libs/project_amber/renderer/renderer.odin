@@ -8,7 +8,7 @@ import "vx_lib:utils"
 import "vx_lib:platform"
 import gl "vendor:OpenGL"
 
-BLOCK_TEXTURE_ATLAS_UNIFORM :: "uBlockTextureAtlasUniform"
+BLOCK_TEXTURE_ATLAS_UNIFORM :: "uBlockTextureAtlas"
 
 Renderer :: struct {
     block_texture_atlas: utils.Texture_Atlas,
@@ -40,7 +40,7 @@ renderer_init :: proc() {
 
     window_size := platform.windowhelper_get_window_size()
     gfx.pipeline_init(&RENDERER_INSTANCE.full_block_solid_pipeline, gfx.Pipeline_Descriptor {
-        cull_enabled = false,
+        cull_enabled = true,
         cull_face = gl.BACK,
         cull_front_face = gl.CCW,
 

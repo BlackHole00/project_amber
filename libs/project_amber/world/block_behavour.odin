@@ -26,11 +26,13 @@ Scripted_Block_Mesh :: struct {
     ),
 }
 
-Block_Mesh :: union {
+Block_Mesh :: union {   // If nil -> Meshless
     Full_Block_Mesh,
     Scripted_Block_Mesh,
 }
 
 Block_Behaviour :: struct {
+    solid: bool,
+
     mesh: Block_Mesh,
 }

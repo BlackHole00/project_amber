@@ -5,22 +5,25 @@ import "vx_lib:core"
 Block_Registar :: struct {
     blocks: map[string]Block_Behaviour,
 }
-BLOCK_REGISTAR_INSTANCE: core.Cell(Block_Registar)
+BLOCKREGISTAR_INSTANCE: core.Cell(Block_Registar)
 
 blockregistar_init :: proc() {
-    core.cell_init(&BLOCK_REGISTAR_INSTANCE)
+    core.cell_init(&BLOCKREGISTAR_INSTANCE)
 
-    BLOCK_REGISTAR_INSTANCE.blocks = make(map[string]Block_Behaviour)
+    BLOCKREGISTAR_INSTANCE.blocks = make(map[string]Block_Behaviour)
+
+    blockregistar_register_block("air", Block_Behaviour {
+        solid = false,
+        mesh = nil,
+    })
 }
 
 blockregistar_register_block :: proc(block: string, behaviour: Block_Behaviour) {
-    map_insert(&BLOCK_REGISTAR_INSTANCE.blocks, block, behaviour)
+    map_insert(&BLOCKREGISTAR_INSTANCE.blocks, block, behaviour)
 }
 
-blockregistar_get_block :: proc(block: string) -> ^Block_Behaviour {
-    if !(block in BLOCK_REGISTAR_INSTANCE.blocks) do panic("Could not find block")
+blockregistar_get_block :: proc(block: string) -> Block_Behaviour {
+    if !(block in BLOCKREGISTAR_INSTANCE.blocks) do panic("Could not find block")
 
-    return &BLOCK_REGISTAR_INSTANCE.blocks[block]
+    return BLOCKREGISTAR_INSTANCE.blocks[block]
 }
-
-

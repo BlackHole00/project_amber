@@ -10,6 +10,8 @@ import gl "vendor:OpenGL"
 
 CHUNK_SIZE :: 16
 
+Chunk_Identifier :: [3]int
+
 Chunk_Descriptor :: struct {
     chunk_pos: [3]int,
 }
@@ -44,7 +46,7 @@ chunk_set_block :: proc(chunk: ^Chunk, x, y, z: uint, block: Block_Instance_Desc
     chunk.blocks[x][y][z].position = chunk.chunk_pos * CHUNK_SIZE + { (int)(x), (int)(y), (int)(z) }
 }
 
-chunk_remesh :: proc(chunk: ^Chunk) {
+chunk_remesh :: proc(chunk: ^Chunk, world_accessor: World_Accessor) {
     mesh_builder: utils.Mesh_Builder = ---
     utils.meshbuilder_init(&mesh_builder)
     defer utils.meshbuilder_free(mesh_builder)
@@ -53,7 +55,7 @@ chunk_remesh :: proc(chunk: ^Chunk) {
     logic.abstractmesh_init(&mesh)
     defer logic.abstractmesh_free(mesh)
 
-    for x in 0..<16 do for y in 0..<16 do for z in 0..<16 {
+    for x in 0..<CHUNK_SIZE do for y in 0..<CHUNK_SIZE do for z in 0..<CHUNK_SIZE {
         block := blockregistar_get_block(chunk.blocks[x][y][z].block)
 
         switch block_mesh in block.mesh {
@@ -83,19 +85,48 @@ chunk_remesh :: proc(chunk: ^Chunk) {
                             right = uvs[3]
                         }
 
-                        utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
-                            {
-                                pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), 0.0 + (f32)(z) }, uv = { left, bottom },
-                            },
-                            {
-                                pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), 0.0 + (f32)(z) }, uv = { right, bottom },
-                            },
-                            {
-                                pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), 0.0 + (f32)(z) }, uv = { right, top },
-                            },
-                            {
-                                pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), 0.0 + (f32)(z) }, uv = { left, top },
-                            },
+                        block_pos := chunk.blocks[x][y][z].position
+
+                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y, block_pos.z + 1 }); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { left, bottom } },
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { right, bottom } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { right, top } },
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { left, top } },
+                        })
+
+                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y, block_pos.z - 1}); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, bottom } },
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { right, bottom } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { right, top } },
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, top } },
+                        })
+
+                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x - 1, block_pos.y, block_pos.z }); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, bottom } },
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, bottom } },
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, top } },
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, top } },
+                        })
+
+                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x + 1, block_pos.y, block_pos.z }); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, bottom } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { right, bottom } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, top } },
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { left, top } },
+                        })
+
+                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y + 1, block_pos.z }); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, bottom } },
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, bottom } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, top } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, top } },
+                        })
+
+                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y - 1, block_pos.z }); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, bottom } },
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { right, bottom } },
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, top } },
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { left, top } },
                         })
                     }
                     case Full_Block_Mesh_Multi_Texture: panic("ahhhh")
@@ -110,8 +141,6 @@ chunk_remesh :: proc(chunk: ^Chunk) {
 }
 
 draw_chunk :: proc(chunk: ^Chunk) {
-    if chunk.needs_remesh do chunk_remesh(chunk) // TODO: do elsewhere
-
     logic.transform_apply(&chunk.mesh.transform, &renderer.RENDERER_INSTANCE.full_block_solid_pipeline)
 
     logic.meshcomponent_draw(chunk.mesh, &renderer.RENDERER_INSTANCE.full_block_solid_pipeline, []gfx.Texture_Binding {

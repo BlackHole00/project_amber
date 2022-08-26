@@ -59,12 +59,14 @@ State :: struct {
 
 	camera: objects.Simple_Camera,
 
-	chunk: world.Chunk,
+	world_accessor: world.World_Accessor,
 }
 STATE: core.Cell(State)
 
 init :: proc() {
 	core.cell_init(&STATE)
+
+	log.info(abs(-16 % 16) - 1)
 
 	renderer.renderer_init()
 
@@ -202,19 +204,26 @@ init :: proc() {
 
 	world.blockregistar_init()
 	world.blockregistar_register_block("dirt", world.Block_Behaviour {
+		solid = true,
 		mesh = world.Full_Block_Mesh {
 			texturing = "Dirt",
 			natural_texture = true,
 		},
 	})
 
-	world.chunk_init(&STATE.chunk, world.Chunk_Descriptor {
-		chunk_pos = { 0, 0, 0 },
-	})
-	for x in 0..<16 do for y in 0..<16 do for z in 0..<16 do world.chunk_set_block(&STATE.chunk, (uint)(x), (uint)(y), (uint)(z), world.Block_Instance_Descriptor {
+	world.worldregistar_init()
+	world.worldregistar_add_world("level_0")
+	STATE.world_accessor = world.worldregistar_get_world_accessor("level_0")
+
+	world.worldaccessor_register_chunk(STATE.world_accessor, { 0, 0, 0 })
+	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
+	for x in 0..<world.CHUNK_SIZE do for y in 0..<world.CHUNK_SIZE do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), (uint)(y), (uint)(z), world.Block_Instance_Descriptor {
 		block = "dirt",
 	})
-	world.chunk_remesh(&STATE.chunk)
+	world.chunk_set_block(chunk, 8, 8, 8, world.Block_Instance_Descriptor {
+		block = "air",
+	})
+	world.chunk_remesh(chunk, STATE.world_accessor)
 }
 
 tick :: proc() {
@@ -228,6 +237,11 @@ draw :: proc() {
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.skybox_pipeline)
 	logic.skybox_draw(&STATE.skybox_pipeline, STATE.skybox.mesh, STATE.skybox.texture)
 
+	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
+
+	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
+	world.draw_chunk(chunk)
+
 	atlas_bind := utils.textureatlas_get_texture_bindings(STATE.atlas, "uTexture")
 
 	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)
@@ -236,9 +250,6 @@ draw :: proc() {
 		atlas_bind,
 	})
 
-	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
-	world.draw_chunk(&STATE.chunk)
-
 	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, "Hello Font!")
 	immediate.draw()
 }
@@ -246,6 +257,7 @@ draw :: proc() {
 close :: proc() {
 	gfx.pipeline_free(&STATE.pipeline)
 
+	world.worldregistar_deinit()
 	immediate.free()
 	core.cell_free(&STATE)
 }
