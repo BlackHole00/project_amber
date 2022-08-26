@@ -124,7 +124,7 @@ init :: proc(desc: Context_Descriptor) {
 		min_filter = gl.NEAREST,
 		mag_filter = gl.NEAREST,
 		gen_mipmaps = true,
-	}, "res/textures/font_atlas.png", "res/textures/font_atlas.csv")
+	}, "res/vx_lib/textures/font_atlas.png", "res/vx_lib/textures/font_atlas.csv")
 
     logic.camera_init(&CONTEXT_INSTANCE.camera, logic.Orthographic_Camera_Descriptor {
         left   = 0.0,

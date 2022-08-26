@@ -12,7 +12,6 @@ import "vx_lib:gfx"
 import "vx_lib:gfx/immediate"
 import "vx_lib:logic"
 import "vx_lib:logic/objects"
-import "vx_lib:utils"
 import "project_amber:world"
 import "project_amber:renderer"
 import gl "vendor:OpenGL"
@@ -49,11 +48,6 @@ SKYBOX_LAYOUT := []gfx.Layout_Element {
 }
 
 State :: struct {
-	pipeline: gfx.Pipeline,
-	mesh: objects.Simple_Mesh,
-	texture: gfx.Texture,
-	atlas: utils.Texture_Atlas,
-
 	camera: objects.Simple_Camera,
 
 	world_accessor: world.World_Accessor,
@@ -72,42 +66,6 @@ init :: proc() {
 		clear_depth_buffer = true,
 	})
 
-	vertex_src, ok := os.read_entire_file("res/shaders/basic.vs")
-	if !ok do panic("Could not open vertex shader file")
-	defer delete(vertex_src)
-
-	fragment_src, ok2 := os.read_entire_file("res/shaders/basic.fs")
-	if !ok2 do panic("Could not open fragment shader file")
-	defer delete(fragment_src)
-
-	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
-		vertex_source = (string)(vertex_src),
-		fragment_source = (string)(fragment_src),
-
-		layout = VERTEX_LAYOUT,
-
-		cull_enabled = false,
-		cull_front_face = gl.CW,
-		cull_face = gl.BACK,
-
-		depth_enabled = true,
-		depth_func = gl.LEQUAL,
-
-		blend_enabled = true,
-		blend_src_rgb_func = gl.SRC_ALPHA,
-		blend_dst_rgb_func = gl.ONE_MINUS_SRC_ALPHA,
-		blend_src_alpha_func = gl.ONE,
-		blend_dstdst_alphargb_func = gl.ZERO,
-
-		wireframe = false,
-
-		viewport_size = { 640, 480 },
-
-		clearing_color = { 0.0, 0.0, 0.0, 0.0 },
-		clear_color = true,
-		clear_depth = true,
-	})
-
 	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
 		fov = 3.14 / 2.0,
 		viewport_size = platform.windowhelper_get_window_size(),
@@ -116,58 +74,6 @@ init :: proc() {
 	})
 	STATE.camera.position = { 0.0, 0.0, 0.0 }
 	STATE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
-
-	STATE.mesh.transform.position = { 0.0, 0.0, -1.0 }
-	STATE.mesh.transform.rotation = { 0.0, 0.0, 0.0 }
-	STATE.mesh.transform.scale = { 1.0, 1.0, 1.0 }
-	logic.transform_calc_matrix(&STATE.mesh.transform)
-
-	utils.textureatlas_init_from_file(&STATE.atlas, utils.Texture_Atlas_Descriptor {
-		internal_texture_format = gl.RGBA8,
-		warp_s = gl.REPEAT,
-		warp_t = gl.REPEAT,
-		min_filter = gl.NEAREST,
-		mag_filter = gl.NEAREST,
-		gen_mipmaps = true,
-	}, "res/textures/font_atlas.png", "res/textures/font_atlas.csv")
-	top, bottom, left, right := utils.textureatlas_get_uv(&STATE.atlas, "char_65")
-	log.info(top, bottom, left, right)
-
-	mesh_builder: utils.Mesh_Builder = ---
-	utils.meshbuilder_init(&mesh_builder)
-	defer utils.meshbuilder_free(mesh_builder)
-
-	utils.meshbuilder_push_quad(&mesh_builder, []Vertex {
-		{
-			pos = { -0.5, -0.5, 0.0 }, uv = { left, bottom },
-		},
-		{
-			pos = {  0.5, -0.5, 0.0 }, uv = { right, bottom },
-		},
-		{
-			pos = {  0.5,  0.5, 0.0 }, uv = { right, top },
-		},
-		{
-			pos = { -0.5,  0.5, 0.0 }, uv = { left, top },
-		},
-	})
-
-	logic.meshcomponent_init(&STATE.mesh, logic.Mesh_Descriptor {
-		index_buffer_type = gl.UNSIGNED_INT,
-		gl_usage = gl.STATIC_DRAW,
-		gl_draw_mode = gl.TRIANGLES,
-	})
-	utils.meshbuilder_build(mesh_builder, &STATE.mesh)
-
-	gfx.texture_init(&STATE.texture, gfx.Texture_Descriptor {
-		gl_type = gl.TEXTURE_2D,
-		internal_texture_format = gl.RGBA8,
-		warp_s = gl.REPEAT,
-		warp_t = gl.REPEAT,
-		min_filter = gl.NEAREST,
-		mag_filter = gl.NEAREST,
-		gen_mipmaps = true,
-	}, "res/textures/dirt.png")
 
 	world.blockregistar_init()
 	world.blockregistar_register_block("dirt", world.Block_Behaviour {
@@ -217,21 +123,13 @@ tick :: proc() {
 }
 
 draw :: proc() {
-	gfx.pipeline_clear(STATE.pipeline)
+	renderer.renderer_prepare_drawing()
 
 	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
 	renderer.renderer_draw_skybox()
 
 	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
 	world.draw_chunk(chunk)
-
-	atlas_bind := utils.textureatlas_get_texture_bindings(STATE.atlas, "uTexture")
-
-	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)
-	logic.transform_apply(&STATE.mesh, &STATE.pipeline)
-	logic.meshcomponent_draw(STATE.mesh, &STATE.pipeline, []gfx.Texture_Binding {
-		atlas_bind,
-	})
 
 	fov_str := fmt.aprint("fov:", math.to_degrees(STATE.camera.perspective_data.fov))
 	defer delete(fov_str)
@@ -244,8 +142,6 @@ draw :: proc() {
 }
 
 close :: proc() {
-	gfx.pipeline_free(&STATE.pipeline)
-
 	renderer.renderer_free()
 	world.worldregistar_deinit()
 	immediate.free()
@@ -256,7 +152,6 @@ resize :: proc() {
 	size := platform.windowhelper_get_window_size()
 
 	logic.camera_resize_view_port(&STATE.camera, size)
-	gfx.pipeline_resize(&STATE.pipeline, size)
 
 	renderer.renderer_resize(size)
 

@@ -59,8 +59,8 @@ renderer_init :: proc() {
 
         viewport_size = window_size,
 
-        clear_color = false,
-        clear_depth = false,
+        clear_color = true,
+        clear_depth = true,
 
         layout = WORLD_VERTEX_LAYOUT,
 
@@ -123,4 +123,8 @@ renderer_resize :: proc(size: [2]uint) {
 
 renderer_draw_skybox :: proc() {
 	logic.skybox_draw(&RENDERER_INSTANCE.skybox_pipeline, RENDERER_INSTANCE.skybox.mesh, RENDERER_INSTANCE.skybox.texture)
+}
+
+renderer_prepare_drawing :: proc() {
+	gfx.pipeline_clear(RENDERER_INSTANCE.full_block_solid_pipeline)
 }
