@@ -20,7 +20,7 @@ input_common :: proc() {
 }
 
 input_camera_movement :: proc() {
-    delta := (f32)(platform.windowhelper_get_delta_time()) * 0.003
+    delta := (f32)(platform.windowhelper_get_delta_time()) * 0.005
 
     if platform.windowhelper_get_keyboard_keystate(glfw.KEY_LEFT_CONTROL).pressed {
         delta *= 2.5

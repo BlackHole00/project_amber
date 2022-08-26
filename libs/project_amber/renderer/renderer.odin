@@ -40,7 +40,7 @@ renderer_init :: proc() {
 
     window_size := platform.windowhelper_get_window_size()
     gfx.pipeline_init(&RENDERER_INSTANCE.full_block_solid_pipeline, gfx.Pipeline_Descriptor {
-        cull_enabled = true,
+        cull_enabled = false,
         cull_face = gl.BACK,
         cull_front_face = gl.CCW,
 

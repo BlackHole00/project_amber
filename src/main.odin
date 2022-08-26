@@ -66,8 +66,6 @@ STATE: core.Cell(State)
 init :: proc() {
 	core.cell_init(&STATE)
 
-	log.info(abs(-16 % 16) - 1)
-
 	renderer.renderer_init()
 
 	immediate.init(immediate.Context_Descriptor {
@@ -206,8 +204,23 @@ init :: proc() {
 	world.blockregistar_register_block("dirt", world.Block_Behaviour {
 		solid = true,
 		mesh = world.Full_Block_Mesh {
-			texturing = "Dirt",
-			natural_texture = true,
+			texturing = world.Full_Block_Mesh_Single_Texture {
+				texture = "dirt",
+				modifiers = { .Natural_Flip_X, .Natural_Flip_Y },
+			},
+		},
+	})
+	world.blockregistar_register_block("grass", world.Block_Behaviour {
+		solid = true,
+		mesh = world.Full_Block_Mesh {
+			texturing = world.Full_Block_Mesh_Multi_Texture {
+				{ texture = "grass_top",  modifiers = { .Natural_Flip_X, .Natural_Flip_Y } },
+				{ texture = "dirt", 	  modifiers = { .Natural_Flip_X, .Natural_Flip_Y } },
+				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+			},
 		},
 	})
 
@@ -217,10 +230,13 @@ init :: proc() {
 
 	world.worldaccessor_register_chunk(STATE.world_accessor, { 0, 0, 0 })
 	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
-	for x in 0..<world.CHUNK_SIZE do for y in 0..<world.CHUNK_SIZE do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), (uint)(y), (uint)(z), world.Block_Instance_Descriptor {
+	for x in 0..<world.CHUNK_SIZE do for y in 0..<(world.CHUNK_SIZE - 1) do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), (uint)(y), (uint)(z), world.Block_Instance_Descriptor {
 		block = "dirt",
 	})
-	world.chunk_set_block(chunk, 8, 8, 8, world.Block_Instance_Descriptor {
+	for x in 0..<world.CHUNK_SIZE do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), world.CHUNK_SIZE - 1, (uint)(z), world.Block_Instance_Descriptor {
+		block = "grass",
+	})
+	world.chunk_set_block(chunk, 7, 3, 7, world.Block_Instance_Descriptor {
 		block = "air",
 	})
 	world.chunk_remesh(chunk, STATE.world_accessor)

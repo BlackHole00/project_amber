@@ -5,7 +5,6 @@ import "vx_lib:gfx"
 import "vx_lib:logic/objects"
 import "vx_lib:logic"
 import "vx_lib:utils"
-import "vx_lib:math"
 import gl "vendor:OpenGL"
 
 CHUNK_SIZE :: 16
@@ -69,67 +68,125 @@ chunk_remesh :: proc(chunk: ^Chunk, world_accessor: World_Accessor) {
             case Full_Block_Mesh: {
                 switch texturing in block_mesh.texturing {
                     case Full_Block_Mesh_Single_Texture: {
-                        top, bottom, left, right := utils.textureatlas_get_uv(&renderer.RENDERER_INSTANCE.block_texture_atlas, texturing)
+                        top, bottom, left, right := utils.textureatlas_get_uv(&renderer.RENDERER_INSTANCE.block_texture_atlas, texturing.texture)
 
-                        // TODO: rotate a random number of times.
-                        if block_mesh.natural_texture {
-                            uvs := []f32{ top, bottom, left, right }
-
-                            num := (chunk.blocks[x][y][z].position.x + chunk.blocks[x][y][z].position.y + chunk.blocks[x][y][z].position.z) % 3 + 1
-
-                            for _ in 0..<num do math.slice_rotate(uvs)
-
-                            top = uvs[0]
-                            bottom = uvs[1]
-                            left = uvs[2]
-                            right = uvs[3]
+                        if .Natural_Flip_X in texturing.modifiers {
+                            if (chunk.blocks[x][y][z].position.x * chunk.blocks[x][y][z].position.y + chunk.blocks[x][y][z].position.z) % 2 == 0 {
+                                left, right = right, left
+                            }
+                        }
+                        if .Natural_Flip_Y in texturing.modifiers {
+                            if (chunk.blocks[x][y][z].position.x + chunk.blocks[x][y][z].position.y * chunk.blocks[x][y][z].position.z) % 2 == 1 {
+                                top, bottom = bottom, top
+                            }
                         }
 
                         block_pos := chunk.blocks[x][y][z].position
 
-                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y, block_pos.z + 1 }); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y, block_pos.z + 1 }); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
                             { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { left, bottom } },
                             { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { right, bottom } },
                             { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { right, top } },
                             { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { left, top } },
                         })
 
-                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y, block_pos.z - 1}); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y, block_pos.z - 1}); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
                             { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, bottom } },
                             { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { right, bottom } },
                             { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { right, top } },
                             { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, top } },
                         })
 
-                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x - 1, block_pos.y, block_pos.z }); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x - 1, block_pos.y, block_pos.z }); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
                             { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, bottom } },
                             { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, bottom } },
                             { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, top } },
                             { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, top } },
                         })
 
-                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x + 1, block_pos.y, block_pos.z }); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x + 1, block_pos.y, block_pos.z }); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
                             { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, bottom } },
                             { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { right, bottom } },
                             { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, top } },
                             { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { left, top } },
                         })
 
-                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y + 1, block_pos.z }); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y + 1, block_pos.z }); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
                             { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, bottom } },
                             { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, bottom } },
                             { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, top } },
                             { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, top } },
                         })
 
-                        if block, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y - 1, block_pos.z }); !ok || !block.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y - 1, block_pos.z }); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
                             { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { left, bottom } },
                             { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { right, bottom } },
                             { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { right, top } },
                             { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { left, top } },
                         })
                     }
-                    case Full_Block_Mesh_Multi_Texture: panic("ahhhh")
+                    case Full_Block_Mesh_Multi_Texture: {
+                        tops, bottoms, lefts, rights: [6]f32 = ---, ---, ---, ---
+
+                        for texture, i in texturing {
+                            tops[i], bottoms[i], lefts[i], rights[i] = utils.textureatlas_get_uv(&renderer.RENDERER_INSTANCE.block_texture_atlas, texture.texture)
+
+                            if .Natural_Flip_X in texture.modifiers {
+                                if ((7 - chunk.blocks[x][y][z].position.x * 673) * (3 - chunk.blocks[x][y][z].position.y * 37) / (10 - chunk.blocks[x][y][z].position.z * 74)) % (chunk.blocks[x][y][z].position.x + 1) == 0 {
+                                    lefts[i], rights[i] = rights[i], lefts[i]
+                                }
+                            }
+                            if .Natural_Flip_Y in texture.modifiers {
+                                if ((10 - chunk.blocks[x][y][z].position.x * 453) / (7 - chunk.blocks[x][y][z].position.y * 13) * (3 - chunk.blocks[x][y][z].position.z * 4)) % (chunk.blocks[x][y][z].position.z + 1) == 1 {
+                                    tops[i], bottoms[i] = bottoms[i], tops[i]
+                                }
+                            }
+                        }
+
+                        block_pos := chunk.blocks[x][y][z].position
+
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y, block_pos.z + 1 }); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { lefts[5], bottoms[5] } },
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { rights[5], bottoms[5] } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { rights[5], tops[5] } },
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), 0.5 + (f32)(z) }, uv = { lefts[5], tops[5] } },
+                        })
+
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y, block_pos.z - 1}); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { lefts[4], bottoms[4] } },
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { lefts[4], tops[4] } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { rights[4], tops[4] } },
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { rights[4], bottoms[4] } },
+                        })
+
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x - 1, block_pos.y, block_pos.z }); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { lefts[2], bottoms[2] } },
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { rights[2], bottoms[2] } },
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { rights[2], tops[2] } },
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { lefts[2], tops[2] } },
+                        })
+
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x + 1, block_pos.y, block_pos.z }); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { lefts[3], bottoms[3] } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { lefts[3], tops[3] } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { rights[3], tops[3] } },
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { rights[3], bottoms[3] } },
+                        })
+
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y + 1, block_pos.z }); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { lefts[0], bottoms[0] } },
+                            { pos = { -0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { rights[0], bottoms[0] } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { rights[0], tops[0] } },
+                            { pos = {  0.5 + (f32)(x),  0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { lefts[0], tops[0] } },
+                        })
+
+                        if block_behaviour, ok := worldaccessor_get_block_behaviour(world_accessor, { block_pos.x, block_pos.y - 1, block_pos.z }); !ok || !block_behaviour.solid do utils.meshbuilder_push_quad(&mesh_builder, []renderer.World_Vertex {
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { lefts[1], bottoms[1] } },
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y), -0.5 + (f32)(z) }, uv = { rights[1], bottoms[1] } },
+                            { pos = {  0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { rights[1], tops[1] } },
+                            { pos = { -0.5 + (f32)(x), -0.5 + (f32)(y),  0.5 + (f32)(z) }, uv = { lefts[1], tops[1] } },
+                        })
+                    }
                 }
             }
         }
