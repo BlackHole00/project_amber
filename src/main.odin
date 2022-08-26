@@ -4,6 +4,7 @@ import "core:log"
 import "core:os"
 import "core:mem"
 import "core:math"
+import "core:fmt"
 import "vx_lib:core"
 import "vx_lib:platform"
 import "vx_lib:common"
@@ -53,10 +54,6 @@ State :: struct {
 	texture: gfx.Texture,
 	atlas: utils.Texture_Atlas,
 
-	skybox_pipeline: gfx.Pipeline,
-	skybox: objects.Skybox,
-	skybox_bindings: gfx.Bindings,
-
 	camera: objects.Simple_Camera,
 
 	world_accessor: world.World_Accessor,
@@ -77,9 +74,11 @@ init :: proc() {
 
 	vertex_src, ok := os.read_entire_file("res/shaders/basic.vs")
 	if !ok do panic("Could not open vertex shader file")
+	defer delete(vertex_src)
 
 	fragment_src, ok2 := os.read_entire_file("res/shaders/basic.fs")
 	if !ok2 do panic("Could not open fragment shader file")
+	defer delete(fragment_src)
 
 	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
 		vertex_source = (string)(vertex_src),
@@ -107,34 +106,6 @@ init :: proc() {
 		clearing_color = { 0.0, 0.0, 0.0, 0.0 },
 		clear_color = true,
 		clear_depth = true,
-	})
-
-	delete(vertex_src)
-	vertex_src, ok = os.read_entire_file("res/shaders/skybox.vs")
-	if !ok do panic("Could not open vertex shader file")
-	defer delete(vertex_src)
-
-	delete(fragment_src)
-	fragment_src, ok2 = os.read_entire_file("res/shaders/skybox.fs")
-	if !ok2 do panic("Could not open fragment shader file")
-	defer delete(fragment_src)
-
-	gfx.pipeline_init(&STATE.skybox_pipeline, gfx.Pipeline_Descriptor { 
-		vertex_source = (string)(vertex_src),
-		fragment_source = (string)(fragment_src),
-
-		layout = SKYBOX_LAYOUT,
-
-		cull_enabled = false,
-		depth_enabled = false,
-		blend_enabled = false,
-
-		wireframe = false,
-
-		viewport_size = { 640, 480 },
-
-		clear_color = false,
-		clear_depth = false,
 	})
 
 	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
@@ -188,8 +159,6 @@ init :: proc() {
 	})
 	utils.meshbuilder_build(mesh_builder, &STATE.mesh)
 
-	logic.skybox_init(&STATE.skybox.mesh, &STATE.skybox.texture, "res/textures/skybox/right.bmp", "res/textures/skybox/left.bmp", "res/textures/skybox/top.bmp", "res/textures/skybox/bottom.bmp", "res/textures/skybox/front.bmp", "res/textures/skybox/back.bmp")
-
 	gfx.texture_init(&STATE.texture, gfx.Texture_Descriptor {
 		gl_type = gl.TEXTURE_2D,
 		internal_texture_format = gl.RGBA8,
@@ -236,7 +205,7 @@ init :: proc() {
 	for x in 0..<world.CHUNK_SIZE do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), world.CHUNK_SIZE - 1, (uint)(z), world.Block_Instance_Descriptor {
 		block = "grass",
 	})
-	world.chunk_set_block(chunk, 7, 3, 7, world.Block_Instance_Descriptor {
+	world.chunk_set_block(chunk, 7, 15, 7, world.Block_Instance_Descriptor {
 		block = "air",
 	})
 	world.chunk_remesh(chunk, STATE.world_accessor)
@@ -250,10 +219,8 @@ tick :: proc() {
 draw :: proc() {
 	gfx.pipeline_clear(STATE.pipeline)
 
-	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.skybox_pipeline)
-	logic.skybox_draw(&STATE.skybox_pipeline, STATE.skybox.mesh, STATE.skybox.texture)
-
 	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
+	renderer.renderer_draw_skybox()
 
 	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
 	world.draw_chunk(chunk)
@@ -266,13 +233,20 @@ draw :: proc() {
 		atlas_bind,
 	})
 
-	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, "Hello Font!")
+	fov_str := fmt.aprint("fov:", math.to_degrees(STATE.camera.perspective_data.fov))
+	defer delete(fov_str)
+	fps_str := fmt.aprint("fps:", platform.windowhelper_get_fps(), "- ms:", platform.windowhelper_get_ms())
+	defer delete(fps_str)
+
+	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fps_str)
+	immediate.push_string({ 0.0, immediate.DEFAULT_FONT_SIZE.x / 8.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fov_str)
 	immediate.draw()
 }
 
 close :: proc() {
 	gfx.pipeline_free(&STATE.pipeline)
 
+	renderer.renderer_free()
 	world.worldregistar_deinit()
 	immediate.free()
 	core.cell_free(&STATE)
@@ -283,7 +257,6 @@ resize :: proc() {
 
 	logic.camera_resize_view_port(&STATE.camera, size)
 	gfx.pipeline_resize(&STATE.pipeline, size)
-	gfx.pipeline_resize(&STATE.skybox_pipeline, size)
 
 	renderer.renderer_resize(size)
 
@@ -320,7 +293,7 @@ main :: proc() {
 	desc.draw_proc = draw
 	desc.resize_proc = resize
 	desc.close_proc = close
-	desc.vsync = true
+	desc.vsync = false
 	desc.resizable = true
 
 	platform.window_init(desc)

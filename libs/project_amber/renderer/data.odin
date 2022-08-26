@@ -24,3 +24,13 @@ WORLD_VERTEX_LAYOUT := gfx.Pipeline_Layout {
         divisor = 0,
     },
 }
+
+SKYBOX_LAYOUT := gfx.Pipeline_Layout {
+    {
+		gl_type = gl.FLOAT,
+		count = 3,
+		normalized = false,
+		buffer_idx = 0,
+		divisor = 0,
+	},
+}

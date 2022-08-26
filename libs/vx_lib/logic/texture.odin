@@ -25,6 +25,11 @@ skybox_init :: proc(mesh: ^Mesh_Component, texture: ^gfx.Texture, right_path, le
 	}, right_path, left_path, top_path, bottom_path, back_path, front_path)
 }
 
+skybox_free :: proc(mesh: ^Mesh_Component, texture: ^Skybox_Texture_Component) {
+	meshcomponent_free(mesh)
+	gfx.texture_free(texture)
+}
+
 skybox_get_bindings :: proc(mesh: Mesh_Component, texture: Skybox_Texture_Component, bindings: ^gfx.Bindings, skyblock_uniform := gfx.SKYBOX_UNIFORM_NAME) {
 	meshcomponent_get_bindings(
 		bindings, 
