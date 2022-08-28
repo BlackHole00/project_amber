@@ -3,7 +3,6 @@ package vx_lib_gfx_immediate
 import "../../logic"
 import "../../utils"
 import "../../gfx"
-//import "core:math/linalg/glsl"
 import "core:fmt"
 
 push_triangle :: proc(vertices: []Color_Vertex) {

@@ -1,12 +1,11 @@
 package vx_lib_logic
 
 import "../gfx"
-import gl "vendor:OpenGL"
 
 Mesh_Descriptor :: struct {
-    index_buffer_type: u32,
-    gl_usage: u32,
-    gl_draw_mode: u32,
+    index_buffer_type: gfx.Index_Type,
+    usage: gfx.Buffer_Usage,
+    draw_type: gfx.Primitive,
 }
 
 Mesh_Component :: struct {
@@ -19,31 +18,31 @@ Mesh_Component :: struct {
 
 meshcomponent_init_empty :: proc(mesh: ^Mesh_Component, desc: Mesh_Descriptor) {
     mesh.index_buffer_type = desc.index_buffer_type
-    mesh.gl_usage = desc.gl_usage
-    mesh.gl_draw_mode = desc.gl_draw_mode
+    mesh.usage = desc.usage
+    mesh.draw_type = desc.draw_type
 
     gfx.buffer_init(&mesh.vertex_buffer, gfx.Buffer_Descriptor {
-        gl_type = gl.ARRAY_BUFFER,
-        gl_usage = desc.gl_usage,
+        type = .Vertex_Buffer,
+        usage = desc.usage,
     })
     gfx.buffer_init(&mesh.index_buffer, gfx.Buffer_Descriptor {
-        gl_type = gl.ELEMENT_ARRAY_BUFFER,
-        gl_usage = desc.gl_usage,
+        type = .Index_Buffer,
+        usage = desc.usage,
     })
 }
 
 meshcomponent_init_with_data :: proc(mesh: ^Mesh_Component, desc: Mesh_Descriptor, vertex_data: []$T, index_data: []$U, index_count := -1) {
     mesh.index_buffer_type = desc.index_buffer_type
-    mesh.gl_usage = desc.gl_usage
-    mesh.gl_draw_mode = desc.gl_draw_mode
+    mesh.usage = desc.usage
+    mesh.draw_type = desc.draw_type
 
     gfx.buffer_init(&mesh.vertex_buffer, gfx.Buffer_Descriptor {
-        gl_type = gl.ARRAY_BUFFER,
-        gl_usage = desc.gl_usage,
+        type = .Vertex_Buffer,
+        usage = desc.usage,
     }, vertex_data)
     gfx.buffer_init(&mesh.index_buffer, gfx.Buffer_Descriptor {
-        gl_type = gl.ELEMENT_ARRAY_BUFFER,
-        gl_usage = desc.gl_usage,
+        type = .Index_Buffer,
+        usage = desc.usage,
     }, index_data)
 
     mesh.index_count = index_count
@@ -86,7 +85,7 @@ meshcomponent_draw :: proc(mesh: Mesh_Component, pipeline: ^gfx.Pipeline, textur
     gfx.pipeline_draw_elements(
         pipeline,
         &bindings,
-        mesh.gl_draw_mode,
+        mesh.draw_type,
         mesh.index_buffer_type,
         mesh.index_count,
         nil,

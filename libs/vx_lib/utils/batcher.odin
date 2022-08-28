@@ -2,10 +2,9 @@ package vx_lib_utils
 
 import "../gfx"
 import "../logic"
-import gl "vendor:OpenGL"
 
 Batcher_Descriptor :: struct {
-    primitive: u32,
+    primitive: gfx.Primitive,
 }
 
 Batcher :: struct {
@@ -18,9 +17,9 @@ batcher_init :: proc(batcher: ^Batcher, desc: Batcher_Descriptor) {
     meshbuilder_init(batcher)
 
     logic.meshcomponent_init(&batcher.mesh, logic.Mesh_Descriptor {
-        index_buffer_type = gl.UNSIGNED_INT,
-        gl_usage = gl.DYNAMIC_DRAW,
-        gl_draw_mode = desc.primitive,
+        index_buffer_type = .U32,
+        usage = .Dynamic_Draw,
+        draw_type = desc.primitive,
     })
 }
 

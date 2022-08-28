@@ -6,6 +6,45 @@ import "core:log"
 import "core:strings"
 import "core:math/linalg/glsl"
 
+Cull_Face :: enum {
+    Front,
+    Back,
+}
+
+Front_Face :: enum {
+    Clockwise,
+    Counter_Clockwise,
+}
+
+Depth_Func :: enum {
+    Never,
+    Less,
+    Equal,
+    LEqual,
+    Greater,
+    Always,
+}
+
+Blend_Func :: enum {
+    Zero,
+    One,
+    Src_Color,
+    One_Minus_Src_Color,
+    Dst_Color,
+    One_Minus_Dst_Color,
+    Src_Alpha,
+    One_Minus_Src_Alpha,
+    Dst_Alpha,
+    One_Minus_Dst_Alpha,
+    Constant_Color,
+    One_Minus_Constant_Color,
+    Constant_Alpha,
+    One_Minus_Constant_Alpha,
+    Src_Alpha_Saturate,
+    Src1_Color,
+    Src1_Alpha,
+}
+
 Pipeline_States :: struct {
     cull_enabled: bool,
     cull_front_face: u32,
@@ -31,15 +70,15 @@ Pipeline_States :: struct {
 
 Pipeline_Descriptor :: struct {
     cull_enabled: bool,
-    cull_front_face: u32,
-    cull_face: u32,
+    cull_front_face: Front_Face,
+    cull_face: Cull_Face,
     depth_enabled: bool,
-    depth_func: u32,
+    depth_func: Depth_Func,
     blend_enabled: bool,
-    blend_src_rgb_func: u32,
-    blend_dst_rgb_func: u32,
-    blend_src_alpha_func: u32,
-    blend_dstdst_alphargb_func: u32,
+    blend_src_rgb_func: Blend_Func,
+    blend_dst_rgb_func: Blend_Func,
+    blend_src_alpha_func: Blend_Func,
+    blend_dstdst_alphargb_func: Blend_Func,
     wireframe: bool,
     viewport_size: [2]uint,
 
@@ -59,6 +98,16 @@ Layout_Element :: struct {
     normalized: bool,
     buffer_idx: uint,
     divisor: uint,
+}
+
+Primitive :: enum {
+    Triangles,
+}
+
+Index_Type :: enum {
+    U8,
+    U16,
+    U32,
 }
 
 Pipeline_Layout :: []Layout_Element
@@ -84,15 +133,15 @@ pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_tar
 	} else do pipeline.shader_handle = program
 
     pipeline.states.cull_enabled = desc.cull_enabled
-    pipeline.states.cull_face = desc.cull_face
-    pipeline.states.cull_front_face = desc.cull_front_face
+    pipeline.states.cull_face = cullface_to_glenum(desc.cull_face)
+    pipeline.states.cull_front_face = frontface_to_glenum(desc.cull_front_face)
     pipeline.states.depth_enabled = desc.depth_enabled
-    pipeline.states.depth_func = desc.depth_func
+    pipeline.states.depth_func = depthfunc_to_glenum(desc.depth_func)
     pipeline.states.blend_enabled = desc.blend_enabled
-    pipeline.states.blend_src_rgb_func = desc.blend_src_rgb_func
-    pipeline.states.blend_dst_rgb_func = desc.blend_dst_rgb_func
-    pipeline.states.blend_src_alpha_func = desc.blend_src_alpha_func
-    pipeline.states.blend_dstdst_alphargb_func = desc.blend_dstdst_alphargb_func
+    pipeline.states.blend_src_rgb_func = blendfunc_to_glenum(desc.blend_src_rgb_func)
+    pipeline.states.blend_dst_rgb_func = blendfunc_to_glenum(desc.blend_dst_rgb_func)
+    pipeline.states.blend_src_alpha_func = blendfunc_to_glenum(desc.blend_src_alpha_func)
+    pipeline.states.blend_dstdst_alphargb_func = blendfunc_to_glenum(desc.blend_dstdst_alphargb_func)
     pipeline.states.clear_color = desc.clear_color
     pipeline.states.wireframe = desc.wireframe
     pipeline.states.viewport_size = desc.viewport_size
@@ -145,36 +194,36 @@ pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
     pipeline.states.wireframe = wireframe
 }
 
-pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int,) {
+pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int,) {
     pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
 
-    gl.DrawArrays(primitive, (i32)(first), (i32)(count))
+    gl.DrawArrays(primitive_to_glenum(primitive), (i32)(first), (i32)(count))
 }
 
-pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, type: u32, count: int, indices: rawptr) {
+pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, indices: rawptr) {
     pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
 
-    gl.DrawElements(primitive, (i32)(count), type, indices)
+    gl.DrawElements(primitive_to_glenum(primitive), (i32)(count), indextype_to_glenum(type), indices)
 }
 
-pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, first: int, count: int, instance_count: int) {
+pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
     pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
 
-    gl.DrawArraysInstanced(primitive, (i32)(first), (i32)(count), (i32)(instance_count))
+    gl.DrawArraysInstanced(primitive_to_glenum(primitive), (i32)(first), (i32)(count), (i32)(instance_count))
 }
 
-pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: u32, type: u32, count: int, indices: rawptr, instance_count: int) {
+pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, indices: rawptr, instance_count: int) {
     pipeline_apply(pipeline^)
     pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
 
-    gl.DrawElementsInstanced(primitive, (i32)(count), type, indices, (i32)(instance_count))
+    gl.DrawElementsInstanced(primitive_to_glenum(primitive), (i32)(count), indextype_to_glenum(type), indices, (i32)(instance_count))
 }
 
 pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_name: string, value: f32) {
@@ -347,4 +396,83 @@ pipeline_find_uniform_location :: proc(pipeline: ^Pipeline, uniform_name: string
     pipeline.uniform_locations[uniform_name] = loc
 
     return loc, loc != -1
+}
+
+@(private)
+cullface_to_glenum :: proc(face: Cull_Face) -> u32 {
+    switch face {
+        case .Front: return gl.FRONT
+        case .Back: return gl.BACK
+    }
+
+    return 0
+}
+
+@(private)
+frontface_to_glenum :: proc(front: Front_Face) -> u32 {
+    switch front {
+        case .Clockwise: return gl.CW
+        case .Counter_Clockwise: return gl.CCW
+    }
+
+    return 0
+}
+
+@(private)
+depthfunc_to_glenum :: proc(func: Depth_Func) -> u32 {
+    switch func {
+        case .Always: return gl.ALWAYS
+        case .Equal: return gl.EQUAL
+        case .Greater: return gl.GREATER
+        case .LEqual: return gl.LEQUAL
+        case .Less: return gl.LESS
+        case .Never: return gl.NEVER
+    }
+
+    return 0
+}
+
+@(private)
+blendfunc_to_glenum :: proc(blend: Blend_Func) -> u32 {
+    switch blend {
+        case .Zero: return gl.ZERO
+        case .One: return gl.ONE
+        case .Src_Color: return gl.SRC_COLOR
+        case .One_Minus_Src_Color: return gl.ONE_MINUS_SRC_COLOR
+        case .Dst_Color: return gl.DST_COLOR
+        case .One_Minus_Dst_Color: return gl.ONE_MINUS_DST_COLOR
+        case .Src_Alpha: return gl.SRC_ALPHA
+        case .One_Minus_Src_Alpha: return gl.ONE_MINUS_SRC_ALPHA
+        case .Dst_Alpha: return gl.ONE_MINUS_DST_ALPHA
+        case .One_Minus_Dst_Alpha: return gl.ONE_MINUS_DST_ALPHA
+        case .Constant_Color: return gl.CONSTANT_COLOR
+        case .One_Minus_Constant_Color: return gl.ONE_MINUS_CONSTANT_ALPHA
+        case .Constant_Alpha: return gl.CONSTANT_ALPHA
+        case .One_Minus_Constant_Alpha: return gl.ONE_MINUS_CONSTANT_ALPHA
+        case .Src_Alpha_Saturate: return gl.SRC_ALPHA_SATURATE
+        case .Src1_Alpha: return gl.SRC1_ALPHA
+        case .Src1_Color: return gl.SRC1_COLOR
+    }
+
+    return 0
+}
+
+@(private)
+primitive_to_glenum :: proc(primitive: Primitive) -> u32 {
+    switch primitive {
+        case .Triangles: return gl.TRIANGLES
+    }
+
+    return 0
+}
+
+@(private)
+indextype_to_glenum :: proc(type: Index_Type) -> u32 {
+    switch type {
+        case .U8: return gl.UNSIGNED_BYTE
+        case .U16: return gl.UNSIGNED_SHORT
+        case .U32: return gl.UNSIGNED_INT
+    }
+
+    return 0
 }

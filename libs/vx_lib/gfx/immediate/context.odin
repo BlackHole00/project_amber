@@ -7,7 +7,6 @@ import "../../logic"
 import "../../logic/objects"
 import "core:os"
 import "core:math"
-import gl "vendor:OpenGL"
 
 Context_Descriptor :: struct {
     target_framebuffer: Maybe(gfx.Framebuffer),
@@ -53,18 +52,17 @@ init :: proc(desc: Context_Descriptor) {
 
     gfx.pipeline_init(&CONTEXT_INSTANCE.textured_pipeline, gfx.Pipeline_Descriptor {
         cull_enabled = false,
-        cull_front_face = gl.CCW,
-        cull_face = gl.BACK,
+        cull_front_face = .Counter_Clockwise,
+        cull_face = .Back,
 
         depth_enabled = true,
-        depth_func = gl.LEQUAL,
+        depth_func = .LEqual,
 
         blend_enabled = true,
-
-        blend_src_rgb_func = gl.SRC_ALPHA,
-		blend_dst_rgb_func = gl.ONE_MINUS_SRC_ALPHA,
-		blend_src_alpha_func = gl.ONE,
-		blend_dstdst_alphargb_func = gl.ZERO,
+        blend_src_rgb_func = .Src_Alpha,
+		blend_dst_rgb_func = .One_Minus_Src_Alpha,
+		blend_src_alpha_func = .One,
+		blend_dstdst_alphargb_func = .Zero,
 
 		wireframe = false,
 
@@ -82,18 +80,17 @@ init :: proc(desc: Context_Descriptor) {
 
     gfx.pipeline_init(&CONTEXT_INSTANCE.color_pipeline, gfx.Pipeline_Descriptor {
         cull_enabled = false,
-        cull_front_face = gl.CCW,
-        cull_face = gl.BACK,
+        cull_front_face = .Counter_Clockwise,
+        cull_face = .Back,
 
         depth_enabled = true,
-        depth_func = gl.LEQUAL,
+        depth_func = .LEqual,
 
         blend_enabled = true,
-
-        blend_src_rgb_func = gl.SRC_ALPHA,
-		blend_dst_rgb_func = gl.ONE_MINUS_SRC_ALPHA,
-		blend_src_alpha_func = gl.ONE,
-		blend_dstdst_alphargb_func = gl.ZERO,
+        blend_src_rgb_func = .Src_Alpha,
+		blend_dst_rgb_func = .One_Minus_Src_Alpha,
+		blend_src_alpha_func = .One,
+		blend_dstdst_alphargb_func = .Zero,
 
 		wireframe = false,
 
@@ -110,19 +107,19 @@ init :: proc(desc: Context_Descriptor) {
     }, desc.target_framebuffer)
 
     utils.batcher_init(&CONTEXT_INSTANCE.color_batcher, utils.Batcher_Descriptor {
-        primitive = gl.TRIANGLES,
+        primitive = .Triangles,
     })
 
     utils.batcher_init(&CONTEXT_INSTANCE.textured_batcher, utils.Batcher_Descriptor {
-        primitive = gl.TRIANGLES,
+        primitive = .Triangles,
     })
 
     utils.textureatlas_init_from_file(&CONTEXT_INSTANCE.font_atlas, utils.Texture_Atlas_Descriptor {
-		internal_texture_format = gl.RGBA8,
-		warp_s = gl.REPEAT,
-		warp_t = gl.REPEAT,
-		min_filter = gl.NEAREST,
-		mag_filter = gl.NEAREST,
+		internal_texture_format = .R8G8B8A8,
+		warp_s = .Repeat,
+		warp_t = .Repeat,
+		min_filter = .Nearest,
+		mag_filter = .Nearest,
 		gen_mipmaps = true,
 	}, "res/vx_lib/textures/font_atlas.png", "res/vx_lib/textures/font_atlas.csv")
 

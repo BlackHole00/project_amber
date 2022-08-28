@@ -5,7 +5,6 @@ import "vx_lib:gfx"
 import "vx_lib:logic/objects"
 import "vx_lib:logic"
 import "vx_lib:utils"
-import gl "vendor:OpenGL"
 
 CHUNK_SIZE :: 16
 
@@ -25,9 +24,9 @@ Chunk :: struct {
 
 chunk_init :: proc(chunk: ^Chunk, desc: Chunk_Descriptor) {
     logic.meshcomponent_init(&chunk.mesh, logic.Mesh_Descriptor {
-        index_buffer_type = gl.UNSIGNED_INT,
-        gl_usage = gl.STATIC_DRAW,
-        gl_draw_mode = gl.TRIANGLES,
+        index_buffer_type = .U32,
+        usage = .Static_Draw,
+        draw_type = .Triangles,
     })
 
     chunk.chunk_pos = desc.chunk_pos

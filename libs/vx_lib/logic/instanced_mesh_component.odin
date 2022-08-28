@@ -1,12 +1,11 @@
 package vx_lib_logic
 
 import "../gfx"
-import gl "vendor:OpenGL"
 
 Instanced_Mesh_Descriptor :: struct {
-    index_buffer_type: u32,
-    gl_usage: u32,
-    gl_draw_mode: u32,
+    index_buffer_type: gfx.Index_Type,
+    usage: gfx.Buffer_Usage,
+    draw_type: gfx.Primitive,
 }
 
 Instanced_Mesh_Component :: struct {
@@ -20,20 +19,20 @@ instancedmeshcomponent_init_empty :: proc(mesh: ^Instanced_Mesh_Component, desc:
     meshcomponent_init_empty(mesh,
         Mesh_Descriptor {
             desc.index_buffer_type,
-            desc.gl_usage,
-            desc.gl_draw_mode,
+            desc.usage,
+            desc.draw_type,
         },
     )
 
     gfx.buffer_init(&mesh.instance_buffer, gfx.Buffer_Descriptor {
-        gl_type = gl.ARRAY_BUFFER,
-        gl_usage = gl.DYNAMIC_DRAW,
+        type = .Vertex_Buffer,
+        usage = .Dynamic_Draw,
     })
 }
 
 instancedmeshcomponent_init_with_data :: proc(mesh: ^Instanced_Mesh_Component, desc: Mesh_Descriptor, vertex_data: []$T, index_data: []$U, uniform_data: []$V, instance_count: int, index_count := -1) {
     meshcomponent_init_with_data(mesh, Mesh_Descriptor {
-        desc.index_buffer_type, desc.gl_usage, desc.gl_draw_mode,
+        desc.index_buffer_type, desc.gl_usage, desc.draw_type,
     }, vertex_data, index_data, index_count)
 
     instancedmeshcomponent_set_uniorm_data(mesh, uniform_data, instance_count)
@@ -71,7 +70,7 @@ instancedmeshcomponent_draw :: proc(mesh: Instanced_Mesh_Component, pipeline: ^g
     gfx.pipeline_draw_elements_instanced(
         pipeline,
         &bindings,
-        mesh.gl_draw_mode,
+        mesh.draw_type,
         mesh.index_buffer_type,
         mesh.index_count,
         nil,

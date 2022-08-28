@@ -5,15 +5,14 @@ import "core:os"
 import "core:encoding/csv"
 import "core:strconv"
 import "core:strings"
-import gl "vendor:OpenGL"
 
 Texture_Atlas_Descriptor :: struct {
     initial_size: [2]uint,
-    internal_texture_format: i32,
-    warp_s: i32,
-    warp_t: i32,
-    min_filter: i32,
-    mag_filter: i32,
+    internal_texture_format: gfx.Texture_Format,
+    warp_s: gfx.Texture_Warp,
+    warp_t: gfx.Texture_Warp,
+    min_filter: gfx.Texture_Filter,
+    mag_filter: gfx.Texture_Filter,
     gen_mipmaps: bool,
 }
 
@@ -32,7 +31,7 @@ textureatlas_init_empty :: proc(atlas: ^Texture_Atlas, desc: Texture_Atlas_Descr
     atlas.textures = make(map[string]Texture_Atlas_Elem)
 
     gfx.texture_init(&atlas.texture, gfx.Texture_Descriptor {
-        gl_type = gl.TEXTURE_2D,
+        type = .Texture_2D,
         internal_texture_format = desc.internal_texture_format,
         warp_s = desc.warp_s,
         warp_t = desc.warp_t,
@@ -44,7 +43,7 @@ textureatlas_init_empty :: proc(atlas: ^Texture_Atlas, desc: Texture_Atlas_Descr
 
 textureatlas_init_from_file :: proc(atlas: ^Texture_Atlas, desc: Texture_Atlas_Descriptor, image_name: string, config_file_name: string) {
     gfx.texture_init(&atlas.texture, gfx.Texture_Descriptor {
-        gl_type = gl.TEXTURE_2D,
+        type = .Texture_2D,
         internal_texture_format = desc.internal_texture_format,
         warp_s = desc.warp_s,
         warp_t = desc.warp_t,

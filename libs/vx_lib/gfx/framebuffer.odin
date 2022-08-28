@@ -6,11 +6,11 @@ Framebuffer_Descriptor :: struct {
     use_color_attachment: bool,
     use_depth_stencil_attachment: bool,
 
-    internal_texture_format: i32,
-    color_texture_warp_s: i32,
-    color_texture_warp_t: i32,
-    color_texture_min_filter: i32,
-    color_texture_mag_filter: i32,
+    internal_texture_format: Texture_Format,
+    color_texture_warp_s: Texture_Warp,
+    color_texture_warp_t: Texture_Warp,
+    color_texture_min_filter: Texture_Filter,
+    color_texture_mag_filter: Texture_Filter,
     color_texture_gen_mipmaps: bool,
 
     framebuffer_size: [2]uint,
@@ -34,12 +34,12 @@ framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor
 
     if desc.use_depth_stencil_attachment {
         texture_init(&framebuffer.depth_stencil_attachment, Texture_Descriptor {
-            gl_type = gl.TEXTURE_2D,
-            internal_texture_format = gl.DEPTH24_STENCIL8,
-            warp_s = gl.MIRRORED_REPEAT,
-            warp_t = gl.MIRRORED_REPEAT,
-            min_filter = gl.LINEAR,
-            mag_filter = gl.LINEAR,
+            type = .Texture_2D,
+            internal_texture_format = .D24S8,
+            warp_s = .Mirrored_Repeat,
+            warp_t = .Mirrored_Repeat,
+            min_filter = .Linear,
+            mag_filter = .Linear,
             gen_mipmaps = false,
         }, desc.framebuffer_size)
 
@@ -48,7 +48,7 @@ framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor
 
     if desc.use_color_attachment {
         texture_init(&framebuffer.color_attachment, Texture_Descriptor {
-            gl_type = gl.TEXTURE_2D,
+            type = .Texture_2D,
             internal_texture_format = desc.internal_texture_format,
             warp_s = desc.color_texture_warp_s,
             warp_t = desc.color_texture_warp_t,

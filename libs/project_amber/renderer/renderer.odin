@@ -7,7 +7,6 @@ import "vx_lib:logic"
 import "vx_lib:logic/objects"
 import "vx_lib:utils"
 import "vx_lib:platform"
-import gl "vendor:OpenGL"
 
 BLOCK_TEXTURE_ATLAS_UNIFORM :: "uBlockTextureAtlas"
 
@@ -29,11 +28,11 @@ renderer_init :: proc() {
 
     // TODO: make textureatlas dynamic and register textures at runtime.
     utils.textureatlas_init(&RENDERER_INSTANCE.block_texture_atlas, utils.Texture_Atlas_Descriptor {
-        internal_texture_format = gl.RGB8,
-        warp_s = gl.CLAMP_TO_BORDER,
-        warp_t = gl.CLAMP_TO_BORDER,
-        min_filter = gl.NEAREST,
-        mag_filter = gl.NEAREST,
+        internal_texture_format = .R8G8B8,
+        warp_s = .Clamp_To_Border,
+        warp_t = .Clamp_To_Border,
+        min_filter = .Nearest,
+        mag_filter = .Nearest,
         gen_mipmaps = true,
     }, "res/project_amber/textures/block_atlas.png", "res/project_amber/textures/block_atlas.csv")
 
@@ -47,11 +46,11 @@ renderer_init :: proc() {
 
     gfx.pipeline_init(&RENDERER_INSTANCE.full_block_solid_pipeline, gfx.Pipeline_Descriptor {
         cull_enabled = true,
-        cull_face = gl.BACK,
-        cull_front_face = gl.CCW,
+        cull_face = .Back,
+        cull_front_face = .Counter_Clockwise,
 
         depth_enabled = true,
-        depth_func = gl.LEQUAL,
+        depth_func = .LEqual,
 
         blend_enabled = false,
 
