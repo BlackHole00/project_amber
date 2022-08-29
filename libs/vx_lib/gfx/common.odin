@@ -1,5 +1,7 @@
 package vx_lib_gfx
 
+Gfx_Handle :: u64
+
 INVALID_HANDLE :: 0
 
 MODEL_UNIFORM_NAME :: "uModel"

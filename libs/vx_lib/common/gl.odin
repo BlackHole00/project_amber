@@ -2,6 +2,7 @@ package vx_lib_common
 
 import "../platform"
 import glsm "../gfx/glstatemanager"
+import "../gfx"
 import "vendor:glfw"
 import gl "vendor:OpenGL"
 
@@ -16,6 +17,7 @@ init_opengl :: proc(handle: glfw.WindowHandle, desc: platform.Window_Descriptor)
 
     if desc.vsync do glfw.SwapInterval(1)
 
+    gfx.gfxprocs_init_with_opengl()
     glsm.init()
 
     return true, ""
@@ -37,6 +39,7 @@ post_frame_proc :: proc(handle: glfw.WindowHandle) {
 
 @(private="file")
 close_opengl :: proc() {
+    gfx.gfxprocs_free()
     glsm.free()
 }
 

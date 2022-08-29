@@ -362,7 +362,7 @@ pipeline_layout_find_buffer_count :: proc(elements: []Layout_Element) -> (count:
 
 @(private)
 pipeline_layout_apply_without_index_buffer :: proc(pipeline: Pipeline, vertex_buffers: []Buffer) {
-    for buffer, i in vertex_buffers do gl.VertexArrayVertexBuffer(pipeline.layout_handle, (u32)(i), buffer.buffer_handle, 0, pipeline.layout_strides[i])
+    for buffer, i in vertex_buffers do gl.VertexArrayVertexBuffer((u32)(pipeline.layout_handle), (u32)(i), (u32)(buffer.buffer_handle), 0, pipeline.layout_strides[i])
 
     for buffer, i in pipeline.layout_buffers {
         gl.VertexArrayAttribBinding(pipeline.layout_handle, (u32)(i), buffer)
@@ -372,7 +372,7 @@ pipeline_layout_apply_without_index_buffer :: proc(pipeline: Pipeline, vertex_bu
 @(private)
 pipeline_layout_apply_with_index_buffer :: proc(pipeline: Pipeline, vertex_buffers: []Buffer, index_buffer: Buffer) {
     pipeline_layout_apply_without_index_buffer(pipeline, vertex_buffers)
-    gl.VertexArrayElementBuffer(pipeline.layout_handle, index_buffer.buffer_handle)
+    gl.VertexArrayElementBuffer(pipeline.layout_handle, (u32)(index_buffer.buffer_handle))
 }
 
 @(private)
