@@ -4,7 +4,7 @@ import "core:mem"
 
 Texture_Binding :: struct {
     texture: Texture,
-    uniform_name: string,
+    uniform_location: uint,
 }
 
 Bindings :: struct {

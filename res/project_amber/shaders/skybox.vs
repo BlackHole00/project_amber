@@ -4,8 +4,8 @@ layout (location = 0) in vec3 aPos;
 
 out vec3 vUv;
 
-uniform mat4 uProj;
-uniform mat4 uView;
+layout (location = 0) uniform mat4 uView;
+layout (location = 1) uniform mat4 uProj;
 
 void main() {
     vec3 CameraPos = -uView[3].xyz * mat3(uView);

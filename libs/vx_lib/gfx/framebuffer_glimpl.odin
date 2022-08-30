@@ -49,22 +49,22 @@ _glimpl_framebuffer_free :: proc(framebuffer: ^Framebuffer) {
 }
 
 @(private)
-_glimpl_framebuffer_get_color_texture_bindings :: proc(framebuffer: Framebuffer, color_texture_uniform: string) -> Texture_Binding {
+_glimpl_framebuffer_get_color_texture_bindings :: proc(framebuffer: Framebuffer, color_texture_location: uint) -> Texture_Binding {
     if !framebuffer.use_color_attachment do panic("This framebuffer do not support color_attachment")
 
     return Texture_Binding {
         texture = framebuffer.color_attachment,
-        uniform_name = color_texture_uniform,
+        uniform_location = color_texture_location,
     }
 }
 
 @(private)
-_glimpl_framebuffer_get_depth_stencil_texture_bindings:: proc(framebuffer: Framebuffer, depth_stencil_texture_uniform: string) -> Texture_Binding {
+_glimpl_framebuffer_get_depth_stencil_texture_bindings:: proc(framebuffer: Framebuffer, depth_stencil_texture_location: uint) -> Texture_Binding {
     if !framebuffer.use_depth_stencil_attachment do panic("This framebuffer do not support depth_stencil_attachment")
 
     return Texture_Binding {
         texture = framebuffer.depth_stencil_attachment,
-        uniform_name = depth_stencil_texture_uniform,
+        uniform_location = depth_stencil_texture_location,
     }
 }
 

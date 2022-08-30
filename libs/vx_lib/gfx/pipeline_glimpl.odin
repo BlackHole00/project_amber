@@ -2,8 +2,6 @@ package vx_lib_gfx
 
 import glsm "../gfx/glstatemanager"
 import gl "vendor:OpenGL"
-import "core:log"
-import "core:strings"
 import "core:math/linalg/glsl"
 
 @(private)
@@ -118,57 +116,33 @@ _glimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: 
 }
 
 @(private)
-_glimpl_pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_name: string, value: f32) {
-    if loc, ok := _glimpl_pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniform1f(pipeline.shader_handle, loc, value)
-    }
+_glimpl_pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: f32) {
+    gl.ProgramUniform1f(pipeline.shader_handle, (i32)(uniform_location), value)
 }
 
 @(private)
-_glimpl_pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec2) {
-    if loc, ok := _glimpl_pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniform2f(pipeline.shader_handle, loc, value.x, value.y)
-    }
+_glimpl_pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec2) {
+    gl.ProgramUniform2f(pipeline.shader_handle, (i32)(uniform_location), value.x, value.y)
 }
 
 @(private)
-_glimpl_pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec3) {
-    if loc, ok := _glimpl_pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniform3f(pipeline.shader_handle, loc, value.x, value.y, value.z)
-    }
+_glimpl_pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec3) {
+    gl.ProgramUniform3f(pipeline.shader_handle, (i32)(uniform_location), value.x, value.y, value.z)
 }
 
 @(private)
-_glimpl_pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec4) {
-    if loc, ok := _glimpl_pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniform4f(pipeline.shader_handle, loc, value.x, value.y, value.z, value.w)
-    }
+_glimpl_pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec4) {
+    gl.ProgramUniform4f(pipeline.shader_handle, (i32)(uniform_location), value.x, value.y, value.z, value.w)
 }
 
 @(private)
-_glimpl_pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: ^glsl.mat4) {
-    if loc, ok := _glimpl_pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniformMatrix4fv(pipeline.shader_handle, loc, 1, false, &value[0, 0])
-    }
+_glimpl_pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: ^glsl.mat4) {
+    gl.ProgramUniformMatrix4fv(pipeline.shader_handle, (i32)(uniform_location), 1, false, &value[0, 0])
 }
 
 @(private)
-_glimpl_pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_name: string, value: i32) {
-    if loc, ok := _glimpl_pipeline_find_uniform_location(pipeline, uniform_name); !ok {
-        log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
-    } else {
-        gl.ProgramUniform1i(pipeline.shader_handle, loc, value)
-    }
+_glimpl_pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_location: uint, value: i32) {
+    gl.ProgramUniform1i(pipeline.shader_handle, (i32)(uniform_location), value)
 }
 
 @(private)
@@ -276,16 +250,6 @@ _glimpl_pipeline_layout_bind :: proc(pipeline: Pipeline) {
 @(private)
 _glimpl_pipeline_shader_bind :: proc(pipeline: Pipeline) {
     glsm.UseProgram(pipeline.shader_handle)
-}
-
-@(private)
-_glimpl_pipeline_find_uniform_location :: proc(pipeline: ^Pipeline, uniform_name: string) -> (i32, bool) {
-    if uniform_name in pipeline.uniform_locations do return pipeline.uniform_locations[uniform_name], true
-
-    loc := gl.GetUniformLocation(pipeline.shader_handle, strings.clone_to_cstring(uniform_name, context.temp_allocator))
-    pipeline.uniform_locations[uniform_name] = loc
-
-    return loc, loc != -1
 }
 
 @(private)

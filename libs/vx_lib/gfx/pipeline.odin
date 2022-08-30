@@ -110,7 +110,7 @@ Pipeline_Layout :: []Layout_Element
 
 Pipeline :: struct {
     shader_handle: u32,
-    uniform_locations: map[string]i32,
+    //uniform_locations: map[string]i32,
 
     layout_handle: u32,
     layout_strides: []i32,
@@ -156,27 +156,26 @@ pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Binding
     GFX_PROCS.pipeline_draw_elements_instanced(pipeline, bindings, primitive, type, count, instance_count)
 }
 
-pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_name: string, value: f32) {
-    GFX_PROCS.pipeline_uniform_1f(pipeline, uniform_name, value)
+pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: f32) {
+    GFX_PROCS.pipeline_uniform_1f(pipeline, uniform_location, value)
 }
 
-pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec2) {
-    GFX_PROCS.pipeline_uniform_2f(pipeline, uniform_name, value)
+pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec2) {
+    GFX_PROCS.pipeline_uniform_2f(pipeline, uniform_location, value)
 }
 
-pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec3) {
-    GFX_PROCS.pipeline_uniform_3f(pipeline, uniform_name, value)
+pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec3) {
+    GFX_PROCS.pipeline_uniform_3f(pipeline, uniform_location, value)
 }
 
-pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec4) {
-    GFX_PROCS.pipeline_uniform_4f(pipeline, uniform_name, value)
+pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec4) {
+    GFX_PROCS.pipeline_uniform_4f(pipeline, uniform_location, value)
 }
 
-pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: ^glsl.mat4) {
-    GFX_PROCS.pipeline_uniform_mat4f(pipeline, uniform_name, value)
+pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: ^glsl.mat4) {
+    GFX_PROCS.pipeline_uniform_mat4f(pipeline, uniform_location, value)
 }
 
-pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_name: string, value: i32) {
-    GFX_PROCS.pipeline_uniform_1i(pipeline, uniform_name, value)
+pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_location: uint, value: i32) {
+    GFX_PROCS.pipeline_uniform_1i(pipeline, uniform_location, value)
 }
-

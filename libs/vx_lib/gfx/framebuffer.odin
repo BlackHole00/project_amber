@@ -35,12 +35,12 @@ framebuffer_free :: proc(framebuffer: ^Framebuffer) {
     GFX_PROCS.framebuffer_free(framebuffer)
 }
 
-framebuffer_get_color_texture_bindings :: proc(framebuffer: Framebuffer, color_texture_uniform: string) -> Texture_Binding {
-    return GFX_PROCS.framebuffer_get_color_texture_bindings(framebuffer, color_texture_uniform)
+framebuffer_get_color_texture_bindings :: proc(framebuffer: Framebuffer, color_texture_uniform_location: uint) -> Texture_Binding {
+    return GFX_PROCS.framebuffer_get_color_texture_bindings(framebuffer, color_texture_uniform_location)
 }
 
-framebuffer_get_depth_stencil_texture_bindings:: proc(framebuffer: Framebuffer, depth_stencil_texture_uniform: string) -> Texture_Binding {
-    return GFX_PROCS.framebuffer_get_depth_stencil_texture_bindings(framebuffer, depth_stencil_texture_uniform)
+framebuffer_get_depth_stencil_texture_bindings:: proc(framebuffer: Framebuffer, depth_stencil_texture_uniform_location: uint) -> Texture_Binding {
+    return GFX_PROCS.framebuffer_get_depth_stencil_texture_bindings(framebuffer, depth_stencil_texture_uniform_location)
 }
 
 /**************************************************************************************************

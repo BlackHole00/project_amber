@@ -1,6 +1,6 @@
-#version 330 core
+#version 450 core
 
-uniform sampler2D uBlockTextureAtlas;
+layout(location = 3) uniform sampler2D uBlockTextureAtlas;
 
 in vec2 vUv;
 

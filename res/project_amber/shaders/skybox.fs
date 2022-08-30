@@ -1,9 +1,9 @@
-#version 330 core
+#version 450 core
 out vec4 FragColor;
 
 in vec3 vUv;
 
-uniform samplerCube uSkybox;
+layout (location = 2) uniform samplerCube uSkybox;
 
 void main() {
     FragColor = texture(uSkybox, vUv);

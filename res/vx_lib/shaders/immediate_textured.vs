@@ -10,8 +10,8 @@ const mat4 MAT4_IDENTITY = mat4 (
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aUv;
 
-uniform mat4 uView = MAT4_IDENTITY;
-uniform mat4 uProj = MAT4_IDENTITY;
+layout (location = 0) uniform mat4 uView = MAT4_IDENTITY;
+layout (location = 1) uniform mat4 uProj = MAT4_IDENTITY;
 
 out vec2 vUv;
 

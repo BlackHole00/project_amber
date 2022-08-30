@@ -235,8 +235,8 @@ _glimpl_texture_full_bind :: proc(texture: Texture, texture_unit: u32) {
 }
 
 @(private)
-_glimpl_texture_apply:: proc(texture: Texture, texture_unit: u32, shader: ^Pipeline, uniform_name: string) {
-    pipeline_uniform_1i(shader, uniform_name, (i32)(texture_unit))
+_glimpl_texture_apply:: proc(texture: Texture, texture_unit: u32, shader: ^Pipeline, uniform_location: uint) {
+    pipeline_uniform_1i(shader, uniform_location, (i32)(texture_unit))
 }
 
 @(private)

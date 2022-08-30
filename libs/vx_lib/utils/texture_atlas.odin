@@ -82,10 +82,10 @@ textureatlas_init_from_file :: proc(atlas: ^Texture_Atlas, desc: Texture_Atlas_D
 
 textureatlas_init :: proc { textureatlas_init_empty, textureatlas_init_from_file }
 
-textureatlas_get_texture_bindings :: proc(atlas: Texture_Atlas, uniform_name: string) -> gfx.Texture_Binding {
+textureatlas_get_texture_bindings :: proc(atlas: Texture_Atlas, uniform_location: uint) -> gfx.Texture_Binding {
     return gfx.Texture_Binding {
         texture = atlas.texture,
-        uniform_name = uniform_name,
+        uniform_location = uniform_location,
     }
 }
 

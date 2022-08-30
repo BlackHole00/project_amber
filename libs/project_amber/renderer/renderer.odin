@@ -8,7 +8,7 @@ import "vx_lib:logic/objects"
 import "vx_lib:utils"
 import "vx_lib:platform"
 
-BLOCK_TEXTURE_ATLAS_UNIFORM :: "uBlockTextureAtlas"
+BLOCK_TEXTURE_ATLAS_LOCATION :: 3
 
 Renderer :: struct {
     block_texture_atlas: utils.Texture_Atlas,
@@ -112,7 +112,7 @@ renderer_free :: proc() {
 
 renderer_update_camera :: proc(camera: logic.Camera_Component, position: logic.Position_Component, rotation: logic.Rotation_Component) {
     logic.camera_apply(camera, position, rotation, &RENDERER_INSTANCE.full_block_solid_pipeline)
-    logic.camera_apply(camera, position, rotation, &RENDERER_INSTANCE.skybox_pipeline)
+    logic.camera_apply(camera, position, rotation, &RENDERER_INSTANCE.skybox_pipeline, gfx.SKYBOX_VIEW_UNIFORM_LOCATION, gfx.SKYBOX_PROJ_UNIFORM_LOCATION)
 }
 
 renderer_resize :: proc(size: [2]uint) {

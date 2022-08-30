@@ -1,6 +1,6 @@
-#version 330 core
+#version 450 core
 
-uniform sampler2D uTexture;
+layout(location = 2) uniform sampler2D uTexture;
 
 in vec2 vUv;
 

@@ -30,8 +30,8 @@ Gfx_Procs :: struct {
 
     framebuffer_init: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor),
     framebuffer_free: proc(framebuffer: ^Framebuffer),
-    framebuffer_get_color_texture_bindings: proc(framebuffer: Framebuffer, color_texture_uniform: string) -> Texture_Binding,
-    framebuffer_get_depth_stencil_texture_bindings: proc(framebuffer: Framebuffer, depth_stencil_texture_uniform: string) -> Texture_Binding,
+    framebuffer_get_color_texture_bindings: proc(framebuffer: Framebuffer, color_texture_location: uint) -> Texture_Binding,
+    framebuffer_get_depth_stencil_texture_bindings: proc(framebuffer: Framebuffer, depth_stencil_texture_location: uint) -> Texture_Binding,
 
     pipeline_init: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer)),
     pipeline_free: proc(pipeline: ^Pipeline),
@@ -42,12 +42,12 @@ Gfx_Procs :: struct {
     pipeline_draw_elements: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int),
     pipeline_draw_arrays_instanced: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int),
     pipeline_draw_elements_instanced: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int),
-    pipeline_uniform_1f: proc(pipeline: ^Pipeline, uniform_name: string, value: f32),
-    pipeline_uniform_2f: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec2),
-    pipeline_uniform_3f: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec3),
-    pipeline_uniform_4f: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec4),
-    pipeline_uniform_mat4f: proc(pipeline: ^Pipeline, uniform_name: string, value: ^glsl.mat4),
-    pipeline_uniform_1i: proc(pipeline: ^Pipeline, uniform_name: string, value: i32),
+    pipeline_uniform_1f: proc(pipeline: ^Pipeline, uniform_location: uint, value: f32),
+    pipeline_uniform_2f: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec2),
+    pipeline_uniform_3f: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec3),
+    pipeline_uniform_4f: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec4),
+    pipeline_uniform_mat4f: proc(pipeline: ^Pipeline, uniform_location: uint, value: ^glsl.mat4),
+    pipeline_uniform_1i: proc(pipeline: ^Pipeline, uniform_location: uint, value: i32),
 }
 GFX_PROCS: core.Cell(Gfx_Procs)
 

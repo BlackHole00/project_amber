@@ -29,24 +29,24 @@ skybox_free :: proc(mesh: ^Mesh_Component, texture: ^Skybox_Texture_Component) {
 	gfx.texture_free(texture)
 }
 
-skybox_get_bindings :: proc(mesh: Mesh_Component, texture: Skybox_Texture_Component, bindings: ^gfx.Bindings, skyblock_uniform := gfx.SKYBOX_UNIFORM_NAME) {
+skybox_get_bindings :: proc(mesh: Mesh_Component, texture: Skybox_Texture_Component, bindings: ^gfx.Bindings, skyblock_uniform: uint = gfx.SKYBOX_CUBEMAP_UNIFORM_LOCATION) {
 	meshcomponent_get_bindings(
 		bindings, 
 		mesh, 
 		[]gfx.Texture_Binding {
 			{
 				texture = texture,
-				uniform_name = skyblock_uniform,
+				uniform_location = skyblock_uniform,
 			},
 		},
 	)
 }
 
-skybox_draw :: proc(pipeline: ^gfx.Pipeline, mesh: Mesh_Component, texture: Skybox_Texture_Component, skyblock_uniform := gfx.SKYBOX_UNIFORM_NAME) {
+skybox_draw :: proc(pipeline: ^gfx.Pipeline, mesh: Mesh_Component, texture: Skybox_Texture_Component, skyblock_uniform: uint = gfx.SKYBOX_CUBEMAP_UNIFORM_LOCATION) {
 	meshcomponent_draw(mesh, pipeline, []gfx.Texture_Binding {
 		{
 			texture = texture,
-			uniform_name = skyblock_uniform,
+			uniform_location = skyblock_uniform,
 		},
 	})
 }
