@@ -3,3 +3,4 @@ toold/build/*.exe
 log.txt
 .vscode/launch.json
 .vscode/tasks.json
+**/.DS_Store
