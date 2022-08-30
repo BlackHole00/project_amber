@@ -32,11 +32,5 @@ bindings_init :: proc(bindings: ^Bindings, vertex_buffers: []Buffer, index_buffe
 
 @(private)
 bindings_apply :: proc(pipeline: ^Pipeline, bindings: ^Bindings) {
-    if bindings.index_buffer == nil do pipeline_layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count])
-    else do pipeline_layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count], bindings.index_buffer.(Buffer))
-
-    for i in 0..<bindings.texture_count {
-        _glimpl_texture_apply(bindings.textures[i].texture, (u32)(i), pipeline, bindings.textures[i].uniform_name)
-        _glimpl_texture_full_bind(bindings.textures[i].texture, (u32)(i))
-    }
+    GFX_PROCS.bindings_apply(pipeline, bindings)
 }

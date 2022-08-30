@@ -7,12 +7,12 @@ import gl "vendor:OpenGL"
 _glimpl_texture_init_raw :: proc(texture: ^Texture, desc: Texture_Descriptor) {
     texture.texture_desc = desc
 
-    gl.CreateTextures(_glimpl_texturetype_to_glenum(texture.type), 1, &texture.texture_handle)
+    gl.CreateTextures(_glimpl_texturetype_to_glenum(texture.type), 1, ([^]u32)(&texture.texture_handle))
 
-    gl.TextureParameteri(texture.texture_handle, gl.TEXTURE_WRAP_S,     _glimpl_texturewarp_to_glenum(desc.warp_s))
-    gl.TextureParameteri(texture.texture_handle, gl.TEXTURE_WRAP_T,     _glimpl_texturewarp_to_glenum(desc.warp_t))
-    gl.TextureParameteri(texture.texture_handle, gl.TEXTURE_MIN_FILTER, _glimpl_texturefilter_to_glenum(desc.min_filter))
-    gl.TextureParameteri(texture.texture_handle, gl.TEXTURE_MAG_FILTER, _glimpl_texturefilter_to_glenum(desc.mag_filter))
+    gl.TextureParameteri((u32)(texture.texture_handle), gl.TEXTURE_WRAP_S,     _glimpl_texturewarp_to_glenum(desc.warp_s))
+    gl.TextureParameteri((u32)(texture.texture_handle), gl.TEXTURE_WRAP_T,     _glimpl_texturewarp_to_glenum(desc.warp_t))
+    gl.TextureParameteri((u32)(texture.texture_handle), gl.TEXTURE_MIN_FILTER, _glimpl_texturefilter_to_glenum(desc.min_filter))
+    gl.TextureParameteri((u32)(texture.texture_handle), gl.TEXTURE_MAG_FILTER, _glimpl_texturefilter_to_glenum(desc.mag_filter))
 }
 
 @(private)
@@ -35,17 +35,17 @@ _glimpl_texture_init_with_size_3d :: proc(texture: ^Texture, desc: Texture_Descr
 
 @(private)
 _glimpl_texture_set_data_1d :: proc(texture: Texture, data: []$T, texture_format: Texture_Format, offset: int) {
-    gl.TextureSubImage1D(texture.texture_handle, 0, (i32)(offset), (i32)(len(data)), (u32)(_glimpl_textureformat_to_glformat(texture_format)), gl.UNSIGNED_BYTE, &data[0])
+    gl.TextureSubImage1D((u32)(texture.texture_handle), 0, (i32)(offset), (i32)(len(data)), (u32)(_glimpl_textureformat_to_glformat(texture_format)), gl.UNSIGNED_BYTE, &data[0])
 }
 
 @(private)
 _glimpl_texture_set_data_2d :: proc(texture: Texture, data: []$T, texture_format: Texture_Format, dimension: [2]uint, offset: [2]uint) {
-    gl.TextureSubImage2D(texture.texture_handle, 0, (i32)(offset.x), (i32)(offset.y), (i32)(dimension.x), (i32)(dimension.y), (u32)(_glimpl_textureformat_to_glformat(texture_format)), gl.UNSIGNED_BYTE, &data[0])
+    gl.TextureSubImage2D((u32)(texture.texture_handle), 0, (i32)(offset.x), (i32)(offset.y), (i32)(dimension.x), (i32)(dimension.y), (u32)(_glimpl_textureformat_to_glformat(texture_format)), gl.UNSIGNED_BYTE, &data[0])
 }
 
 @(private)
 _glimpl_texture_set_data_3d :: proc(texture: Texture, data: []$T, texture_format: Texture_Format, dimension: [3]uint, offset: [3]uint) {
-    gl.TextureSubImage3D(texture.texture_handle, 0, (i32)(offset.x), (i32)(offset.y), (i32)(offset.z), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), (u32)(_glimpl_textureformat_to_glformat(texture_format)), gl.UNSIGNED_BYTE, &data[0])
+    gl.TextureSubImage3D((u32)(texture.texture_handle), 0, (i32)(offset.x), (i32)(offset.y), (i32)(offset.z), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), (u32)(_glimpl_textureformat_to_glformat(texture_format)), gl.UNSIGNED_BYTE, &data[0])
 }
 
 @(private)
@@ -82,7 +82,7 @@ _glimpl_texture_set_data_cubemap_face :: proc(texture: Texture, data: []$T, text
 
 @(private)
 _glimpl_texture_gen_mipmaps :: proc(texture: Texture) {
-    if texture.gen_mipmaps do gl.GenerateTextureMipmap(texture.texture_handle)
+    if texture.gen_mipmaps do gl.GenerateTextureMipmap((u32)(texture.texture_handle))
 }
 
 @(private)
@@ -125,7 +125,7 @@ _glimpl_texture_resize_3d :: proc(texture: ^Texture, new_size: [3]uint) {
 _glimpl_texture_copy_1d :: proc(src: Texture, dest: Texture, src_offset: [3]i32, dest_offset: [3]i32) {
     size := min(src.texture_size.x, dest.texture_size.y)
 
-    gl.CopyImageSubData(src.texture_handle, _glimpl_texturetype_to_glenum(src.type), 0, src_offset.x, src_offset.y, src_offset.z, dest.texture_handle, _glimpl_texturetype_to_glenum(dest.type), 0, dest_offset.x, dest_offset.y, dest_offset.z, (i32)(size), 1, 1)
+    gl.CopyImageSubData((u32)(src.texture_handle), _glimpl_texturetype_to_glenum(src.type), 0, src_offset.x, src_offset.y, src_offset.z, (u32)(dest.texture_handle), _glimpl_texturetype_to_glenum(dest.type), 0, dest_offset.x, dest_offset.y, dest_offset.z, (i32)(size), 1, 1)
 }
 
 @(private)
@@ -134,7 +134,7 @@ _glimpl_texture_copy_2d :: proc(src: Texture, dest: Texture, src_offset: [3]i32,
     size.x = min(src.texture_size.x, dest.texture_size.y)
     size.y = min(src.texture_size.y, dest.texture_size.y)
 
-    gl.CopyImageSubData(src.texture_handle, _glimpl_texturetype_to_glenum(src.type), 0, src_offset.x, src_offset.y, src_offset.z, dest.texture_handle, _glimpl_texturetype_to_glenum(dest.type), 0, dest_offset.x, dest_offset.y, dest_offset.z, (i32)(size.x), (i32)(size.y), 1)
+    gl.CopyImageSubData((u32)(src.texture_handle), _glimpl_texturetype_to_glenum(src.type), 0, src_offset.x, src_offset.y, src_offset.z, (u32)(dest.texture_handle), _glimpl_texturetype_to_glenum(dest.type), 0, dest_offset.x, dest_offset.y, dest_offset.z, (i32)(size.x), (i32)(size.y), 1)
 }
 
 @(private)
@@ -144,12 +144,12 @@ _glimpl_texture_copy_3d :: proc(src: Texture, dest: Texture, src_offset: [3]i32,
     size.y = min(src.texture_size.y, dest.texture_size.y)
     size.z = min(src.texture_size.z, dest.texture_size.z)
 
-    gl.CopyImageSubData(src.texture_handle, _glimpl_texturetype_to_glenum(src.type), 0, src_offset.x, src_offset.y, src_offset.z, dest.texture_handle, _glimpl_texturetype_to_glenum(dest.type), 0, dest_offset.x, dest_offset.y, dest_offset.z, (i32)(size.x), (i32)(size.y), (i32)(size.z))
+    gl.CopyImageSubData((u32)(src.texture_handle), _glimpl_texturetype_to_glenum(src.type), 0, src_offset.x, src_offset.y, src_offset.z, (u32)(dest.texture_handle), _glimpl_texturetype_to_glenum(dest.type), 0, dest_offset.x, dest_offset.y, dest_offset.z, (i32)(size.x), (i32)(size.y), (i32)(size.z))
 }
 
 @(private)
 _glimpl_texture_free :: proc(texture: ^Texture) {
-    gl.DeleteTextures(1, &texture.texture_handle)
+    gl.DeleteTextures(1, ([^]u32)(&texture.texture_handle))
 
     texture.texture_handle = INVALID_HANDLE
 }
@@ -221,7 +221,7 @@ _glimpl_texturefilter_to_glenum :: proc(filter: Texture_Filter) -> i32 {
 
 @(private)
 _glimpl_texture_non_dsa_bind :: proc(texture: Texture) {
-    gl.BindTexture(_glimpl_texturetype_to_glenum(texture.type), texture.texture_handle)
+    gl.BindTexture(_glimpl_texturetype_to_glenum(texture.type), (u32)(texture.texture_handle))
 }
 
 @(private)
@@ -231,7 +231,7 @@ _glimpl_texture_non_dsa_unbind :: proc(target: u32) {
 
 @(private)
 _glimpl_texture_full_bind :: proc(texture: Texture, texture_unit: u32) {
-    gl.BindTextureUnit(texture_unit, texture.texture_handle)
+    gl.BindTextureUnit(texture_unit, (u32)(texture.texture_handle))
 }
 
 @(private)
@@ -241,7 +241,7 @@ _glimpl_texture_apply:: proc(texture: Texture, texture_unit: u32, shader: ^Pipel
 
 @(private)
 _glimpl_texture_set_size_1d :: proc(texture: ^Texture, size: uint) {
-    gl.TextureStorage1D(texture.texture_handle, 1, (u32)(_glimpl_textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(size))
+    gl.TextureStorage1D((u32)(texture.texture_handle), 1, (u32)(_glimpl_textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(size))
     texture_gen_mipmaps(texture^)
 
     texture.texture_size = { size, 0, 0 }
@@ -249,7 +249,7 @@ _glimpl_texture_set_size_1d :: proc(texture: ^Texture, size: uint) {
 
 @(private)
 _glimpl_texture_set_size_2d :: proc(texture: ^Texture, dimension: [2]uint) {
-    gl.TextureStorage2D(texture.texture_handle, 1, (u32)(_glimpl_textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(dimension.x), (i32)(dimension.y))
+    gl.TextureStorage2D((u32)(texture.texture_handle), 1, (u32)(_glimpl_textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(dimension.x), (i32)(dimension.y))
     texture_gen_mipmaps(texture^)
 
     texture.texture_size = { dimension.x, dimension.y, 0 }
@@ -257,7 +257,7 @@ _glimpl_texture_set_size_2d :: proc(texture: ^Texture, dimension: [2]uint) {
 
 @(private)
 _glimpl_texture_set_size_3d :: proc(texture: ^Texture, dimension: [3]uint) {
-    gl.TextureStorage3D(texture.texture_handle, 1, (u32)(_glimpl_textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z))
+    gl.TextureStorage3D((u32)(texture.texture_handle), 1, (u32)(_glimpl_textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z))
     texture_gen_mipmaps(texture^)
 
     texture.texture_size = dimension

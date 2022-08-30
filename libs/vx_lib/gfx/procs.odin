@@ -1,6 +1,7 @@
 package vx_lib_gfx
 
 import "../core"
+import "core:math/linalg/glsl"
 
 Gfx_Procs :: struct {
     buffer_init_empty: proc(buffer: ^Buffer, desc: Buffer_Descriptor),
@@ -25,6 +26,28 @@ Gfx_Procs :: struct {
     texture_copy_2d: proc(src: Texture, dest: Texture, src_offset: [3]i32, dest_offset: [3]i32),
     texture_copy_3d: proc(src: Texture, dest: Texture, src_offset: [3]i32, dest_offset: [3]i32),
 
+    bindings_apply: proc(pipeline: ^Pipeline, bindings: ^Bindings),
+
+    framebuffer_init: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor),
+    framebuffer_free: proc(framebuffer: ^Framebuffer),
+    framebuffer_get_color_texture_bindings: proc(framebuffer: Framebuffer, color_texture_uniform: string) -> Texture_Binding,
+    framebuffer_get_depth_stencil_texture_bindings: proc(framebuffer: Framebuffer, depth_stencil_texture_uniform: string) -> Texture_Binding,
+
+    pipeline_init: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer)),
+    pipeline_free: proc(pipeline: ^Pipeline),
+    pipeline_resize: proc(pipeline: ^Pipeline, new_size: [2]uint),
+    pipeline_clear: proc(pipeline: Pipeline),
+    pipeline_set_wireframe: proc(pipeline: ^Pipeline, wireframe: bool),
+    pipeline_draw_arrays: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int),
+    pipeline_draw_elements: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int),
+    pipeline_draw_arrays_instanced: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int),
+    pipeline_draw_elements_instanced: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int),
+    pipeline_uniform_1f: proc(pipeline: ^Pipeline, uniform_name: string, value: f32),
+    pipeline_uniform_2f: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec2),
+    pipeline_uniform_3f: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec3),
+    pipeline_uniform_4f: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec4),
+    pipeline_uniform_mat4f: proc(pipeline: ^Pipeline, uniform_name: string, value: ^glsl.mat4),
+    pipeline_uniform_1i: proc(pipeline: ^Pipeline, uniform_name: string, value: i32),
 }
 GFX_PROCS: core.Cell(Gfx_Procs)
 
@@ -52,6 +75,29 @@ gfxprocs_init_with_opengl :: proc() {
     GFX_PROCS.texture_copy_1d = _glimpl_texture_copy_1d
     GFX_PROCS.texture_copy_2d = _glimpl_texture_copy_2d
     GFX_PROCS.texture_copy_3d = _glimpl_texture_copy_3d
+
+    GFX_PROCS.bindings_apply = _glimpl_bindings_apply
+
+    GFX_PROCS.framebuffer_init = _glimpl_framebuffer_init
+    GFX_PROCS.framebuffer_free = _glimpl_framebuffer_free
+    GFX_PROCS.framebuffer_get_color_texture_bindings = _glimpl_framebuffer_get_color_texture_bindings
+    GFX_PROCS.framebuffer_get_depth_stencil_texture_bindings = _glimpl_framebuffer_get_depth_stencil_texture_bindings
+
+    GFX_PROCS.pipeline_init = _glimpl_pipeline_init
+    GFX_PROCS.pipeline_free = _glimpl_pipeline_free
+    GFX_PROCS.pipeline_resize = _glimpl_pipeline_resize
+    GFX_PROCS.pipeline_clear = _glimpl_pipeline_clear
+    GFX_PROCS.pipeline_set_wireframe = _glimpl_pipeline_set_wireframe
+    GFX_PROCS.pipeline_draw_arrays = _glimpl_pipeline_draw_arrays
+    GFX_PROCS.pipeline_draw_elements = _glimpl_pipeline_draw_elements
+    GFX_PROCS.pipeline_draw_arrays_instanced = _glimpl_pipeline_draw_arrays_instanced
+    GFX_PROCS.pipeline_draw_elements_instanced = _glimpl_pipeline_draw_elements_instanced
+    GFX_PROCS.pipeline_uniform_1f = _glimpl_pipeline_uniform_1f
+    GFX_PROCS.pipeline_uniform_2f = _glimpl_pipeline_uniform_2f
+    GFX_PROCS.pipeline_uniform_3f = _glimpl_pipeline_uniform_3f
+    GFX_PROCS.pipeline_uniform_4f = _glimpl_pipeline_uniform_4f
+    GFX_PROCS.pipeline_uniform_mat4f = _glimpl_pipeline_uniform_mat4f
+    GFX_PROCS.pipeline_uniform_1i = _glimpl_pipeline_uniform_1i
 }
 
 gfxprocs_free :: proc() {

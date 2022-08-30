@@ -88,6 +88,5 @@ meshcomponent_draw :: proc(mesh: Mesh_Component, pipeline: ^gfx.Pipeline, textur
         mesh.draw_type,
         mesh.index_buffer_type,
         mesh.index_count,
-        nil,
     )
 }

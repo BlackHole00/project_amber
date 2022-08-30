@@ -73,7 +73,6 @@ instancedmeshcomponent_draw :: proc(mesh: Instanced_Mesh_Component, pipeline: ^g
         mesh.draw_type,
         mesh.index_buffer_type,
         mesh.index_count,
-        nil,
         mesh.instance_count,
     )
 }

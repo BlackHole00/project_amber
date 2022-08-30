@@ -48,7 +48,7 @@ Texture_Descriptor :: struct {
 }
 
 Texture :: struct {
-    texture_handle: u32,
+    texture_handle: Gfx_Handle,
 
     texture_size: [3]uint,
 
