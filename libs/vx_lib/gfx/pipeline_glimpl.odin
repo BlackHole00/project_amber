@@ -136,8 +136,9 @@ _glimpl_pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_location: uint,
 }
 
 @(private)
-_glimpl_pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: ^glsl.mat4) {
-    gl.ProgramUniformMatrix4fv(pipeline.shader_handle, (i32)(uniform_location), 1, false, &value[0, 0])
+_glimpl_pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.mat4) {
+    local := value
+    gl.ProgramUniformMatrix4fv(pipeline.shader_handle, (i32)(uniform_location), 1, false, &local[0, 0])
 }
 
 @(private)

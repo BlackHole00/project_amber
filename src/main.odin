@@ -160,12 +160,16 @@ resize :: proc() {
 
 main :: proc() {
 	file, ok := os.open("log.txt", os.O_CREATE | os.O_WRONLY)
-	if ok != 0 do panic("Could not open log file")
-
-	context.logger = log.create_multi_logger(
-		log.create_console_logger(),
-		log.create_file_logger(file),
-	)
+	
+	if ok != 0 {
+		context.logger = log.create_console_logger()
+		log.warn("Could not open the log file!")
+	} else {
+		context.logger = log.create_multi_logger(
+			log.create_file_logger(file),
+			log.create_console_logger(),
+		)
+	}
 
 	ta: mem.Tracking_Allocator = ---
 	mem.tracking_allocator_init(&ta, context.allocator)

@@ -91,7 +91,7 @@ texture_init_from_file :: proc(texture: ^Texture, desc: Texture_Descriptor, file
     data, x, y, ch_num, real_texture_format := get_texture_content_from_file(file_path, texture_format)
     defer image.image_free(data)
 
-    slice := mem.byte_slice(data, x * y * ch_num)
+    slice := mem.byte_slice(data, (int)(x * y * ch_num))
     texture_init_with_data_2d(texture, desc, slice, real_texture_format, { (uint)(x), (uint)(y) })
 }
 
@@ -104,32 +104,32 @@ texture_init_cubemap_from_file :: proc(texture: ^Texture, desc: Texture_Descript
     GFX_PROCS.texture_init_raw(texture, desc)
 
     data, x, y, ch_num, real_texture_format := get_texture_content_from_file(right_path, texture_format)
-    slice := mem.byte_slice(data, x * y * ch_num)
+    slice := mem.byte_slice(data, (int)(x * y * ch_num))
     texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 0)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(left_path, texture_format)
-    slice = mem.byte_slice(data, x * y * ch_num)
+    slice = mem.byte_slice(data, (int)(x * y * ch_num))
     texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 1)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(top_path, texture_format)
-    slice = mem.byte_slice(data, x * y * ch_num)
+    slice = mem.byte_slice(data, (int)(x * y * ch_num))
     texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 2)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(bottom_path, texture_format)
-    slice = mem.byte_slice(data, x * y * ch_num)
+    slice = mem.byte_slice(data, (int)(x * y * ch_num))
     texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 3)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(back_path, texture_format)
-    slice = mem.byte_slice(data, x * y * ch_num)
+    slice = mem.byte_slice(data, (int)(x * y * ch_num))
     texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 4)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(front_path, texture_format)
-    slice = mem.byte_slice(data, x * y * ch_num)
+    slice = mem.byte_slice(data, (int)(x * y * ch_num))
     texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 5)
     image.image_free(data)
 }

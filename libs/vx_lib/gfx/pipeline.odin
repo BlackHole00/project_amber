@@ -172,7 +172,7 @@ pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: 
     GFX_PROCS.pipeline_uniform_4f(pipeline, uniform_location, value)
 }
 
-pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: ^glsl.mat4) {
+pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.mat4) {
     GFX_PROCS.pipeline_uniform_mat4f(pipeline, uniform_location, value)
 }
 
