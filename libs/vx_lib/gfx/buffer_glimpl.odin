@@ -4,8 +4,8 @@ import gl "vendor:OpenGL"
 
 @(private)
 _glimpl_buffer_init_empty :: proc(buffer: ^Buffer, desc: Buffer_Descriptor) {
-    buffer.type = _glimpl_buffertype_to_glenum(desc.type)
-    buffer.usage = _glimpl_bufferusage_to_glenum(desc.usage)
+    buffer.type = desc.type
+    buffer.usage = desc.usage
 
     gl.CreateBuffers(1, ([^]u32)(&(buffer.buffer_handle)))
 }
@@ -13,12 +13,12 @@ _glimpl_buffer_init_empty :: proc(buffer: ^Buffer, desc: Buffer_Descriptor) {
 @(private)
 _glimpl_buffer_init_with_data :: proc(buffer: ^Buffer, desc: Buffer_Descriptor, data: []byte) {
     _glimpl_buffer_init_empty(buffer, desc)
-    _glimpl_buffer_set_data(buffer^, data)
+    _glimpl_buffer_set_data(buffer, data)
 }
 
 @(private)
-_glimpl_buffer_set_data :: proc(buffer: Buffer, data: []byte) {
-    gl.NamedBufferData((u32)(buffer.buffer_handle), len(data), raw_data(data), buffer.usage)
+_glimpl_buffer_set_data :: proc(buffer: ^Buffer, data: []byte) {
+    gl.NamedBufferData((u32)(buffer.buffer_handle), len(data), raw_data(data), _glimpl_bufferusage_to_glenum(buffer.usage))
 }
 
 @(private)

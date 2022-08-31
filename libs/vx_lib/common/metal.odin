@@ -8,7 +8,7 @@ import "vendor:glfw"
 
 windowcontext_init_with_metal :: proc() {
     init_metal :: proc(handle: glfw.WindowHandle, desc: platform.Window_Descriptor) -> (bool, string) {  
-        gfx.gfxprocs_init_empty()
+        gfx.gfxprocs_init_with_metal()
         gfx.metalcontext_init(handle)
     
         return true, ""

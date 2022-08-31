@@ -72,7 +72,7 @@ meshbuilder_build_to_mesh :: proc(builder: Mesh_Builder, mesh: ^logic.Mesh_Compo
     logic.meshcomponent_set_data(mesh, builder.vertices[:], builder.indices[:], len(builder.indices))
 }
 
-meshbuilder_build_to_buffers :: proc(builder: Mesh_Builder, vertex_buffer: gfx.Buffer, index_buffer: gfx.Buffer) {
+meshbuilder_build_to_buffers :: proc(builder: Mesh_Builder, vertex_buffer: ^gfx.Buffer, index_buffer: ^gfx.Buffer) {
     gfx.buffer_set_data(vertex_buffer, builder.vertices[:])
     gfx.buffer_set_data(index_buffer, builder.indices[:])
 }

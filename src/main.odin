@@ -54,8 +54,8 @@ State :: struct {
 
 	world_accessor: world.World_Accessor,
 
-	vertex_positions_buffer: ^MTL.Buffer,
-	vertex_colors_buffer: ^MTL.Buffer,
+	vertex_positions_buffer: gfx.Buffer,
+	vertex_colors_buffer: gfx.Buffer,
 	library: ^MTL.Library, 
 	pso: ^MTL.RenderPipelineState,
 	command_queue: ^MTL.CommandQueue,
@@ -107,7 +107,7 @@ init :: proc() {
 		return
 	}
 
-	build_buffers :: proc(device: ^MTL.Device) -> (vertex_positions_buffer, vertex_colors_buffer: ^MTL.Buffer) {
+	build_buffers :: proc() -> (vertex_positions_buffer, vertex_colors_buffer: gfx.Buffer) {
 		NUM_VERTICES :: 3
 		positions := [NUM_VERTICES][3]f32{
 			{-0.8,  0.8, 0.0},
@@ -120,8 +120,16 @@ init :: proc() {
 			{0.8, 0.0, 1.0},
 		}
 	
-		vertex_positions_buffer = device->newBufferWithSlice(positions[:], {.StorageModeManaged})
-		vertex_colors_buffer    = device->newBufferWithSlice(colors[:],    {.StorageModeManaged})
+		gfx.buffer_init(&vertex_positions_buffer, gfx.Buffer_Descriptor {
+			type = .Vertex_Buffer,
+			usage = .Static_Draw,
+		}, positions[:])
+		gfx.buffer_init(&vertex_colors_buffer, gfx.Buffer_Descriptor {
+			type = .Vertex_Buffer,
+			usage = .Static_Draw,
+		}, colors[:])
+		//vertex_positions_buffer = device->newBufferWithSlice(positions[:], {.StorageModeManaged})
+		//vertex_colors_buffer    = device->newBufferWithSlice(colors[:],    {.StorageModeManaged})
 		return
 	}
 
@@ -134,7 +142,7 @@ init :: proc() {
 		STATE.pso = pso
 	} else do panic("Could not build shaders")
 
-	STATE.vertex_positions_buffer, STATE.vertex_colors_buffer = build_buffers(device)
+	STATE.vertex_positions_buffer, STATE.vertex_colors_buffer = build_buffers()
 
 	STATE.command_queue = device->newCommandQueue()
 
@@ -245,8 +253,8 @@ draw :: proc() {
 	defer render_encoder->release()
 
 	render_encoder->setRenderPipelineState(STATE.pso)
-	render_encoder->setVertexBuffer(STATE.vertex_positions_buffer, 0, 0)
-	render_encoder->setVertexBuffer(STATE.vertex_colors_buffer, 0, 1)
+	render_encoder->setVertexBuffer(gfx._metalimpl_bufferhandle_to_metalbuffer(STATE.vertex_positions_buffer.buffer_handle), 0, 0)
+	render_encoder->setVertexBuffer(gfx._metalimpl_bufferhandle_to_metalbuffer(STATE.vertex_colors_buffer.buffer_handle), 0, 1)
 	render_encoder->drawPrimitives(.Triangle, 0, 3)
 
 	render_encoder->endEncoding()

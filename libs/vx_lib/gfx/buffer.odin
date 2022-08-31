@@ -19,8 +19,9 @@ Buffer_Descriptor :: struct {
 
 Buffer :: struct {
     buffer_handle: Gfx_Handle,
-    type: u32,
-    usage: u32,
+    type: Buffer_Type,
+    usage: Buffer_Usage,
+    size: uint,
 }
 
 buffer_init_empty :: proc(buffer: ^Buffer, desc: Buffer_Descriptor) {
@@ -37,7 +38,7 @@ buffer_init_from_abstractbuffer :: proc(buffer: ^Buffer, desc: Buffer_Descriptor
 
 buffer_init :: proc { buffer_init_empty, buffer_init_with_data }
 
-buffer_set_data :: proc(buffer: Buffer, data: []$T) {
+buffer_set_data :: proc(buffer: ^Buffer, data: []$T) {
     GFX_PROCS.buffer_set_data(buffer, mem.slice_to_bytes(data))
 }
 

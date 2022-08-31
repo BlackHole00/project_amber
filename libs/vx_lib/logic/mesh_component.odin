@@ -59,8 +59,8 @@ meshcomponent_free :: proc(mesh: ^Mesh_Component) {
 }
 
 meshcomponent_set_data :: proc(mesh: ^Mesh_Component, vertex_data: []$T, index_data: []$U, index_count := -1) {
-    gfx.buffer_set_data(mesh.vertex_buffer, vertex_data)
-    gfx.buffer_set_data(mesh.index_buffer, index_data)
+    gfx.buffer_set_data(&mesh.vertex_buffer, vertex_data)
+    gfx.buffer_set_data(&mesh.index_buffer, index_data)
 
     mesh.index_count = index_count
     if index_count == -1 {
