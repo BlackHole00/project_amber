@@ -5,6 +5,7 @@ import "core:mem"
 Buffer_Type :: enum {
     Vertex_Buffer,
     Index_Buffer,
+    Uniform_Buffer,
 }
 
 Buffer_Usage :: enum {

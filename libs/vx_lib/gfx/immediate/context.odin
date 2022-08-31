@@ -34,22 +34,6 @@ CONTEXT_INSTANCE: core.Cell(Context)
 init :: proc(desc: Context_Descriptor) {
     core.cell_init(&CONTEXT_INSTANCE)
 
-    immediate_textured_vertex_src, ok := os.read_entire_file("res/vx_lib/shaders/immediate_textured.vs")
-	if !ok do panic("Could not open vertex shader file")
-    defer delete(immediate_textured_vertex_src)
-
-	immediate_textured_fragment_src, ok2 := os.read_entire_file("res/vx_lib/shaders/immediate_textured.fs")
-	if !ok2 do panic("Could not open fragment shader file")
-    defer delete(immediate_textured_fragment_src)
-
-    immediate_colored_vertex_src, ok3 := os.read_entire_file("res/vx_lib/shaders/immediate_colored.vs")
-	if !ok3 do panic("Could not open vertex shader file")
-    defer delete(immediate_colored_vertex_src)
-
-	immediate_colored_fragment_src, ok4 := os.read_entire_file("res/vx_lib/shaders/immediate_colored.fs")
-	if !ok4 do panic("Could not open fragment shader file")
-    defer delete(immediate_colored_fragment_src)
-
     gfx.pipeline_init(&CONTEXT_INSTANCE.textured_pipeline, gfx.Pipeline_Descriptor {
         cull_enabled = false,
         cull_front_face = .Counter_Clockwise,
@@ -68,8 +52,7 @@ init :: proc(desc: Context_Descriptor) {
 
 		viewport_size = desc.viewport_size,
 
-        vertex_source = (string)(immediate_textured_vertex_src),
-        fragment_source = (string)(immediate_textured_fragment_src),
+        source_path = "res/vx_lib/shaders/immediate_textured",
 
 		clearing_color = { 0.0, 0.0, 0.0, 0.0 },
         clear_depth = desc.clear_depth_buffer,
@@ -100,8 +83,7 @@ init :: proc(desc: Context_Descriptor) {
         clear_depth = desc.clear_depth_buffer,
         clear_color = desc.clear_color,
 
-        vertex_source = (string)(immediate_colored_vertex_src),
-        fragment_source = (string)(immediate_colored_fragment_src),
+        source_path = "res/vx_lib/shaders/immediate_colored",
 
         layout = COLOR_LAYOUT,
     }, desc.target_framebuffer)

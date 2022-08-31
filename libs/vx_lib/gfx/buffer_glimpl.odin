@@ -33,6 +33,7 @@ _glimpl_buffertype_to_glenum :: proc(type: Buffer_Type) -> u32 {
     switch type {
         case .Index_Buffer: return gl.ELEMENT_ARRAY_BUFFER
         case .Vertex_Buffer: return gl.ARRAY_BUFFER
+        case .Uniform_Buffer: panic("OPENGL todo!")
     }
 
     return 0

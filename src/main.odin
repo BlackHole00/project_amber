@@ -56,57 +56,12 @@ State :: struct {
 
 	vertex_positions_buffer: gfx.Buffer,
 	vertex_colors_buffer: gfx.Buffer,
-	library: ^MTL.Library, 
-	pso: ^MTL.RenderPipelineState,
+	pipeline: gfx.Pipeline,
 	command_queue: ^MTL.CommandQueue,
 }
 STATE: core.Cell(State)
 
 init :: proc() {
-	build_shaders :: proc(device: ^MTL.Device) -> (library: ^MTL.Library, pso: ^MTL.RenderPipelineState, err: ^NS.Error) {
-		shader_src := `
-		#include <metal_stdlib>
-		using namespace metal;
-	
-		struct v2f {
-			float4 position [[position]];
-			half3 color;
-		};
-	
-		v2f vertex vertex_main(uint vertex_id                        [[vertex_id]],
-							   device const packed_float3* positions [[buffer(0)]],
-							   device const packed_float3* colors    [[buffer(1)]]) {
-			v2f o;
-			o.position = float4(positions[vertex_id], 1.0);
-			o.color = half3(colors[vertex_id]);
-			return o;
-		}
-	
-		half4 fragment fragment_main(v2f in [[stage_in]]) {
-			return half4(in.color, 1.0);
-		}
-		`
-		shader_src_str := NS.String.alloc()->initWithOdinString(shader_src)
-		defer shader_src_str->release()
-	
-		library = device->newLibraryWithSource(shader_src_str, nil) or_return
-	
-		vertex_function   := library->newFunctionWithName(NS.AT("vertex_main"))
-		fragment_function := library->newFunctionWithName(NS.AT("fragment_main"))
-		defer vertex_function->release()
-		defer fragment_function->release()
-	
-		desc := MTL.RenderPipelineDescriptor.alloc()->init()
-		defer desc->release()
-	
-		desc->setVertexFunction(vertex_function)
-		desc->setFragmentFunction(fragment_function)
-		desc->colorAttachments()->object(0)->setPixelFormat(.BGRA8Unorm_sRGB)
-	
-		pso = device->newRenderPipelineStateWithDescriptor(desc) or_return
-		return
-	}
-
 	build_buffers :: proc() -> (vertex_positions_buffer, vertex_colors_buffer: gfx.Buffer) {
 		NUM_VERTICES :: 3
 		positions := [NUM_VERTICES][3]f32{
@@ -115,9 +70,9 @@ init :: proc() {
 			{+0.8,  0.8, 0.0},
 		}
 		colors := [NUM_VERTICES][3]f32{
-			{1.0, 0.3, 0.2},
-			{0.8, 1.0, 0.0},
-			{0.8, 0.0, 1.0},
+			{1.0, 0.0, 0.0},
+			{0.0, 1.0, 0.0},
+			{0.0, 0.0, 1.0},
 		}
 	
 		gfx.buffer_init(&vertex_positions_buffer, gfx.Buffer_Descriptor {
@@ -128,19 +83,19 @@ init :: proc() {
 			type = .Vertex_Buffer,
 			usage = .Static_Draw,
 		}, colors[:])
-		//vertex_positions_buffer = device->newBufferWithSlice(positions[:], {.StorageModeManaged})
-		//vertex_colors_buffer    = device->newBufferWithSlice(colors[:],    {.StorageModeManaged})
 		return
 	}
 
 	core.cell_init(&STATE)
 
-	device := gfx.METAL_CONTEXT.device
+	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
+		source_path = "res/shader_test",
 
-	if library, pso, err := build_shaders(device); err == nil {
-		STATE.library = library
-		STATE.pso = pso
-	} else do panic("Could not build shaders")
+		clearing_color = { 1.0, 1.0, 1.0, 1.0 },
+		clear_color = true,
+	})
+
+	device := gfx.METAL_CONTEXT.device
 
 	STATE.vertex_positions_buffer, STATE.vertex_colors_buffer = build_buffers()
 
@@ -231,35 +186,24 @@ draw :: proc() {
 
 	swapchain := gfx.METAL_CONTEXT.swapchain
 
-	drawable := swapchain->nextDrawable()
-	assert(drawable != nil)
-	defer drawable->release()
-
-	pass := MTL.RenderPassDescriptor.renderPassDescriptor()
-	defer pass->release()
-
-	color_attachment := pass->colorAttachments()->object(0)
-	assert(color_attachment != nil)
-	color_attachment->setClearColor(MTL.ClearColor{0.25, 0.5, 1.0, 1.0})
-	color_attachment->setLoadAction(.Clear)
-	color_attachment->setStoreAction(.Store)
-	color_attachment->setTexture(drawable->texture())
-
+	pipeline := gfx._metalimpl_shaderhandle_to_metalpipeline(STATE.pipeline.shader_handle)
 
 	command_buffer := STATE.command_queue->commandBuffer()
 	defer command_buffer->release()
 
-	render_encoder := command_buffer->renderCommandEncoderWithDescriptor(pass)
+	gfx.pipeline_clear(STATE.pipeline)
+
+	render_encoder := command_buffer->renderCommandEncoderWithDescriptor(gfx._metalimpl_pipeline_get_pass(STATE.pipeline))
 	defer render_encoder->release()
 
-	render_encoder->setRenderPipelineState(STATE.pso)
+	render_encoder->setRenderPipelineState(pipeline)
 	render_encoder->setVertexBuffer(gfx._metalimpl_bufferhandle_to_metalbuffer(STATE.vertex_positions_buffer.buffer_handle), 0, 0)
 	render_encoder->setVertexBuffer(gfx._metalimpl_bufferhandle_to_metalbuffer(STATE.vertex_colors_buffer.buffer_handle), 0, 1)
 	render_encoder->drawPrimitives(.Triangle, 0, 3)
 
 	render_encoder->endEncoding()
 
-	command_buffer->presentDrawable(drawable)
+	command_buffer->presentDrawable(gfx.METAL_CONTEXT.drawable)
 	command_buffer->commit()
 }
 

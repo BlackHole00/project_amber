@@ -43,6 +43,10 @@ framebuffer_get_depth_stencil_texture_bindings:: proc(framebuffer: Framebuffer, 
     return GFX_PROCS.framebuffer_get_depth_stencil_texture_bindings(framebuffer, depth_stencil_texture_uniform_location)
 }
 
+framebuffer_ger_color_texture_format :: proc(framebuffer: Framebuffer) -> Texture_Format {
+    return framebuffer.color_attachment.internal_texture_format
+}
+
 /**************************************************************************************************
 ***************************************************************************************************
 **************************************************************************************************/

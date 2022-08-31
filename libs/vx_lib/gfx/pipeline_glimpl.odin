@@ -3,15 +3,31 @@ package vx_lib_gfx
 import glsm "../gfx/glstatemanager"
 import gl "vendor:OpenGL"
 import "core:math/linalg/glsl"
+import "core:os"
+import "core:log"
 
 @(private)
 _glimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer)) {
-    gl.CreateVertexArrays(1, &pipeline.layout_handle)
+    gl.CreateVertexArrays(1, ([^]u32)(&pipeline.layout_handle))
     _glimpl_pipeline_layout_resolve(pipeline, desc.layout)
 
-    if program, ok := gl.load_shaders_source(desc.vertex_source, desc.fragment_source); !ok {
+    files := get_shader_files_from_name(desc.source_path)
+    defer {
+        for file in files do delete(file)
+        delete(files)
+    }
+
+    vertex_source, vertex_ok := os.read_entire_file(files[0])
+	if !vertex_ok do panic("Could not open vertex shader file")
+    defer delete(vertex_source)
+
+    fragment_source, fragment_ok := os.read_entire_file(files[1])
+	if !fragment_ok do panic("Could not open fragment shader file")
+    defer delete(fragment_source)
+
+    if program, program_ok := gl.load_shaders_source((string)(vertex_source), (string)(fragment_source)); !program_ok {
 		panic("Could not compile shaders")
-	} else do pipeline.shader_handle = program
+	} else do pipeline.shader_handle = (u64)(program)
 
     pipeline.states.cull_enabled = desc.cull_enabled
     pipeline.states.cull_face = desc.cull_face
@@ -28,16 +44,20 @@ _glimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, re
     pipeline.states.viewport_size = desc.viewport_size
     pipeline.states.clearing_color = desc.clearing_color
     pipeline.states.clear_depth = desc.clear_depth
+    
+    pipeline.uniform_locations = desc.uniform_locations
 
     pipeline.render_target = render_target
+
+    pipeline.extra_data = nil
 }
 
 @(private)
 _glimpl_pipeline_free :: proc(pipeline: ^Pipeline) {
-    gl.DeleteProgram(pipeline.shader_handle)
+    gl.DeleteProgram((u32)(pipeline.shader_handle))
     pipeline.shader_handle = INVALID_HANDLE
 
-    gl.DeleteVertexArrays(1, &pipeline.layout_handle)
+    gl.DeleteVertexArrays(1, ([^]u32)(&pipeline.layout_handle))
     pipeline.layout_handle = INVALID_HANDLE
 
     delete(pipeline.layout_strides)
@@ -117,33 +137,45 @@ _glimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: 
 
 @(private)
 _glimpl_pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: f32) {
-    gl.ProgramUniform1f(pipeline.shader_handle, (i32)(uniform_location), value)
+    if uniform_location >= pipeline.uniform_locations do log.warn("Uniform location", uniform_location, "is outside the maximum uniform location (", pipeline.uniform_locations, ")")
+
+    gl.ProgramUniform1f((u32)(pipeline.shader_handle), (i32)(uniform_location), value)
 }
 
 @(private)
 _glimpl_pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec2) {
-    gl.ProgramUniform2f(pipeline.shader_handle, (i32)(uniform_location), value.x, value.y)
+    if uniform_location >= pipeline.uniform_locations do log.warn("Uniform location", uniform_location, "is outside the maximum uniform location (", pipeline.uniform_locations, ")")
+
+    gl.ProgramUniform2f((u32)(pipeline.shader_handle), (i32)(uniform_location), value.x, value.y)
 }
 
 @(private)
 _glimpl_pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec3) {
-    gl.ProgramUniform3f(pipeline.shader_handle, (i32)(uniform_location), value.x, value.y, value.z)
+    if uniform_location >= pipeline.uniform_locations do log.warn("Uniform location", uniform_location, "is outside the maximum uniform location (", pipeline.uniform_locations, ")")
+
+    gl.ProgramUniform3f((u32)(pipeline.shader_handle), (i32)(uniform_location), value.x, value.y, value.z)
 }
 
 @(private)
 _glimpl_pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec4) {
-    gl.ProgramUniform4f(pipeline.shader_handle, (i32)(uniform_location), value.x, value.y, value.z, value.w)
+    if uniform_location >= pipeline.uniform_locations do log.warn("Uniform location", uniform_location, "is outside the maximum uniform location (", pipeline.uniform_locations, ")")
+
+    gl.ProgramUniform4f((u32)(pipeline.shader_handle), (i32)(uniform_location), value.x, value.y, value.z, value.w)
 }
 
 @(private)
 _glimpl_pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.mat4) {
+    if uniform_location >= pipeline.uniform_locations do log.warn("Uniform location", uniform_location, "is outside the maximum uniform location (", pipeline.uniform_locations, ")")
+
     local := value
-    gl.ProgramUniformMatrix4fv(pipeline.shader_handle, (i32)(uniform_location), 1, false, &local[0, 0])
+    gl.ProgramUniformMatrix4fv((u32)(pipeline.shader_handle), (i32)(uniform_location), 1, false, &local[0, 0])
 }
 
 @(private)
 _glimpl_pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_location: uint, value: i32) {
-    gl.ProgramUniform1i(pipeline.shader_handle, (i32)(uniform_location), value)
+    if uniform_location >= pipeline.uniform_locations do log.warn("Uniform location", uniform_location, "is outside the maximum uniform location (", pipeline.uniform_locations, ")")
+
+    gl.ProgramUniform1i((u32)(pipeline.shader_handle), (i32)(uniform_location), value)
 }
 
 @(private)
@@ -209,9 +241,9 @@ _glimpl_pipeline_layout_resolve :: proc(pipeline: ^Pipeline, elements: []Layout_
     for i := len(elements) - 1; i >= 0; i -= 1 {
         offsets[elements[i].buffer_idx] -= size_of_gl_type(elements[i].gl_type) * elements[i].count
 
-        gl.EnableVertexArrayAttrib(pipeline.layout_handle, (u32)(i))
-        gl.VertexArrayAttribFormat(pipeline.layout_handle, (u32)(i), (i32)(elements[i].count), elements[i].gl_type, elements[i].normalized, (u32)(offsets[elements[i].buffer_idx]))
-        gl.VertexArrayBindingDivisor(pipeline.layout_handle, (u32)(i), (u32)(elements[i].divisor))
+        gl.EnableVertexArrayAttrib((u32)(pipeline.layout_handle), (u32)(i))
+        gl.VertexArrayAttribFormat((u32)(pipeline.layout_handle), (u32)(i), (i32)(elements[i].count), elements[i].gl_type, elements[i].normalized, (u32)(offsets[elements[i].buffer_idx]))
+        gl.VertexArrayBindingDivisor((u32)(pipeline.layout_handle), (u32)(i), (u32)(elements[i].divisor))
 
         pipeline.layout_buffers[i] = (u32)(elements[i].buffer_idx)
         pipeline.layout_strides[i] = (i32)(strides[elements[i].buffer_idx])
@@ -233,24 +265,24 @@ _glimpl_pipeline_layout_apply_without_index_buffer :: proc(pipeline: Pipeline, v
     for buffer, i in vertex_buffers do gl.VertexArrayVertexBuffer((u32)(pipeline.layout_handle), (u32)(i), (u32)(buffer.buffer_handle), 0, pipeline.layout_strides[i])
 
     for buffer, i in pipeline.layout_buffers {
-        gl.VertexArrayAttribBinding(pipeline.layout_handle, (u32)(i), buffer)
+        gl.VertexArrayAttribBinding((u32)(pipeline.layout_handle), (u32)(i), buffer)
     }
 }
 
 @(private)
 _glimpl_pipeline_layout_apply_with_index_buffer :: proc(pipeline: Pipeline, vertex_buffers: []Buffer, index_buffer: Buffer) {
     _glimpl_pipeline_layout_apply_without_index_buffer(pipeline, vertex_buffers)
-    gl.VertexArrayElementBuffer(pipeline.layout_handle, (u32)(index_buffer.buffer_handle))
+    gl.VertexArrayElementBuffer((u32)(pipeline.layout_handle), (u32)(index_buffer.buffer_handle))
 }
 
 @(private)
 _glimpl_pipeline_layout_bind :: proc(pipeline: Pipeline) {
-    glsm.BindVertexArray(pipeline.layout_handle)
+    glsm.BindVertexArray((u32)(pipeline.layout_handle))
 }
 
 @(private)
 _glimpl_pipeline_shader_bind :: proc(pipeline: Pipeline) {
-    glsm.UseProgram(pipeline.shader_handle)
+    glsm.UseProgram((u32)(pipeline.shader_handle))
 }
 
 @(private)

@@ -36,14 +36,6 @@ renderer_init :: proc() {
         gen_mipmaps = true,
     }, "res/project_amber/textures/block_atlas.png", "res/project_amber/textures/block_atlas.csv")
 
-    full_solid_block_vertex_src, ok := os.read_entire_file("res/project_amber/shaders/full_solid_block.vs")
-	if !ok do panic("Could not open vertex shader file")
-    defer delete(full_solid_block_vertex_src)
-
-	full_solid_block_fragment_src, ok2 := os.read_entire_file("res/project_amber/shaders/full_solid_block.fs")
-	if !ok2 do panic("Could not open fragment shader file")
-    defer delete(full_solid_block_fragment_src)
-
     gfx.pipeline_init(&RENDERER_INSTANCE.full_block_solid_pipeline, gfx.Pipeline_Descriptor {
         cull_enabled = true,
         cull_face = .Back,
@@ -63,17 +55,10 @@ renderer_init :: proc() {
 
         layout = WORLD_VERTEX_LAYOUT,
 
-        vertex_source = (string)(full_solid_block_vertex_src),
-        fragment_source = (string)(full_solid_block_fragment_src),
+        uniform_locations = 4,
+
+        source_path = "res/project_amber/shaders/full_solid_block",
     })
-
-    skybox_vertex_src, ok3 := os.read_entire_file("res/project_amber/shaders/skybox.vs")
-	if !ok3 do panic("Could not open vertex shader file")
-	defer delete(skybox_vertex_src)
-
-	skybox_fragment_src, ok4 := os.read_entire_file("res/project_amber/shaders/skybox.fs")
-	if !ok4 do panic("Could not open fragment shader file")
-	defer delete(skybox_fragment_src)
 
 	gfx.pipeline_init(&RENDERER_INSTANCE.skybox_pipeline, gfx.Pipeline_Descriptor { 
 		cull_enabled = false,
@@ -89,8 +74,7 @@ renderer_init :: proc() {
 
         layout = SKYBOX_LAYOUT,
 
-        vertex_source = (string)(skybox_vertex_src),
-		fragment_source = (string)(skybox_fragment_src),
+        source_path = "res/project_amber/shaders/skybox",
 	})
 
 	logic.skybox_init(&RENDERER_INSTANCE.skybox.mesh, &RENDERER_INSTANCE.skybox.texture, 

@@ -1,5 +1,7 @@
 package vx_lib_gfx
 
+when ODIN_OS == .Darwin {
+
 import NS "vendor:darwin/Foundation"
 import MTL "vendor:darwin/Metal"
 import "core:mem"
@@ -60,3 +62,4 @@ _metalimpl_metalbuffer_to_buffer_handle :: proc(buffer: ^MTL.Buffer) -> Gfx_Hand
     return transmute(Gfx_Handle)(buffer)
 }
 
+}

@@ -29,6 +29,8 @@ pre_window_init_opengl :: proc() -> (bool, string) {
     glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, OPENGL_VERSION_MINOR)
     glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 
+    gfx.GFX_BACKEND_API = .OpenGL
+
     return true, ""
 }
 

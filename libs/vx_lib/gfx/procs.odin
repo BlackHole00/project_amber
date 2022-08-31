@@ -145,6 +145,8 @@ gfxprocs_init_empty :: proc() {
     GFX_PROCS.pipeline_uniform_1i = (proc(pipeline: ^Pipeline, uniform_location: uint, value: i32))(core.dummy_func)
 }
 
+when ODIN_OS == .Darwin {
+
 gfxprocs_init_with_metal :: proc() {
     core.cell_init(&GFX_PROCS)
 
@@ -173,10 +175,10 @@ gfxprocs_init_with_metal :: proc() {
     GFX_PROCS.framebuffer_free = (proc(framebuffer: ^Framebuffer))(core.dummy_func)
     GFX_PROCS.framebuffer_get_color_texture_bindings = (proc(framebuffer: Framebuffer, color_texture_location: uint) -> Texture_Binding)(core.dummy_func)
     GFX_PROCS.framebuffer_get_depth_stencil_texture_bindings = (proc(framebuffer: Framebuffer, depth_stencil_texture_location: uint) -> Texture_Binding)(core.dummy_func)
-    GFX_PROCS.pipeline_init = (proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer)))(core.dummy_func)
-    GFX_PROCS.pipeline_free = (proc(pipeline: ^Pipeline))(core.dummy_func)
+    GFX_PROCS.pipeline_init = _metalimpl_pipeline_init
+    GFX_PROCS.pipeline_free = _metalimpl_pipeline_free
     GFX_PROCS.pipeline_resize = (proc(pipeline: ^Pipeline, new_size: [2]uint))(core.dummy_func)
-    GFX_PROCS.pipeline_clear = (proc(pipeline: Pipeline))(core.dummy_func)
+    GFX_PROCS.pipeline_clear = _metalimpl_pipeline_clear
     GFX_PROCS.pipeline_set_wireframe = (proc(pipeline: ^Pipeline, wireframe: bool))(core.dummy_func)
     GFX_PROCS.pipeline_draw_arrays = (proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int))(core.dummy_func)
     GFX_PROCS.pipeline_draw_elements = (proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int))(core.dummy_func)
@@ -188,6 +190,8 @@ gfxprocs_init_with_metal :: proc() {
     GFX_PROCS.pipeline_uniform_4f = (proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec4))(core.dummy_func)
     GFX_PROCS.pipeline_uniform_mat4f = (proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.mat4))(core.dummy_func)
     GFX_PROCS.pipeline_uniform_1i = (proc(pipeline: ^Pipeline, uniform_location: uint, value: i32))(core.dummy_func)
+}
+
 }
 
 gfxprocs_free :: proc() {

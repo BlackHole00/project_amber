@@ -67,6 +67,7 @@ window_run :: proc() {
     WINDOW_INSTANCE.callbacks.init_proc()
 
     for !glfw.WindowShouldClose(WINDOW_INSTANCE.handle) {
+        WINDOWCONTEXT_INSTANCE.pre_frame_proc(WINDOW_INSTANCE.handle)
         current_time := time.now()
         delta := time.diff(last_time, current_time)
         last_time = current_time

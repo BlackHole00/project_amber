@@ -78,10 +78,11 @@ Pipeline_Descriptor :: struct {
     wireframe: bool,
     viewport_size: [2]uint,
 
-    vertex_source: string,
-    fragment_source: string,
+    source_path: string,
 
     layout: Pipeline_Layout,
+
+    uniform_locations: uint,
 
     clearing_color: [4]f32,
     clear_depth: bool,
@@ -109,15 +110,18 @@ Index_Type :: enum {
 Pipeline_Layout :: []Layout_Element
 
 Pipeline :: struct {
-    shader_handle: u32,
-    //uniform_locations: map[string]i32,
+    shader_handle: Gfx_Handle,
 
-    layout_handle: u32,
+    layout_handle: Gfx_Handle,
     layout_strides: []i32,
     layout_buffers: []u32,
 
+    uniform_locations: uint,
+
     states: Pipeline_States,
     render_target: Maybe(Framebuffer),
+
+    extra_data: rawptr,
 }
 
 pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer) = nil) {

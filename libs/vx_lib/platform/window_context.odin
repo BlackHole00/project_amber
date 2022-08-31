@@ -6,6 +6,7 @@ import "vx_lib:core"
 Window_Context :: struct {
     pre_window_init_proc: proc()-> (bool, string),
     post_window_init_proc: proc(glfw.WindowHandle, Window_Descriptor) -> (bool, string),
+    pre_frame_proc: proc(glfw.WindowHandle),
     post_frame_proc: proc(glfw.WindowHandle),
     close_proc: proc(),
 }
@@ -26,4 +27,5 @@ windowcontext_safetize_procs :: proc() {
     core.safetize_function(&WINDOWCONTEXT_INSTANCE.post_window_init_proc)
     core.safetize_function(&WINDOWCONTEXT_INSTANCE.post_frame_proc)
     core.safetize_function(&WINDOWCONTEXT_INSTANCE.close_proc)
+    core.safetize_function(&WINDOWCONTEXT_INSTANCE.pre_frame_proc)
 }

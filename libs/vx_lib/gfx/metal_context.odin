@@ -1,5 +1,7 @@
 package vx_lib_gfx
 
+when ODIN_OS == .Darwin {
+
 import "../core"
 import "vendor:glfw"
 import "../platform"
@@ -8,11 +10,13 @@ import "core:log"
 import MTL "vendor:darwin/Metal"
 import CA "vendor:darwin/QuartzCore"
 
-when ODIN_OS == .Darwin {
-
 Metal_Context :: struct {
     device: ^MTL.Device,
     swapchain: ^CA.MetalLayer,
+
+    drawable: ^CA.MetalDrawable,
+
+    command_queue: ^MTL.CommandQueue,
 }
 METAL_CONTEXT: core.Cell(Metal_Context)
 
@@ -34,6 +38,15 @@ metalcontext_init :: proc(handle: glfw.WindowHandle) {
 	cocoa_window->contentView()->setLayer(METAL_CONTEXT.swapchain)
 	cocoa_window->setOpaque(true)
 	cocoa_window->setBackgroundColor(nil)
+}
+
+metalcontext_pre_frame :: proc() {
+    METAL_CONTEXT.drawable = METAL_CONTEXT.swapchain->nextDrawable()
+	assert(METAL_CONTEXT.drawable != nil)
+}
+
+metalcontext_post_frame :: proc() {
+    METAL_CONTEXT.drawable->release()
 }
 
 metalcontext_free :: proc() {
