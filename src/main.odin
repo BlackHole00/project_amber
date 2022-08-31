@@ -15,6 +15,8 @@ import "vx_lib:logic/objects"
 import "project_amber:world"
 import "project_amber:renderer"
 import gl "vendor:OpenGL"
+import NS "vendor:darwin/Foundation"
+import MTL "vendor:darwin/Metal"
 
 Vertex :: struct #packed {
 	pos: [3]f32,
@@ -51,125 +53,237 @@ State :: struct {
 	camera: objects.Simple_Camera,
 
 	world_accessor: world.World_Accessor,
+
+	vertex_positions_buffer: ^MTL.Buffer,
+	vertex_colors_buffer: ^MTL.Buffer,
+	library: ^MTL.Library, 
+	pso: ^MTL.RenderPipelineState,
+	command_queue: ^MTL.CommandQueue,
 }
 STATE: core.Cell(State)
 
 init :: proc() {
+	build_shaders :: proc(device: ^MTL.Device) -> (library: ^MTL.Library, pso: ^MTL.RenderPipelineState, err: ^NS.Error) {
+		shader_src := `
+		#include <metal_stdlib>
+		using namespace metal;
+	
+		struct v2f {
+			float4 position [[position]];
+			half3 color;
+		};
+	
+		v2f vertex vertex_main(uint vertex_id                        [[vertex_id]],
+							   device const packed_float3* positions [[buffer(0)]],
+							   device const packed_float3* colors    [[buffer(1)]]) {
+			v2f o;
+			o.position = float4(positions[vertex_id], 1.0);
+			o.color = half3(colors[vertex_id]);
+			return o;
+		}
+	
+		half4 fragment fragment_main(v2f in [[stage_in]]) {
+			return half4(in.color, 1.0);
+		}
+		`
+		shader_src_str := NS.String.alloc()->initWithOdinString(shader_src)
+		defer shader_src_str->release()
+	
+		library = device->newLibraryWithSource(shader_src_str, nil) or_return
+	
+		vertex_function   := library->newFunctionWithName(NS.AT("vertex_main"))
+		fragment_function := library->newFunctionWithName(NS.AT("fragment_main"))
+		defer vertex_function->release()
+		defer fragment_function->release()
+	
+		desc := MTL.RenderPipelineDescriptor.alloc()->init()
+		defer desc->release()
+	
+		desc->setVertexFunction(vertex_function)
+		desc->setFragmentFunction(fragment_function)
+		desc->colorAttachments()->object(0)->setPixelFormat(.BGRA8Unorm_sRGB)
+	
+		pso = device->newRenderPipelineStateWithDescriptor(desc) or_return
+		return
+	}
+
+	build_buffers :: proc(device: ^MTL.Device) -> (vertex_positions_buffer, vertex_colors_buffer: ^MTL.Buffer) {
+		NUM_VERTICES :: 3
+		positions := [NUM_VERTICES][3]f32{
+			{-0.8,  0.8, 0.0},
+			{ 0.0, -0.8, 0.0},
+			{+0.8,  0.8, 0.0},
+		}
+		colors := [NUM_VERTICES][3]f32{
+			{1.0, 0.3, 0.2},
+			{0.8, 1.0, 0.0},
+			{0.8, 0.0, 1.0},
+		}
+	
+		vertex_positions_buffer = device->newBufferWithSlice(positions[:], {.StorageModeManaged})
+		vertex_colors_buffer    = device->newBufferWithSlice(colors[:],    {.StorageModeManaged})
+		return
+	}
+
 	core.cell_init(&STATE)
 
-	renderer.renderer_init()
+	device := gfx.METAL_CONTEXT.device
 
-	immediate.init(immediate.Context_Descriptor {
-		target_framebuffer = nil,
-		viewport_size = { 640, 480 },
-		clear_color = false,
-		clear_depth_buffer = true,
-	})
+	if library, pso, err := build_shaders(device); err == nil {
+		STATE.library = library
+		STATE.pso = pso
+	} else do panic("Could not build shaders")
 
-	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
-		fov = 3.14 / 2.0,
-		viewport_size = platform.windowhelper_get_window_size(),
-		near = 0.01, 
-		far = 1000.0,
-	})
-	STATE.camera.position = { 0.0, 0.0, 0.0 }
-	STATE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
+	STATE.vertex_positions_buffer, STATE.vertex_colors_buffer = build_buffers(device)
 
-	world.blockregistar_init()
-	world.blockregistar_register_block("dirt", world.Block_Behaviour {
-		solid = true,
-		mesh = world.Full_Block_Mesh {
-			texturing = world.Full_Block_Mesh_Single_Texture {
-				texture = "dirt",
-				modifiers = { .Natural_Flip_X, .Natural_Flip_Y },
-			},
-		},
-	})
-	world.blockregistar_register_block("grass", world.Block_Behaviour {
-		solid = true,
-		mesh = world.Full_Block_Mesh {
-			texturing = world.Full_Block_Mesh_Multi_Texture {
-				{ texture = "grass_top",  modifiers = { .Natural_Flip_X, .Natural_Flip_Y } },
-				{ texture = "dirt", 	  modifiers = { .Natural_Flip_X, .Natural_Flip_Y } },
-				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
-				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
-				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
-				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
-			},
-		},
-	})
+	STATE.command_queue = device->newCommandQueue()
 
-	world.worldregistar_init()
-	world.worldregistar_add_world("level_0")
-	STATE.world_accessor = world.worldregistar_get_world_accessor("level_0")
-
-	world.worldaccessor_register_chunk(STATE.world_accessor, { 0, 0, 0 })
-	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
-	for x in 0..<world.CHUNK_SIZE do for y in 0..<(world.CHUNK_SIZE - 1) do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), (uint)(y), (uint)(z), world.Block_Instance_Descriptor {
-		block = "dirt",
-	})
-	for x in 0..<world.CHUNK_SIZE do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), world.CHUNK_SIZE - 1, (uint)(z), world.Block_Instance_Descriptor {
-		block = "grass",
-	})
-	world.chunk_set_block(chunk, 7, 15, 7, world.Block_Instance_Descriptor {
-		block = "air",
-	})
-	world.chunk_remesh(chunk, STATE.world_accessor)
+//	renderer.renderer_init()
+//
+//	immediate.init(immediate.Context_Descriptor {
+//		target_framebuffer = nil,
+//		viewport_size = { 640, 480 },
+//		clear_color = false,
+//		clear_depth_buffer = true,
+//	})
+//
+//	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
+//		fov = 3.14 / 2.0,
+//		viewport_size = platform.windowhelper_get_window_size(),
+//		near = 0.01, 
+//		far = 1000.0,
+//	})
+//	STATE.camera.position = { 0.0, 0.0, 0.0 }
+//	STATE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
+//
+//	world.blockregistar_init()
+//	world.blockregistar_register_block("dirt", world.Block_Behaviour {
+//		solid = true,
+//		mesh = world.Full_Block_Mesh {
+//			texturing = world.Full_Block_Mesh_Single_Texture {
+//				texture = "dirt",
+//				modifiers = { .Natural_Flip_X, .Natural_Flip_Y },
+//			},
+//		},
+//	})
+//	world.blockregistar_register_block("grass", world.Block_Behaviour {
+//		solid = true,
+//		mesh = world.Full_Block_Mesh {
+//			texturing = world.Full_Block_Mesh_Multi_Texture {
+//				{ texture = "grass_top",  modifiers = { .Natural_Flip_X, .Natural_Flip_Y } },
+//				{ texture = "dirt", 	  modifiers = { .Natural_Flip_X, .Natural_Flip_Y } },
+//				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+//				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+//				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+//				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+//			},
+//		},
+//	})
+//
+//	world.worldregistar_init()
+//	world.worldregistar_add_world("level_0")
+//	STATE.world_accessor = world.worldregistar_get_world_accessor("level_0")
+//
+//	world.worldaccessor_register_chunk(STATE.world_accessor, { 0, 0, 0 })
+//	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
+//	for x in 0..<world.CHUNK_SIZE do for y in 0..<(world.CHUNK_SIZE - 1) do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), (uint)(y), (uint)(z), world.Block_Instance_Descriptor {
+//		block = "dirt",
+//	})
+//	for x in 0..<world.CHUNK_SIZE do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), world.CHUNK_SIZE - 1, (uint)(z), world.Block_Instance_Descriptor {
+//		block = "grass",
+//	})
+//	world.chunk_set_block(chunk, 7, 15, 7, world.Block_Instance_Descriptor {
+//		block = "air",
+//	})
+//	world.chunk_remesh(chunk, STATE.world_accessor)
 }
 
 tick :: proc() {
-	input_common()
-	input_camera_movement()
+//	input_common()
+//	input_camera_movement()
 }
 
 draw :: proc() {
-	renderer.renderer_prepare_drawing()
+//	renderer.renderer_prepare_drawing()
+//
+//	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
+//	renderer.renderer_draw_skybox()
+//
+//	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
+//	world.draw_chunk(chunk)
+//
+//	fov_str := fmt.aprint("fov:", math.to_degrees(STATE.camera.perspective_data.fov))
+//	defer delete(fov_str)
+//	fps_str := fmt.aprint("fps:", platform.windowhelper_get_fps(), "- ms:", platform.windowhelper_get_ms())
+//	defer delete(fps_str)
+//
+//	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fps_str)
+//	immediate.push_string({ 0.0, immediate.DEFAULT_FONT_SIZE.x / 8.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fov_str)
+//	immediate.draw()
 
-	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
-	renderer.renderer_draw_skybox()
+	swapchain := gfx.METAL_CONTEXT.swapchain
 
-	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
-	world.draw_chunk(chunk)
+	drawable := swapchain->nextDrawable()
+	assert(drawable != nil)
+	defer drawable->release()
 
-	fov_str := fmt.aprint("fov:", math.to_degrees(STATE.camera.perspective_data.fov))
-	defer delete(fov_str)
-	fps_str := fmt.aprint("fps:", platform.windowhelper_get_fps(), "- ms:", platform.windowhelper_get_ms())
-	defer delete(fps_str)
+	pass := MTL.RenderPassDescriptor.renderPassDescriptor()
+	defer pass->release()
 
-	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fps_str)
-	immediate.push_string({ 0.0, immediate.DEFAULT_FONT_SIZE.x / 8.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fov_str)
-	immediate.draw()
+	color_attachment := pass->colorAttachments()->object(0)
+	assert(color_attachment != nil)
+	color_attachment->setClearColor(MTL.ClearColor{0.25, 0.5, 1.0, 1.0})
+	color_attachment->setLoadAction(.Clear)
+	color_attachment->setStoreAction(.Store)
+	color_attachment->setTexture(drawable->texture())
+
+
+	command_buffer := STATE.command_queue->commandBuffer()
+	defer command_buffer->release()
+
+	render_encoder := command_buffer->renderCommandEncoderWithDescriptor(pass)
+	defer render_encoder->release()
+
+	render_encoder->setRenderPipelineState(STATE.pso)
+	render_encoder->setVertexBuffer(STATE.vertex_positions_buffer, 0, 0)
+	render_encoder->setVertexBuffer(STATE.vertex_colors_buffer, 0, 1)
+	render_encoder->drawPrimitives(.Triangle, 0, 3)
+
+	render_encoder->endEncoding()
+
+	command_buffer->presentDrawable(drawable)
+	command_buffer->commit()
 }
 
 close :: proc() {
-	renderer.renderer_free()
-	world.worldregistar_deinit()
-	immediate.free()
+//	renderer.renderer_free()
+//	world.worldregistar_deinit()
+//	immediate.free()
 	core.cell_free(&STATE)
 }
 
 resize :: proc() {
-	size := platform.windowhelper_get_window_size()
-
-	logic.camera_resize_view_port(&STATE.camera, size)
-
-	renderer.renderer_resize(size)
-
-	immediate.resize_viewport(size)
+//	size := platform.windowhelper_get_window_size()
+//
+//	logic.camera_resize_view_port(&STATE.camera, size)
+//
+//	renderer.renderer_resize(size)
+//
+//	immediate.resize_viewport(size)
 }
 
 main :: proc() {
 	file, ok := os.open("log.txt", os.O_CREATE | os.O_WRONLY)
-	
-	if ok != 0 {
-		context.logger = log.create_console_logger()
-		log.warn("Could not open the log file!")
-	} else {
-		context.logger = log.create_multi_logger(
-			log.create_file_logger(file),
+
+	logger: log.Logger = ---
+	if ok != 0 do logger = log.create_console_logger(); else {
+		logger = log.create_multi_logger(
 			log.create_console_logger(),
+			log.create_file_logger(file),
 		)
 	}
+	context.logger = logger
+	if ok != 0 do log.warn("Could not open the log file!")
 
 	ta: mem.Tracking_Allocator = ---
 	mem.tracking_allocator_init(&ta, context.allocator)

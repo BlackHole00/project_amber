@@ -1,7 +1,6 @@
 package vx_lib_gfx
 
 import "../core"
-import "core:mem"
 import "core:math/linalg/glsl"
 
 Gfx_Procs :: struct {

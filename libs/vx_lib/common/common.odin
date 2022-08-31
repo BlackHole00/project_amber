@@ -8,7 +8,7 @@ vx_lib_init :: proc() {
     platform.platform_init()
     platform_register_default_procs()
 
-    when ODIN_OS != .Darwin do windowcontext_init_with_gl(); else do windowcontext_init_empty() 
+    when ODIN_OS != .Darwin do windowcontext_init_with_gl(); else do windowcontext_init_with_metal() 
 }
 
 vx_lib_free :: proc() {
