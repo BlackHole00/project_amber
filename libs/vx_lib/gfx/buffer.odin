@@ -43,6 +43,11 @@ buffer_set_data :: proc(buffer: ^Buffer, data: []$T) {
     GFX_PROCS.buffer_set_data(buffer, mem.slice_to_bytes(data))
 }
 
+buffer_set_data_raw :: proc(buffer: ^Buffer, data: rawptr, len: int) {
+    slice := mem.byte_slice(data, len)
+    GFX_PROCS.buffer_set_data(buffer, slice)
+}
+
 buffer_free :: proc(buffer: ^Buffer) {
     GFX_PROCS.buffer_free(buffer)
 }

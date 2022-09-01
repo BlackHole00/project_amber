@@ -84,6 +84,7 @@ _metalimpl_pipeline_free :: proc(pipeline: ^Pipeline) {
 
 @(private)
 _metalimpl_pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
+    pipeline.wireframe = wireframe
 }
 
 @(private)
@@ -95,7 +96,7 @@ _metalimpl_pipeline_draw_arrays :: proc(pipeline: ^Pipeline, pass: ^Pass, bindin
     else do panic("TODO!")
 
 	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
-    _metalimpl_bindings_apply(bindings, render_encoder)
+    _metalimpl_bindings_apply(bindings, render_encoder, (^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers)
 	render_encoder->drawPrimitives(_metalimpl_primitive_to_glenum(primitive), (NS.UInteger)(first), (NS.UInteger)(count))
 
 	render_encoder->endEncoding()
@@ -112,7 +113,7 @@ _metalimpl_pipeline_draw_elements :: proc(pipeline: ^Pipeline, pass: ^Pass, bind
     if bindings.index_buffer == nil do panic("Requesting pipeline_draw_elements without an index buffer in the bindings")
 
 	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
-    _metalimpl_bindings_apply(bindings, render_encoder)
+    _metalimpl_bindings_apply(bindings, render_encoder, (^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers)
     render_encoder->drawIndexedPrimitives(
         _metalimpl_primitive_to_glenum(primitive), 
         (NS.UInteger)(count), 
@@ -133,7 +134,7 @@ _metalimpl_pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, pass: ^Pa
     else do panic("TODO!")
 
 	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
-    _metalimpl_bindings_apply(bindings, render_encoder)
+    _metalimpl_bindings_apply(bindings, render_encoder, (^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers)
 	render_encoder->drawPrimitivesWithInstanceCount(_metalimpl_primitive_to_glenum(primitive), (NS.UInteger)(first), (NS.UInteger)(count), (NS.UInteger)(instance_count))
 
 	render_encoder->endEncoding()
@@ -150,7 +151,7 @@ _metalimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, pass: ^
     if bindings.index_buffer == nil do panic("Requesting pipeline_draw_elements without an index buffer in the bindings")
 
 	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
-    _metalimpl_bindings_apply(bindings, render_encoder)
+    _metalimpl_bindings_apply(bindings, render_encoder, (^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers)
     render_encoder->drawIndexedPrimitivesWithInstanceCount(
         _metalimpl_primitive_to_glenum(primitive), 
         (NS.UInteger)(count), 
@@ -165,28 +166,41 @@ _metalimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, pass: ^
 
 @(private)
 _metalimpl_pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: f32) {
+    value_cpy := value
+    buffer_set_data_raw(&(^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers[uniform_location], &value_cpy, size_of(f32))
 }
 
 @(private)
 _metalimpl_pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec2) {
+    value_cpy := value
+    buffer_set_data_raw(&(^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers[uniform_location], &value_cpy, size_of(glsl.vec2))
 }
 
 @(private)
 _metalimpl_pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec3) {
+    value_cpy := value
+    buffer_set_data_raw(&(^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers[uniform_location], &value_cpy, size_of(glsl.vec3))
 }
 
 @(private)
 _metalimpl_pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec4) {
+    value_cpy := value
+    buffer_set_data_raw(&(^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers[uniform_location], &value_cpy, size_of(glsl.vec4))
 }
 
 @(private)
 _metalimpl_pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.mat4) {
+    value_cpy := value
+    buffer_set_data_raw(&(^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers[uniform_location], &value_cpy, size_of(glsl.mat4))
 }
 
 @(private)
 _metalimpl_pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_location: uint, value: i32) {
+    value_cpy := value
+    buffer_set_data_raw(&(^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers[uniform_location], &value_cpy, size_of(i32))
 }
 
+@(private)
 _metalimpl_shaderhandle_to_metalpipeline :: proc(handle: Gfx_Handle) -> ^MTL.RenderPipelineState {
     return transmute(^MTL.RenderPipelineState)(handle)
 }

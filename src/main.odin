@@ -94,7 +94,10 @@ init :: proc() {
 
 	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
 		source_path = "res/shader_test",
+
+		uniform_locations = 1,
 	})
+	gfx.pipeline_uniform_3f(&STATE.pipeline, 0, { 0.25, 0.25, 0.25 })
 
 	device := gfx.METAL_CONTEXT.device
 
@@ -181,12 +184,7 @@ tick :: proc() {
 }
 
 draw :: proc() {
-	swapchain := gfx.METAL_CONTEXT.swapchain
-
-	pipeline := gfx._metalimpl_shaderhandle_to_metalpipeline(STATE.pipeline.shader_handle)
-
 	gfx.pass_begin(&STATE.pass)
-
 
 	bindings: gfx.Bindings = ---
 	gfx.bindings_init(&bindings, []gfx.Buffer {

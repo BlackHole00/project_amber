@@ -187,12 +187,12 @@ gfxprocs_init_with_metal :: proc() {
     GFX_PROCS.pipeline_draw_elements = _metalimpl_pipeline_draw_elements
     core.safetize_function(&GFX_PROCS.pipeline_draw_arrays_instanced)
     core.safetize_function(&GFX_PROCS.pipeline_draw_elements_instanced)
-    core.safetize_function(&GFX_PROCS.pipeline_uniform_1f)
-    core.safetize_function(&GFX_PROCS.pipeline_uniform_2f)
-    core.safetize_function(&GFX_PROCS.pipeline_uniform_3f)
-    core.safetize_function(&GFX_PROCS.pipeline_uniform_4f)
-    core.safetize_function(&GFX_PROCS.pipeline_uniform_mat4f)
-    core.safetize_function(&GFX_PROCS.pipeline_uniform_1i)
+    GFX_PROCS.pipeline_uniform_1f = _metalimpl_pipeline_uniform_1f
+    GFX_PROCS.pipeline_uniform_2f = _metalimpl_pipeline_uniform_2f
+    GFX_PROCS.pipeline_uniform_3f = _metalimpl_pipeline_uniform_3f
+    GFX_PROCS.pipeline_uniform_4f = _metalimpl_pipeline_uniform_4f
+    GFX_PROCS.pipeline_uniform_mat4f = _metalimpl_pipeline_uniform_mat4f
+    GFX_PROCS.pipeline_uniform_1i = _metalimpl_pipeline_uniform_1i
     GFX_PROCS.pass_init = _metalimpl_pass_init
     GFX_PROCS.pass_begin = _metalimpl_pass_begin
     GFX_PROCS.pass_end = _metalimpl_pass_end
