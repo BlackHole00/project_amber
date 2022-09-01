@@ -92,6 +92,7 @@ renderer_free :: proc() {
     utils.textureatlas_free(&RENDERER_INSTANCE.block_texture_atlas)
     gfx.pipeline_free(&RENDERER_INSTANCE.full_block_solid_pipeline)
     gfx.pipeline_free(&RENDERER_INSTANCE.skybox_pipeline)
+    gfx.pass_free(&RENDERER_INSTANCE.pass)
     logic.skybox_free(&RENDERER_INSTANCE.skybox.mesh, &RENDERER_INSTANCE.skybox.texture)
 }
 

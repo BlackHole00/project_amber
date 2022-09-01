@@ -49,3 +49,7 @@ _glimpl_pass_bind_rendertarget :: proc(pass: Pass) {
 
     glsm.Viewport(0, 0, (i32)(pass.viewport_size.x), (i32)(pass.viewport_size.y))
 }
+
+@(private)
+_glimpl_pass_free :: proc(pass: ^Pass) {
+}

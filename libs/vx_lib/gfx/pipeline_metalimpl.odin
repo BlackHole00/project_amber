@@ -13,11 +13,10 @@ import MTL "vendor:darwin/Metal"
 @(private)
 Mtl_Extra_Data :: struct {
     uniform_buffers: []Buffer,
-    pass: ^MTL.RenderPassDescriptor,
 }
 
 @(private)
-_metalimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer) = nil) {
+_metalimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor) {
     if desc.layout == nil do log.warn("Creating a pipeline without a layout. This is fine in Metal, but will be a bug in other APIs")
 
     pipeline.states.cull_enabled = desc.cull_enabled
@@ -30,15 +29,9 @@ _metalimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor,
     pipeline.states.blend_dst_rgb_func = desc.blend_dst_rgb_func
     pipeline.states.blend_src_alpha_func = desc.blend_src_alpha_func
     pipeline.states.blend_dstdst_alphargb_func = desc.blend_dstdst_alphargb_func
-    pipeline.states.clear_color = desc.clear_color
     pipeline.states.wireframe = desc.wireframe
-    pipeline.states.viewport_size = desc.viewport_size
-    pipeline.states.clearing_color = desc.clearing_color
-    pipeline.states.clear_depth = desc.clear_depth
-    
-    pipeline.uniform_locations = desc.uniform_locations
 
-    pipeline.render_target = render_target
+    pipeline.uniform_locations = desc.uniform_locations
 
     pipeline.extra_data = (rawptr)(new(Mtl_Extra_Data))
     (^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers = make([]Buffer, desc.uniform_locations)
@@ -75,14 +68,11 @@ _metalimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor,
 	desc->setVertexFunction(vertex_function)
 	desc->setFragmentFunction(fragment_function)
 
-    if render_target == nil do desc->colorAttachments()->object(0)->setPixelFormat(.BGRA8Unorm_sRGB)
-    else do panic("TODO!") // desc->colorAttachments()->object(0)->setPixelFormat(framebuffer_get_texture_format(render_target.(Framebuffer)))
+    desc->colorAttachments()->object(0)->setPixelFormat(.BGRA8Unorm_sRGB)
 
     mtl_pipeline, mtl_pipeline_err := METAL_CONTEXT.device->newRenderPipelineStateWithDescriptor(desc)
     if mtl_pipeline_err != nil do panic("Could not create a metal pipeline")
 	pipeline.shader_handle = _metalimpl_metalpipeline_to_shader_handle(mtl_pipeline)
-
-    (^Mtl_Extra_Data)(pipeline.extra_data).pass = MTL.RenderPassDescriptor.renderPassDescriptor()
 }
 
 @(private)
@@ -91,30 +81,6 @@ _metalimpl_pipeline_free :: proc(pipeline: ^Pipeline) {
 
     delete((^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers)
     free(pipeline.extra_data)
-}
-
-@(private)
-_metalimpl_pipeline_resize :: proc(pipeline: ^Pipeline, new_size: [2]uint) {
-}
-
-@(private)
-_metalimpl_pipeline_clear :: proc(pipeline: Pipeline) {
-    if pipeline.states.clear_color {
-        // Listen to this: Odin is actually bugged, I believe. The value passed to clear color is not
-        // the one actually received by the function. :-P
-
-        color_attachment := _metalimpl_pipeline_get_pass(pipeline)->colorAttachments()->object(0)
-        assert(color_attachment != nil)
-        color_attachment->setClearColor(MTL.ClearColor { 
-            (f64)(pipeline.states.clearing_color[0]),
-            (f64)(pipeline.states.clearing_color[1]),
-            (f64)(pipeline.states.clearing_color[2]),
-            (f64)(pipeline.states.clearing_color[3]),
-        })
-        color_attachment->setLoadAction(.Clear)
-        color_attachment->setStoreAction(.Store)
-        color_attachment->setTexture(METAL_CONTEXT.drawable->texture())
-    }
 }
 
 @(private)
@@ -168,10 +134,6 @@ _metalimpl_shaderhandle_to_metalpipeline :: proc(handle: Gfx_Handle) -> ^MTL.Ren
 @(private)
 _metalimpl_metalpipeline_to_shader_handle :: proc(buffer: ^MTL.RenderPipelineState) -> Gfx_Handle {
     return transmute(Gfx_Handle)(buffer)
-}
-
-_metalimpl_pipeline_get_pass :: proc(pipeline: Pipeline) -> ^MTL.RenderPassDescriptor {
-    return (^Mtl_Extra_Data)(pipeline.extra_data).pass
 }
 
 }

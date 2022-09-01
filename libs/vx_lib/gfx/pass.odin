@@ -31,3 +31,7 @@ pass_end :: proc(pass: ^Pass) {
 pass_resize :: proc(pass: ^Pass, size: [2]uint) {
     GFX_PROCS.pass_resize(pass, size)
 }
+
+pass_free :: proc(pass: ^Pass) {
+    GFX_PROCS.pass_free(pass)
+}

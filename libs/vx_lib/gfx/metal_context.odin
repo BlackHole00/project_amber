@@ -12,12 +12,14 @@ import MTL "vendor:darwin/Metal"
 import CA "vendor:darwin/QuartzCore"
 
 Metal_Context :: struct {
+    // Permanent
     device: ^MTL.Device,
     swapchain: ^CA.MetalLayer,
-
-    drawable: ^CA.MetalDrawable,
-
     command_queue: ^MTL.CommandQueue,
+
+    // Per frame
+    drawable: ^CA.MetalDrawable,
+    default_command_buffer: ^MTL.CommandBuffer,
 }
 METAL_CONTEXT: core.Cell(Metal_Context)
 
@@ -39,20 +41,29 @@ metalcontext_init :: proc(handle: glfw.WindowHandle) {
 	cocoa_window->contentView()->setLayer(METAL_CONTEXT.swapchain)
 	cocoa_window->setOpaque(true)
 	cocoa_window->setBackgroundColor(nil)
+
+    METAL_CONTEXT.command_queue = METAL_CONTEXT.device->newCommandQueue()
 }
 
 metalcontext_pre_frame :: proc() {
+    METAL_CONTEXT.default_command_buffer = METAL_CONTEXT.command_queue->commandBuffer()
     METAL_CONTEXT.drawable = METAL_CONTEXT.swapchain->nextDrawable()
 	assert(METAL_CONTEXT.drawable != nil)
+
 }
 
 metalcontext_post_frame :: proc() {
+    METAL_CONTEXT.default_command_buffer->presentDrawable(METAL_CONTEXT.drawable)
+	METAL_CONTEXT.default_command_buffer->commit()
+    METAL_CONTEXT.default_command_buffer->release()
+
     METAL_CONTEXT.drawable->release()
 }
 
 metalcontext_free :: proc() {
     METAL_CONTEXT.device->release()
     METAL_CONTEXT.swapchain->release()
+    METAL_CONTEXT.command_queue->release()
 
     core.cell_free(&METAL_CONTEXT)
 }

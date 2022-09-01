@@ -15,8 +15,8 @@ import "vx_lib:logic/objects"
 import "project_amber:world"
 import "project_amber:renderer"
 import gl "vendor:OpenGL"
-//import NS "vendor:darwin/Foundation"
-//import MTL "vendor:darwin/Metal"
+import NS "vendor:darwin/Foundation"
+import MTL "vendor:darwin/Metal"
 
 
 Vertex :: struct #packed {
@@ -58,7 +58,8 @@ State :: struct {
 	vertex_positions_buffer: gfx.Buffer,
 	vertex_colors_buffer: gfx.Buffer,
 	pipeline: gfx.Pipeline,
-	//command_queue: ^MTL.CommandQueue,
+	command_queue: ^MTL.CommandQueue,
+	pass: gfx.Pass,
 }
 STATE: core.Cell(State)
 
@@ -89,139 +90,154 @@ init :: proc() {
 
 	core.cell_init(&STATE)
 
-	//gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
-	//	source_path = "res/shader_test",
+	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
+		source_path = "res/shader_test",
+	})
+
+	device := gfx.METAL_CONTEXT.device
+
+	STATE.vertex_positions_buffer, STATE.vertex_colors_buffer = build_buffers()
+
+	STATE.command_queue = device->newCommandQueue()
+
+	gfx.pass_init(&STATE.pass, gfx.Pass_Descriptor {
+		clear_color = true,
+		clear_depth = false,
+		clearing_color = { 0.0, 0.0, 0.0, 0.0 },
+	})
+
+//	renderer.renderer_init()
 //
-	//	clearing_color = { 1.0, 1.0, 1.0, 1.0 },
-	//	clear_color = true,
-	//})
+//	immediate.init(immediate.Context_Descriptor {
+//		pass = renderer.renderer_get_pass(),
+//	})
 //
-	//device := gfx.METAL_CONTEXT.device
+//	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
+//		fov = 3.14 / 2.0,
+//		viewport_size = platform.windowhelper_get_window_size(),
+//		near = 0.01, 
+//		far = 1000.0,
+//	})
+//	STATE.camera.position = { 0.0, 0.0, 0.0 }
+//	STATE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
 //
-	//STATE.vertex_positions_buffer, STATE.vertex_colors_buffer = build_buffers()
+//	world.blockregistar_init()
+//	world.blockregistar_register_block("dirt", world.Block_Behaviour {
+//		solid = true,
+//		mesh = world.Full_Block_Mesh {
+//			texturing = world.Full_Block_Mesh_Single_Texture {
+//				texture = "dirt",
+//				modifiers = { .Natural_Flip_X, .Natural_Flip_Y },
+//			},
+//		},
+//	})
+//	world.blockregistar_register_block("grass", world.Block_Behaviour {
+//		solid = true,
+//		mesh = world.Full_Block_Mesh {
+//			texturing = world.Full_Block_Mesh_Multi_Texture {
+//				{ texture = "grass_top",  modifiers = { .Natural_Flip_X, .Natural_Flip_Y } },
+//				{ texture = "dirt", 	  modifiers = { .Natural_Flip_X, .Natural_Flip_Y } },
+//				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+//				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+//				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+//				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
+//			},
+//		},
+//	})
 //
-	//STATE.command_queue = device->newCommandQueue()
-
-	renderer.renderer_init()
-
-	immediate.init(immediate.Context_Descriptor {
-		pass = renderer.renderer_get_pass(),
-	})
-
-	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
-		fov = 3.14 / 2.0,
-		viewport_size = platform.windowhelper_get_window_size(),
-		near = 0.01, 
-		far = 1000.0,
-	})
-	STATE.camera.position = { 0.0, 0.0, 0.0 }
-	STATE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
-
-	world.blockregistar_init()
-	world.blockregistar_register_block("dirt", world.Block_Behaviour {
-		solid = true,
-		mesh = world.Full_Block_Mesh {
-			texturing = world.Full_Block_Mesh_Single_Texture {
-				texture = "dirt",
-				modifiers = { .Natural_Flip_X, .Natural_Flip_Y },
-			},
-		},
-	})
-	world.blockregistar_register_block("grass", world.Block_Behaviour {
-		solid = true,
-		mesh = world.Full_Block_Mesh {
-			texturing = world.Full_Block_Mesh_Multi_Texture {
-				{ texture = "grass_top",  modifiers = { .Natural_Flip_X, .Natural_Flip_Y } },
-				{ texture = "dirt", 	  modifiers = { .Natural_Flip_X, .Natural_Flip_Y } },
-				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
-				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
-				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
-				{ texture = "grass_side", modifiers = { .Natural_Flip_X } },
-			},
-		},
-	})
-
-	world.worldregistar_init()
-	world.worldregistar_add_world("level_0")
-	STATE.world_accessor = world.worldregistar_get_world_accessor("level_0")
-
-	world.worldaccessor_register_chunk(STATE.world_accessor, { 0, 0, 0 })
-	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
-	for x in 0..<world.CHUNK_SIZE do for y in 0..<(world.CHUNK_SIZE - 1) do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), (uint)(y), (uint)(z), world.Block_Instance_Descriptor {
-		block = "dirt",
-	})
-	for x in 0..<world.CHUNK_SIZE do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), world.CHUNK_SIZE - 1, (uint)(z), world.Block_Instance_Descriptor {
-		block = "grass",
-	})
-	world.chunk_set_block(chunk, 7, 15, 7, world.Block_Instance_Descriptor {
-		block = "air",
-	})
-	world.chunk_remesh(chunk, STATE.world_accessor)
+//	world.worldregistar_init()
+//	world.worldregistar_add_world("level_0")
+//	STATE.world_accessor = world.worldregistar_get_world_accessor("level_0")
+//
+//	world.worldaccessor_register_chunk(STATE.world_accessor, { 0, 0, 0 })
+//	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
+//	for x in 0..<world.CHUNK_SIZE do for y in 0..<(world.CHUNK_SIZE - 1) do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), (uint)(y), (uint)(z), world.Block_Instance_Descriptor {
+//		block = "dirt",
+//	})
+//	for x in 0..<world.CHUNK_SIZE do for z in 0..<world.CHUNK_SIZE do world.chunk_set_block(chunk, (uint)(x), world.CHUNK_SIZE - 1, (uint)(z), world.Block_Instance_Descriptor {
+//		block = "grass",
+//	})
+//	world.chunk_set_block(chunk, 7, 15, 7, world.Block_Instance_Descriptor {
+//		block = "air",
+//	})
+//	world.chunk_remesh(chunk, STATE.world_accessor)
 }
 
 tick :: proc() {
-	input_common()
-	input_camera_movement()
+//	input_common()
+//	input_camera_movement()
 }
 
 draw :: proc() {
-	renderer.renderer_begin_drawing()
+//	renderer.renderer_begin_drawing()
+//
+//	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
+//	renderer.renderer_draw_skybox()
+//
+//	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
+//	world.draw_chunk(chunk)
+//
+//	fov_str := fmt.aprint("fov:", math.to_degrees(STATE.camera.perspective_data.fov))
+//	defer delete(fov_str)
+//	fps_str := fmt.aprint("fps:", platform.windowhelper_get_fps(), "- ms:", platform.windowhelper_get_ms())
+//	defer delete(fps_str)
+//
+//	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fps_str)
+//	immediate.push_string({ 0.0, immediate.DEFAULT_FONT_SIZE.x / 8.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fov_str)
+//	immediate.draw()
+//
+//	renderer.renderer_end_drawing()
 
-	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
-	renderer.renderer_draw_skybox()
+	swapchain := gfx.METAL_CONTEXT.swapchain
 
-	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
-	world.draw_chunk(chunk)
+	pipeline := gfx._metalimpl_shaderhandle_to_metalpipeline(STATE.pipeline.shader_handle)
 
-	fov_str := fmt.aprint("fov:", math.to_degrees(STATE.camera.perspective_data.fov))
-	defer delete(fov_str)
-	fps_str := fmt.aprint("fps:", platform.windowhelper_get_fps(), "- ms:", platform.windowhelper_get_ms())
-	defer delete(fps_str)
+	//command_buffer := STATE.command_queue->commandBuffer()
+	//defer command_buffer->release()
+//
+	//pass := MTL.RenderPassDescriptor.renderPassDescriptor()
+	//defer pass->release()
 
-	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fps_str)
-	immediate.push_string({ 0.0, immediate.DEFAULT_FONT_SIZE.x / 8.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fov_str)
-	immediate.draw()
+	//color_attachment := pass->colorAttachments()->object(0)
+	//assert(color_attachment != nil)
+	//color_attachment->setClearColor(MTL.ClearColor{0.25, 0.5, 1.0, 1.0})
+	//color_attachment->setLoadAction(.Clear)
+	//color_attachment->setStoreAction(.Store)
+	//color_attachment->setTexture(gfx.METAL_CONTEXT.drawable->texture())
 
-	renderer.renderer_end_drawing()
+	gfx.pass_begin(&STATE.pass)
+//
+	render_encoder := gfx.METAL_CONTEXT.default_command_buffer->renderCommandEncoderWithDescriptor((^gfx.Mtl_Pass_Data)(STATE.pass.extra_data).pass)
+	defer render_encoder->release()
 
-//	swapchain := gfx.METAL_CONTEXT.swapchain
+	render_encoder->setRenderPipelineState(pipeline)
+	render_encoder->setVertexBuffer(gfx._metalimpl_bufferhandle_to_metalbuffer(STATE.vertex_positions_buffer.buffer_handle), 0, 0)
+	render_encoder->setVertexBuffer(gfx._metalimpl_bufferhandle_to_metalbuffer(STATE.vertex_colors_buffer.buffer_handle), 0, 1)
+	render_encoder->drawPrimitives(.Triangle, 0, 3)
+
+	render_encoder->endEncoding()
 //
-//	pipeline := gfx._metalimpl_shaderhandle_to_metalpipeline(STATE.pipeline.shader_handle)
-//
-//	command_buffer := STATE.command_queue->commandBuffer()
-//	defer command_buffer->release()
-//
-//	gfx.pipeline_clear(STATE.pipeline)
-//
-//	render_encoder := command_buffer->renderCommandEncoderWithDescriptor(gfx._metalimpl_pipeline_get_pass(STATE.pipeline))
-//	defer render_encoder->release()
-//
-//	render_encoder->setRenderPipelineState(pipeline)
-//	render_encoder->setVertexBuffer(gfx._metalimpl_bufferhandle_to_metalbuffer(STATE.vertex_positions_buffer.buffer_handle), 0, 0)
-//	render_encoder->setVertexBuffer(gfx._metalimpl_bufferhandle_to_metalbuffer(STATE.vertex_colors_buffer.buffer_handle), 0, 1)
-//	render_encoder->drawPrimitives(.Triangle, 0, 3)
-//
-//	render_encoder->endEncoding()
-//
-//	command_buffer->presentDrawable(gfx.METAL_CONTEXT.drawable)
-//	command_buffer->commit()
+	gfx.pass_end(&STATE.pass)
+
+	//command_buffer->presentDrawable(gfx.METAL_CONTEXT.drawable)
+	//command_buffer->commit()
 }
 
 close :: proc() {
-	renderer.renderer_free()
-	world.worldregistar_deinit()
-	immediate.free()
+	//renderer.renderer_free()
+	//world.worldregistar_deinit()
+	//immediate.free()
 	core.cell_free(&STATE)
 }
 
 resize :: proc() {
-	size := platform.windowhelper_get_window_size()
-
-	logic.camera_resize_view_port(&STATE.camera, size)
-
-	renderer.renderer_resize(size)
-
-	immediate.resize_viewport(size)
+//	size := platform.windowhelper_get_window_size()
+//
+//	logic.camera_resize_view_port(&STATE.camera, size)
+//
+//	renderer.renderer_resize(size)
+//
+//	immediate.resize_viewport(size)
 }
 
 main :: proc() {

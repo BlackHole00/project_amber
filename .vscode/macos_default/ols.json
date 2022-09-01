@@ -10,11 +10,11 @@
         },
         {
             "name": "vx_lib",
-            "path": "libs\\vx_lib"
+            "path": "libs/vx_lib"
         },
         {
             "name": "project_amber",
-            "path": "libs\\project_amber"
+            "path": "libs/project_amber"
         }
     ],
     "enable_document_symbols": true,
