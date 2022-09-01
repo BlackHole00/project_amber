@@ -88,7 +88,18 @@ _metalimpl_pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) 
 }
 
 @(private)
-_metalimpl_pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int) {
+_metalimpl_pipeline_draw_arrays :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int) {
+    render_encoder: ^MTL.RenderCommandEncoder
+    defer render_encoder->release()
+
+    if pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pass^))
+    else do panic("TODO!")
+
+	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
+    _metalimpl_bindings_apply(bindings, render_encoder)
+	render_encoder->drawPrimitives(_metalimpl_primitive_to_glenum(primitive), (NS.UInteger)(first), (NS.UInteger)(count))
+
+	render_encoder->endEncoding()
 }
 
 @(private)
@@ -135,5 +146,20 @@ _metalimpl_shaderhandle_to_metalpipeline :: proc(handle: Gfx_Handle) -> ^MTL.Ren
 _metalimpl_metalpipeline_to_shader_handle :: proc(buffer: ^MTL.RenderPipelineState) -> Gfx_Handle {
     return transmute(Gfx_Handle)(buffer)
 }
+
+@(private)
+_metalimpl_pipeline_get_mtl_pipeline :: proc(pipeline: Pipeline) -> ^MTL.RenderPipelineState {
+    return _metalimpl_shaderhandle_to_metalpipeline(pipeline.shader_handle)
+}
+
+@(private)
+_metalimpl_primitive_to_glenum :: proc(primitive: Primitive) -> MTL.PrimitiveType {
+    switch primitive {
+        case .Triangles: return .Triangle
+    }
+
+    return .Triangle
+}
+
 
 }

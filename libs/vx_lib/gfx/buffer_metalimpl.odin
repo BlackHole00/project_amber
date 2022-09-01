@@ -64,4 +64,9 @@ _metalimpl_metalbuffer_to_buffer_handle :: proc(buffer: ^MTL.Buffer) -> Gfx_Hand
     return transmute(Gfx_Handle)(buffer)
 }
 
+@(private)
+_metalimpl_buffer_get_mtl_buffer :: proc(buffer: Buffer) -> ^MTL.Buffer {
+    return _metalimpl_bufferhandle_to_metalbuffer(buffer.buffer_handle)
+}
+
 }

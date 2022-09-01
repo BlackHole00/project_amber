@@ -67,7 +67,7 @@ _glimpl_pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
 _glimpl_pipeline_draw_arrays :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int,) {
     _glimpl_pipeline_apply(pipeline^)
     _glimpl_pipeline_bind(pipeline^)
-    bindings_apply(pipeline, bindings)
+    _glimpl_bindings_apply(pipeline, bindings)
     _glimpl_pass_bind_rendertarget(pass^)
 
     gl.DrawArrays(_glimpl_primitive_to_glenum(primitive), (i32)(first), (i32)(count))
@@ -77,7 +77,7 @@ _glimpl_pipeline_draw_arrays :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings:
 _glimpl_pipeline_draw_elements :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int) {
     _glimpl_pipeline_apply(pipeline^)
     _glimpl_pipeline_bind(pipeline^)
-    bindings_apply(pipeline, bindings)
+    _glimpl_bindings_apply(pipeline, bindings)
     _glimpl_pass_bind_rendertarget(pass^)
 
     gl.DrawElements(_glimpl_primitive_to_glenum(primitive), (i32)(count), _glimpl_indextype_to_glenum(type), nil)
@@ -87,7 +87,7 @@ _glimpl_pipeline_draw_elements :: proc(pipeline: ^Pipeline, pass: ^Pass, binding
 _glimpl_pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
     _glimpl_pipeline_apply(pipeline^)
     _glimpl_pipeline_bind(pipeline^)
-    bindings_apply(pipeline, bindings)
+    _glimpl_bindings_apply(pipeline, bindings)
     _glimpl_pass_bind_rendertarget(pass^)
 
     gl.DrawArraysInstanced(_glimpl_primitive_to_glenum(primitive), (i32)(first), (i32)(count), (i32)(instance_count))
@@ -97,7 +97,7 @@ _glimpl_pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass,
 _glimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int) {
     _glimpl_pipeline_apply(pipeline^)
     _glimpl_pipeline_bind(pipeline^)
-    bindings_apply(pipeline, bindings)
+    _glimpl_bindings_apply(pipeline, bindings)
     _glimpl_pass_bind_rendertarget(pass^)
 
     gl.DrawElementsInstanced(_glimpl_primitive_to_glenum(primitive), (i32)(count), _glimpl_indextype_to_glenum(type), nil, (i32)(instance_count))

@@ -104,6 +104,7 @@ init :: proc() {
 		clear_color = true,
 		clear_depth = false,
 		clearing_color = { 0.0, 0.0, 0.0, 0.0 },
+		viewport_size = { 640, 480 },
 	})
 
 //	renderer.renderer_init()
@@ -169,58 +170,22 @@ tick :: proc() {
 }
 
 draw :: proc() {
-//	renderer.renderer_begin_drawing()
-//
-//	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
-//	renderer.renderer_draw_skybox()
-//
-//	chunk := world.worldaccessor_get_chunk(STATE.world_accessor, { 0, 0, 0 })
-//	world.draw_chunk(chunk)
-//
-//	fov_str := fmt.aprint("fov:", math.to_degrees(STATE.camera.perspective_data.fov))
-//	defer delete(fov_str)
-//	fps_str := fmt.aprint("fps:", platform.windowhelper_get_fps(), "- ms:", platform.windowhelper_get_ms())
-//	defer delete(fps_str)
-//
-//	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fps_str)
-//	immediate.push_string({ 0.0, immediate.DEFAULT_FONT_SIZE.x / 8.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fov_str)
-//	immediate.draw()
-//
-//	renderer.renderer_end_drawing()
-
 	swapchain := gfx.METAL_CONTEXT.swapchain
 
 	pipeline := gfx._metalimpl_shaderhandle_to_metalpipeline(STATE.pipeline.shader_handle)
 
-	//command_buffer := STATE.command_queue->commandBuffer()
-	//defer command_buffer->release()
-//
-	//pass := MTL.RenderPassDescriptor.renderPassDescriptor()
-	//defer pass->release()
-
-	//color_attachment := pass->colorAttachments()->object(0)
-	//assert(color_attachment != nil)
-	//color_attachment->setClearColor(MTL.ClearColor{0.25, 0.5, 1.0, 1.0})
-	//color_attachment->setLoadAction(.Clear)
-	//color_attachment->setStoreAction(.Store)
-	//color_attachment->setTexture(gfx.METAL_CONTEXT.drawable->texture())
-
 	gfx.pass_begin(&STATE.pass)
-//
-	render_encoder := gfx.METAL_CONTEXT.default_command_buffer->renderCommandEncoderWithDescriptor((^gfx.Mtl_Pass_Data)(STATE.pass.extra_data).pass)
-	defer render_encoder->release()
 
-	render_encoder->setRenderPipelineState(pipeline)
-	render_encoder->setVertexBuffer(gfx._metalimpl_bufferhandle_to_metalbuffer(STATE.vertex_positions_buffer.buffer_handle), 0, 0)
-	render_encoder->setVertexBuffer(gfx._metalimpl_bufferhandle_to_metalbuffer(STATE.vertex_colors_buffer.buffer_handle), 0, 1)
-	render_encoder->drawPrimitives(.Triangle, 0, 3)
 
-	render_encoder->endEncoding()
-//
+	bindings: gfx.Bindings = ---
+	gfx.bindings_init(&bindings, []gfx.Buffer {
+		STATE.vertex_positions_buffer,
+		STATE.vertex_colors_buffer,
+	})
+
+	gfx.pipeline_draw_arrays(&STATE.pipeline, &STATE.pass, &bindings, .Triangles, 0, 3)
+
 	gfx.pass_end(&STATE.pass)
-
-	//command_buffer->presentDrawable(gfx.METAL_CONTEXT.drawable)
-	//command_buffer->commit()
 }
 
 close :: proc() {

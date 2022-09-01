@@ -26,8 +26,6 @@ Gfx_Procs :: struct {
     texture_copy_2d: proc(src: Texture, dest: Texture, src_offset: [3]i32, dest_offset: [3]i32),
     texture_copy_3d: proc(src: Texture, dest: Texture, src_offset: [3]i32, dest_offset: [3]i32),
 
-    bindings_apply: proc(pipeline: ^Pipeline, bindings: ^Bindings),
-
     framebuffer_init: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor),
     framebuffer_free: proc(framebuffer: ^Framebuffer),
     framebuffer_get_color_texture_bindings: proc(framebuffer: Framebuffer, color_texture_location: uint) -> Texture_Binding,
@@ -80,8 +78,6 @@ gfxprocs_init_with_opengl :: proc() {
     GFX_PROCS.texture_copy_2d = _glimpl_texture_copy_2d
     GFX_PROCS.texture_copy_3d = _glimpl_texture_copy_3d
 
-    GFX_PROCS.bindings_apply = _glimpl_bindings_apply
-
     GFX_PROCS.framebuffer_init = _glimpl_framebuffer_init
     GFX_PROCS.framebuffer_free = _glimpl_framebuffer_free
     GFX_PROCS.framebuffer_get_color_texture_bindings = _glimpl_framebuffer_get_color_texture_bindings
@@ -131,7 +127,6 @@ gfxprocs_init_empty :: proc() {
     core.safetize_function(&GFX_PROCS.texture_copy_1d)
     core.safetize_function(&GFX_PROCS.texture_copy_2d)
     core.safetize_function(&GFX_PROCS.texture_copy_3d)
-    core.safetize_function(&GFX_PROCS.bindings_apply)
     core.safetize_function(&GFX_PROCS.framebuffer_init )
     core.safetize_function(&GFX_PROCS.framebuffer_free )
     core.safetize_function(&GFX_PROCS.framebuffer_get_color_texture_bindings)
@@ -181,7 +176,6 @@ gfxprocs_init_with_metal :: proc() {
     core.safetize_function(&GFX_PROCS.texture_copy_1d)
     core.safetize_function(&GFX_PROCS.texture_copy_2d)
     core.safetize_function(&GFX_PROCS.texture_copy_3d)
-    core.safetize_function(&GFX_PROCS.bindings_apply)
     core.safetize_function(&GFX_PROCS.framebuffer_init )
     core.safetize_function(&GFX_PROCS.framebuffer_free )
     core.safetize_function(&GFX_PROCS.framebuffer_get_color_texture_bindings)
@@ -189,7 +183,7 @@ gfxprocs_init_with_metal :: proc() {
     GFX_PROCS.pipeline_init = _metalimpl_pipeline_init
     GFX_PROCS.pipeline_free = _metalimpl_pipeline_free
     core.safetize_function(&GFX_PROCS.pipeline_set_wireframe)
-    core.safetize_function(&GFX_PROCS.pipeline_draw_arrays)
+    GFX_PROCS.pipeline_draw_arrays = _metalimpl_pipeline_draw_arrays
     core.safetize_function(&GFX_PROCS.pipeline_draw_elements)
     core.safetize_function(&GFX_PROCS.pipeline_draw_arrays_instanced)
     core.safetize_function(&GFX_PROCS.pipeline_draw_elements_instanced)
