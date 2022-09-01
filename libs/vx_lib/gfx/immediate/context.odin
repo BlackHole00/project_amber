@@ -8,15 +8,13 @@ import "../../logic/objects"
 import "core:math"
 
 Context_Descriptor :: struct {
-    target_framebuffer: Maybe(gfx.Framebuffer),
-    viewport_size: [2]uint,
-
-    clear_depth_buffer: bool,
-    clear_color: bool,
+    pass: ^gfx.Pass,
 }
 
 @(private)
 Context :: struct {
+    pass: ^gfx.Pass,
+
     font_atlas: utils.Texture_Atlas,
 
     textured_pipeline: gfx.Pipeline,
@@ -51,16 +49,10 @@ init :: proc(desc: Context_Descriptor) {
 
         uniform_locations = 3,
 
-		viewport_size = desc.viewport_size,
-
         source_path = "res/vx_lib/shaders/immediate_textured",
 
-		clearing_color = { 0.0, 0.0, 0.0, 0.0 },
-        clear_depth = desc.clear_depth_buffer,
-        clear_color = desc.clear_color,
-
         layout = TEXTURED_LAYOUT,
-    }, desc.target_framebuffer)
+    })
 
     gfx.pipeline_init(&CONTEXT_INSTANCE.color_pipeline, gfx.Pipeline_Descriptor {
         cull_enabled = false,
@@ -80,16 +72,10 @@ init :: proc(desc: Context_Descriptor) {
 
         uniform_locations = 2,
 
-		viewport_size = desc.viewport_size,
-
-		clearing_color = { 0.0, 0.0, 0.0, 0.0 },
-        clear_depth = desc.clear_depth_buffer,
-        clear_color = desc.clear_color,
-
         source_path = "res/vx_lib/shaders/immediate_colored",
 
         layout = COLOR_LAYOUT,
-    }, desc.target_framebuffer)
+    })
 
     utils.batcher_init(&CONTEXT_INSTANCE.color_batcher, utils.Batcher_Descriptor {
         primitive = .Triangles,
@@ -110,14 +96,16 @@ init :: proc(desc: Context_Descriptor) {
 
     logic.camera_init(&CONTEXT_INSTANCE.camera, logic.Orthographic_Camera_Descriptor {
         left   = 0.0,
-        right  = (f32)(desc.viewport_size.x),
-        top    = (f32)(desc.viewport_size.y),
+        right  = (f32)(desc.pass.viewport_size.x),
+        top    = (f32)(desc.pass.viewport_size.y),
         bottom = 0.0,
         near   = 0.0001,
         far    = 1000.0,
     })
     CONTEXT_INSTANCE.camera.position = { 0.0, 0.0, 1.0 }
 	CONTEXT_INSTANCE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
+
+    CONTEXT_INSTANCE.pass = desc.pass
 }
 
 free :: proc() {

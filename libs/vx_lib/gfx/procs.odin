@@ -33,21 +33,24 @@ Gfx_Procs :: struct {
     framebuffer_get_color_texture_bindings: proc(framebuffer: Framebuffer, color_texture_location: uint) -> Texture_Binding,
     framebuffer_get_depth_stencil_texture_bindings: proc(framebuffer: Framebuffer, depth_stencil_texture_location: uint) -> Texture_Binding,
 
-    pipeline_init: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer)),
+    pipeline_init: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor),
     pipeline_free: proc(pipeline: ^Pipeline),
-    pipeline_resize: proc(pipeline: ^Pipeline, new_size: [2]uint),
-    pipeline_clear: proc(pipeline: Pipeline),
     pipeline_set_wireframe: proc(pipeline: ^Pipeline, wireframe: bool),
-    pipeline_draw_arrays: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int),
-    pipeline_draw_elements: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int),
-    pipeline_draw_arrays_instanced: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int),
-    pipeline_draw_elements_instanced: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int),
+    pipeline_draw_arrays: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int),
+    pipeline_draw_elements: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int),
+    pipeline_draw_arrays_instanced: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int),
+    pipeline_draw_elements_instanced: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int),
     pipeline_uniform_1f: proc(pipeline: ^Pipeline, uniform_location: uint, value: f32),
     pipeline_uniform_2f: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec2),
     pipeline_uniform_3f: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec3),
     pipeline_uniform_4f: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec4),
     pipeline_uniform_mat4f: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.mat4),
     pipeline_uniform_1i: proc(pipeline: ^Pipeline, uniform_location: uint, value: i32),
+
+    pass_init: proc(pass: ^Pass, desc: Pass_Descriptor, target: Maybe(Framebuffer)),
+    pass_begin: proc(pass: ^Pass),
+    pass_end: proc(pass: ^Pass),
+    pass_resize: proc(pass: ^Pass, size: [2]uint),
 }
 GFX_PROCS: core.Cell(Gfx_Procs)
 
@@ -85,8 +88,6 @@ gfxprocs_init_with_opengl :: proc() {
 
     GFX_PROCS.pipeline_init = _glimpl_pipeline_init
     GFX_PROCS.pipeline_free = _glimpl_pipeline_free
-    GFX_PROCS.pipeline_resize = _glimpl_pipeline_resize
-    GFX_PROCS.pipeline_clear = _glimpl_pipeline_clear
     GFX_PROCS.pipeline_set_wireframe = _glimpl_pipeline_set_wireframe
     GFX_PROCS.pipeline_draw_arrays = _glimpl_pipeline_draw_arrays
     GFX_PROCS.pipeline_draw_elements = _glimpl_pipeline_draw_elements
@@ -98,6 +99,11 @@ gfxprocs_init_with_opengl :: proc() {
     GFX_PROCS.pipeline_uniform_4f = _glimpl_pipeline_uniform_4f
     GFX_PROCS.pipeline_uniform_mat4f = _glimpl_pipeline_uniform_mat4f
     GFX_PROCS.pipeline_uniform_1i = _glimpl_pipeline_uniform_1i
+
+    GFX_PROCS.pass_init = _glimpl_pass_init
+    GFX_PROCS.pass_begin = _glimpl_pass_begin
+    GFX_PROCS.pass_end = _glimpl_pass_end
+    GFX_PROCS.pass_resize = _glimpl_pass_resize
 }
 
 gfxprocs_init_empty :: proc() {
@@ -128,15 +134,13 @@ gfxprocs_init_empty :: proc() {
     GFX_PROCS.framebuffer_free = (proc(framebuffer: ^Framebuffer))(core.dummy_func)
     GFX_PROCS.framebuffer_get_color_texture_bindings = (proc(framebuffer: Framebuffer, color_texture_location: uint) -> Texture_Binding)(core.dummy_func)
     GFX_PROCS.framebuffer_get_depth_stencil_texture_bindings = (proc(framebuffer: Framebuffer, depth_stencil_texture_location: uint) -> Texture_Binding)(core.dummy_func)
-    GFX_PROCS.pipeline_init = (proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer)))(core.dummy_func)
+    GFX_PROCS.pipeline_init = (proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor))(core.dummy_func)
     GFX_PROCS.pipeline_free = (proc(pipeline: ^Pipeline))(core.dummy_func)
-    GFX_PROCS.pipeline_resize = (proc(pipeline: ^Pipeline, new_size: [2]uint))(core.dummy_func)
-    GFX_PROCS.pipeline_clear = (proc(pipeline: Pipeline))(core.dummy_func)
     GFX_PROCS.pipeline_set_wireframe = (proc(pipeline: ^Pipeline, wireframe: bool))(core.dummy_func)
-    GFX_PROCS.pipeline_draw_arrays = (proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int))(core.dummy_func)
-    GFX_PROCS.pipeline_draw_elements = (proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int))(core.dummy_func)
-    GFX_PROCS.pipeline_draw_arrays_instanced = (proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int))(core.dummy_func)
-    GFX_PROCS.pipeline_draw_elements_instanced = (proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int))(core.dummy_func)
+    GFX_PROCS.pipeline_draw_arrays = (proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int))(core.dummy_func)
+    GFX_PROCS.pipeline_draw_elements = (proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int))(core.dummy_func)
+    GFX_PROCS.pipeline_draw_arrays_instanced = (proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int))(core.dummy_func)
+    GFX_PROCS.pipeline_draw_elements_instanced = (proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int))(core.dummy_func)
     GFX_PROCS.pipeline_uniform_1f = (proc(pipeline: ^Pipeline, uniform_location: uint, value: f32))(core.dummy_func)
     GFX_PROCS.pipeline_uniform_2f = (proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec2))(core.dummy_func)
     GFX_PROCS.pipeline_uniform_3f = (proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec3))(core.dummy_func)

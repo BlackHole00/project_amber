@@ -105,10 +105,7 @@ init :: proc() {
 	renderer.renderer_init()
 
 	immediate.init(immediate.Context_Descriptor {
-		target_framebuffer = nil,
-		viewport_size = { 640, 480 },
-		clear_color = false,
-		clear_depth_buffer = true,
+		pass = renderer.renderer_get_pass(),
 	})
 
 	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
@@ -168,7 +165,7 @@ tick :: proc() {
 }
 
 draw :: proc() {
-	renderer.renderer_prepare_drawing()
+	renderer.renderer_begin_drawing()
 
 	renderer.renderer_update_camera(STATE.camera, STATE.camera.position, STATE.camera.rotation)
 	renderer.renderer_draw_skybox()
@@ -184,6 +181,8 @@ draw :: proc() {
 	immediate.push_string({ 0.0, 0.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fps_str)
 	immediate.push_string({ 0.0, immediate.DEFAULT_FONT_SIZE.x / 8.0 }, immediate.DEFAULT_FONT_SIZE / 8.0, fov_str)
 	immediate.draw()
+
+	renderer.renderer_end_drawing()
 
 //	swapchain := gfx.METAL_CONTEXT.swapchain
 //

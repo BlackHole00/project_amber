@@ -17,6 +17,8 @@ Renderer :: struct {
     skybox_pipeline: gfx.Pipeline,
 	skybox: objects.Skybox,
 	skybox_bindings: gfx.Bindings,
+
+    pass: gfx.Pass,
 }
 RENDERER_INSTANCE: core.Cell(Renderer)
 
@@ -47,11 +49,6 @@ renderer_init :: proc() {
 
         wireframe = false,
 
-        viewport_size = window_size,
-
-        clear_color = true,
-        clear_depth = true,
-
         layout = WORLD_VERTEX_LAYOUT,
 
         uniform_locations = 4,
@@ -66,17 +63,20 @@ renderer_init :: proc() {
 
 		wireframe = false,
 
-		viewport_size = window_size,
-
-		clear_color = false,
-		clear_depth = false,
-
         uniform_locations = 3,
 
         layout = SKYBOX_LAYOUT,
 
         source_path = "res/project_amber/shaders/skybox",
 	})
+
+    gfx.pass_init(&RENDERER_INSTANCE.pass, gfx.Pass_Descriptor {
+        clearing_color = { 0, 0, 0, 0 },
+        clear_color = true,
+        clear_depth = true,
+
+        viewport_size = window_size,
+    })
 
 	logic.skybox_init(&RENDERER_INSTANCE.skybox.mesh, &RENDERER_INSTANCE.skybox.texture, 
         "res/project_amber/textures/skybox/right.bmp",
@@ -101,14 +101,21 @@ renderer_update_camera :: proc(camera: logic.Camera_Component, position: logic.P
 }
 
 renderer_resize :: proc(size: [2]uint) {
-    gfx.pipeline_resize(&RENDERER_INSTANCE.full_block_solid_pipeline, size)
-    gfx.pipeline_resize(&RENDERER_INSTANCE.skybox_pipeline, size)
+    gfx.pass_resize(&RENDERER_INSTANCE.pass, size)
 }
 
 renderer_draw_skybox :: proc() {
-	logic.skybox_draw(&RENDERER_INSTANCE.skybox_pipeline, RENDERER_INSTANCE.skybox.mesh, RENDERER_INSTANCE.skybox.texture)
+	logic.skybox_draw(&RENDERER_INSTANCE.skybox_pipeline, &RENDERER_INSTANCE.pass, RENDERER_INSTANCE.skybox.mesh, RENDERER_INSTANCE.skybox.texture)
 }
 
-renderer_prepare_drawing :: proc() {
-	gfx.pipeline_clear(RENDERER_INSTANCE.full_block_solid_pipeline)
+renderer_begin_drawing :: proc() {
+	gfx.pass_begin(&RENDERER_INSTANCE.pass)
+}
+
+renderer_end_drawing :: proc() {
+    gfx.pass_end(&RENDERER_INSTANCE.pass)
+}
+
+renderer_get_pass :: proc() -> ^gfx.Pass {
+    return &RENDERER_INSTANCE.pass
 }

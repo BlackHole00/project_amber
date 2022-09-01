@@ -7,7 +7,7 @@ import "core:os"
 import "core:log"
 
 @(private)
-_glimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer)) {
+_glimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor) {
     gl.CreateVertexArrays(1, ([^]u32)(&pipeline.layout_handle))
     _glimpl_pipeline_layout_resolve(pipeline, desc.layout)
 
@@ -39,15 +39,9 @@ _glimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, re
     pipeline.states.blend_dst_rgb_func = desc.blend_dst_rgb_func
     pipeline.states.blend_src_alpha_func = desc.blend_src_alpha_func
     pipeline.states.blend_dstdst_alphargb_func = desc.blend_dstdst_alphargb_func
-    pipeline.states.clear_color = desc.clear_color
     pipeline.states.wireframe = desc.wireframe
-    pipeline.states.viewport_size = desc.viewport_size
-    pipeline.states.clearing_color = desc.clearing_color
-    pipeline.states.clear_depth = desc.clear_depth
-    
-    pipeline.uniform_locations = desc.uniform_locations
 
-    pipeline.render_target = render_target
+    pipeline.uniform_locations = desc.uniform_locations
 
     pipeline.extra_data = nil
 }
@@ -65,72 +59,46 @@ _glimpl_pipeline_free :: proc(pipeline: ^Pipeline) {
 }
 
 @(private)
-_glimpl_pipeline_resize :: proc(pipeline: ^Pipeline, new_size: [2]uint) {
-    pipeline.states.viewport_size = new_size
-}
-
-@(private)
-_glimpl_pipeline_clear :: proc(pipeline: Pipeline) {
-    _glimpl_pipeline_bind(pipeline)
-
-    // VERY IMPORTANT NOTE: If DepthMask is set to false when clearing a screen, the depth buffer will not be properly cleared, causing a black screen.
-    // Leave the depth mask to true!
-    glsm.DepthMask(true)
-
-    clear_bits: u32 = 0
-
-    if pipeline.states.clear_depth && pipeline.states.clear_depth do clear_bits |= gl.DEPTH_BUFFER_BIT
-    if pipeline.states.clear_color {
-        clear_bits |= gl.COLOR_BUFFER_BIT
-
-        // We could use glClearNamedFramebufferfv but I don't care about dsa in this case.
-        glsm.ClearColor(pipeline.states.clearing_color[0],
-            pipeline.states.clearing_color[1],
-            pipeline.states.clearing_color[2],
-            pipeline.states.clearing_color[3],
-        )
-    }
-
-    gl.Clear(clear_bits)
-}
-
-@(private)
 _glimpl_pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
     pipeline.states.wireframe = wireframe
 }
 
 @(private)
-_glimpl_pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int,) {
+_glimpl_pipeline_draw_arrays :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int,) {
     _glimpl_pipeline_apply(pipeline^)
     _glimpl_pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
+    _glimpl_pass_bind_rendertarget(pass^)
 
     gl.DrawArrays(_glimpl_primitive_to_glenum(primitive), (i32)(first), (i32)(count))
 }
 
 @(private)
-_glimpl_pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int) {
+_glimpl_pipeline_draw_elements :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int) {
     _glimpl_pipeline_apply(pipeline^)
     _glimpl_pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
+    _glimpl_pass_bind_rendertarget(pass^)
 
     gl.DrawElements(_glimpl_primitive_to_glenum(primitive), (i32)(count), _glimpl_indextype_to_glenum(type), nil)
 }
 
 @(private)
-_glimpl_pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
+_glimpl_pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
     _glimpl_pipeline_apply(pipeline^)
     _glimpl_pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
+    _glimpl_pass_bind_rendertarget(pass^)
 
     gl.DrawArraysInstanced(_glimpl_primitive_to_glenum(primitive), (i32)(first), (i32)(count), (i32)(instance_count))
 }
 
 @(private)
-_glimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int) {
+_glimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int) {
     _glimpl_pipeline_apply(pipeline^)
     _glimpl_pipeline_bind(pipeline^)
     bindings_apply(pipeline, bindings)
+    _glimpl_pass_bind_rendertarget(pass^)
 
     gl.DrawElementsInstanced(_glimpl_primitive_to_glenum(primitive), (i32)(count), _glimpl_indextype_to_glenum(type), nil, (i32)(instance_count))
 }
@@ -182,8 +150,6 @@ _glimpl_pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_location: uint,
 _glimpl_pipeline_bind :: proc(pipeline: Pipeline) {
     _glimpl_pipeline_shader_bind(pipeline)
     _glimpl_pipeline_layout_bind(pipeline)
-
-    _glimpl_pipeline_bind_rendertarget(pipeline)
 }
 
 @(private)
@@ -212,14 +178,6 @@ _glimpl_pipeline_apply :: proc(pipeline: Pipeline) {
 
     if pipeline.states.wireframe do glsm.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
     else do glsm.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
-}
-
-@(private)
-_glimpl_pipeline_bind_rendertarget :: proc(pipeline: Pipeline) {
-    if pipeline.render_target != nil do _glimpl_framebuffer_bind(pipeline.render_target.(Framebuffer))
-    else do _glimpl_bind_to_default_framebuffer()
-
-    glsm.Viewport(0, 0, (i32)(pipeline.states.viewport_size.x), (i32)(pipeline.states.viewport_size.y))
 }
 
 @(private)

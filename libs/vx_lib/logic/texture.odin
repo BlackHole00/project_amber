@@ -42,8 +42,8 @@ skybox_get_bindings :: proc(mesh: Mesh_Component, texture: Skybox_Texture_Compon
 	)
 }
 
-skybox_draw :: proc(pipeline: ^gfx.Pipeline, mesh: Mesh_Component, texture: Skybox_Texture_Component, skyblock_uniform: uint = gfx.SKYBOX_CUBEMAP_UNIFORM_LOCATION) {
-	meshcomponent_draw(mesh, pipeline, []gfx.Texture_Binding {
+skybox_draw :: proc(pipeline: ^gfx.Pipeline, pass: ^gfx.Pass, mesh: Mesh_Component, texture: Skybox_Texture_Component, skyblock_uniform: uint = gfx.SKYBOX_CUBEMAP_UNIFORM_LOCATION) {
+	meshcomponent_draw(mesh, pipeline, pass, []gfx.Texture_Binding {
 		{
 			texture = texture,
 			uniform_location = skyblock_uniform,
