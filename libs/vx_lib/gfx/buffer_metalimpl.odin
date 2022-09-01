@@ -1,3 +1,5 @@
+//+build darwin
+
 package vx_lib_gfx
 
 when ODIN_OS == .Darwin {

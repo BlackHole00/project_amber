@@ -1,9 +1,12 @@
+//+build darwin
+
 package vx_lib_platform
 
-import "vendor:glfw"
-import NS "vendor:darwin/foundation"
-
 when ODIN_OS == .Darwin {
+
+import "vendor:glfw"
+import NS "vendor:darwin/Foundation"
+
 //id glfwGetCocoaWindow(GLFWwindow* window);
 foreign import glfwlib "system:glfw"
 

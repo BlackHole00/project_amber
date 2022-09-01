@@ -5,7 +5,6 @@ import "../../core"
 import "../../utils"
 import "../../logic"
 import "../../logic/objects"
-import "core:os"
 import "core:math"
 
 Context_Descriptor :: struct {
@@ -50,6 +49,8 @@ init :: proc(desc: Context_Descriptor) {
 
 		wireframe = false,
 
+        uniform_locations = 3,
+
 		viewport_size = desc.viewport_size,
 
         source_path = "res/vx_lib/shaders/immediate_textured",
@@ -76,6 +77,8 @@ init :: proc(desc: Context_Descriptor) {
 		blend_dstdst_alphargb_func = .Zero,
 
 		wireframe = false,
+
+        uniform_locations = 2,
 
 		viewport_size = desc.viewport_size,
 

@@ -2,11 +2,11 @@
     "collections": [
         {
             "name": "core",
-            "path": "/Users/vicix/Programs/odin-macos-amd64-dev-2022-05/core"
+            "path": "C:\\Program Files\\odin\\core"
         },
         {
             "name": "vendor",
-            "path": "/Users/vicix/Programs/odin-macos-amd64-dev-2022-05/vendor"
+            "path": "C:\\Program Files\\odin\\vendor"
         },
         {
             "name": "vx_lib",

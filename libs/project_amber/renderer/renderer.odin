@@ -1,6 +1,5 @@
 package project_amber_renderer
 
-import "core:os"
 import "vx_lib:core"
 import "vx_lib:gfx"
 import "vx_lib:logic"
@@ -71,6 +70,8 @@ renderer_init :: proc() {
 
 		clear_color = false,
 		clear_depth = false,
+
+        uniform_locations = 3,
 
         layout = SKYBOX_LAYOUT,
 

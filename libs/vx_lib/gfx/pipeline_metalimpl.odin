@@ -1,3 +1,5 @@
+//+build darwin
+
 package vx_lib_gfx
 
 when ODIN_OS == .Darwin {
@@ -5,7 +7,7 @@ when ODIN_OS == .Darwin {
 import "core:math/linalg/glsl"
 import "core:log"
 import "core:os"
-import NS "vendor:darwin/foundation"
+import NS "vendor:darwin/Foundation"
 import MTL "vendor:darwin/Metal"
 
 @(private)

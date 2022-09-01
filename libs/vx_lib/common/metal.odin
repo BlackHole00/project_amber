@@ -1,3 +1,5 @@
+//+build darwin
+
 package vx_lib_common
 
 when ODIN_OS == .Darwin {
@@ -5,8 +7,6 @@ when ODIN_OS == .Darwin {
 import "../gfx"
 import "../platform"
 import "vendor:glfw"
-
-when ODIN_OS == .Darwin {
 
 windowcontext_init_with_metal :: proc() {
     init_metal :: proc(handle: glfw.WindowHandle, desc: platform.Window_Descriptor) -> (bool, string) {  
@@ -43,8 +43,6 @@ windowcontext_init_with_metal :: proc() {
     platform.WINDOWCONTEXT_INSTANCE.close_proc = close_metal
     platform.WINDOWCONTEXT_INSTANCE.post_frame_proc = post_frame_proc
     platform.WINDOWCONTEXT_INSTANCE.pre_frame_proc = pre_frame_proc
-}
-
 }
 
 }

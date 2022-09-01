@@ -1,3 +1,5 @@
+//+build darwin
+
 package vx_lib_gfx
 
 when ODIN_OS == .Darwin {
@@ -6,7 +8,6 @@ import "../core"
 import "vendor:glfw"
 import "../platform"
 import "core:log"
-//import NS "vendor:darwin/Foundation"
 import MTL "vendor:darwin/Metal"
 import CA "vendor:darwin/QuartzCore"
 
