@@ -57,6 +57,7 @@ State :: struct {
 
 	vertex_positions_buffer: gfx.Buffer,
 	vertex_colors_buffer: gfx.Buffer,
+	index_buffer: gfx.Buffer,
 	pipeline: gfx.Pipeline,
 	command_queue: ^MTL.CommandQueue,
 	pass: gfx.Pass,
@@ -65,16 +66,17 @@ STATE: core.Cell(State)
 
 init :: proc() {
 	build_buffers :: proc() -> (vertex_positions_buffer, vertex_colors_buffer: gfx.Buffer) {
-		NUM_VERTICES :: 3
-		positions := [NUM_VERTICES][3]f32{
+		positions := [?][3]f32{
 			{-0.8,  0.8, 0.0},
-			{ 0.0, -0.8, 0.0},
-			{+0.8,  0.8, 0.0},
+			{-0.8, -0.8, 0.0},
+			{ 0.8, -0.8, 0.0},
+			{ 0.8,  0.8, 0.0},
 		}
-		colors := [NUM_VERTICES][3]f32{
+		colors := [?][3]f32{
 			{1.0, 0.0, 0.0},
 			{0.0, 1.0, 0.0},
 			{0.0, 0.0, 1.0},
+			{0.0, 1.0, 0.0},
 		}
 	
 		gfx.buffer_init(&vertex_positions_buffer, gfx.Buffer_Descriptor {
@@ -96,7 +98,16 @@ init :: proc() {
 
 	device := gfx.METAL_CONTEXT.device
 
+	INDICES := [?]u16 {
+		0, 1, 2,
+		2, 3, 0,
+	}
+
 	STATE.vertex_positions_buffer, STATE.vertex_colors_buffer = build_buffers()
+	gfx.buffer_init(&STATE.index_buffer, gfx.Buffer_Descriptor {
+		type = .Index_Buffer,
+		usage = .Static_Draw,
+	}, INDICES[:])
 
 	STATE.command_queue = device->newCommandQueue()
 
@@ -165,7 +176,7 @@ init :: proc() {
 }
 
 tick :: proc() {
-//	input_common()
+	input_common()
 //	input_camera_movement()
 }
 
@@ -181,9 +192,10 @@ draw :: proc() {
 	gfx.bindings_init(&bindings, []gfx.Buffer {
 		STATE.vertex_positions_buffer,
 		STATE.vertex_colors_buffer,
-	})
+	}, STATE.index_buffer)
 
-	gfx.pipeline_draw_arrays(&STATE.pipeline, &STATE.pass, &bindings, .Triangles, 0, 3)
+	//gfx.pipeline_draw_arrays(&STATE.pipeline, &STATE.pass, &bindings, .Triangles, 0, 3)
+	gfx.pipeline_draw_elements(&STATE.pipeline, &STATE.pass, &bindings, .Triangles, .U16, 6)
 
 	gfx.pass_end(&STATE.pass)
 }

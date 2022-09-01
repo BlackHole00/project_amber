@@ -184,7 +184,7 @@ gfxprocs_init_with_metal :: proc() {
     GFX_PROCS.pipeline_free = _metalimpl_pipeline_free
     core.safetize_function(&GFX_PROCS.pipeline_set_wireframe)
     GFX_PROCS.pipeline_draw_arrays = _metalimpl_pipeline_draw_arrays
-    core.safetize_function(&GFX_PROCS.pipeline_draw_elements)
+    GFX_PROCS.pipeline_draw_elements = _metalimpl_pipeline_draw_elements
     core.safetize_function(&GFX_PROCS.pipeline_draw_arrays_instanced)
     core.safetize_function(&GFX_PROCS.pipeline_draw_elements_instanced)
     core.safetize_function(&GFX_PROCS.pipeline_uniform_1f)

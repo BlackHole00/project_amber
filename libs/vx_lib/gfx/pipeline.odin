@@ -91,7 +91,6 @@ Primitive :: enum {
 }
 
 Index_Type :: enum {
-    U8,
     U16,
     U32,
 }

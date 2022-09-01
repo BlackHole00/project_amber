@@ -1,5 +1,4 @@
 //+build darwin
-
 package vx_lib_gfx
 
 when ODIN_OS == .Darwin {
@@ -103,15 +102,65 @@ _metalimpl_pipeline_draw_arrays :: proc(pipeline: ^Pipeline, pass: ^Pass, bindin
 }
 
 @(private)
-_metalimpl_pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int) {
+_metalimpl_pipeline_draw_elements :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int) {
+    render_encoder: ^MTL.RenderCommandEncoder
+    defer render_encoder->release()
+
+    if pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pass^))
+    else do panic("TODO!")
+
+    if bindings.index_buffer == nil do panic("Requesting pipeline_draw_elements without an index buffer in the bindings")
+
+	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
+    _metalimpl_bindings_apply(bindings, render_encoder)
+    render_encoder->drawIndexedPrimitives(
+        _metalimpl_primitive_to_glenum(primitive), 
+        (NS.UInteger)(count), 
+        _metalimpl_indextype_to_glenum(type), 
+        _metalimpl_buffer_get_mtl_buffer(bindings.index_buffer.(Buffer)),
+        0,
+    )
+
+	render_encoder->endEncoding()
 }
 
 @(private)
-_metalimpl_pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
+_metalimpl_pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
+    render_encoder: ^MTL.RenderCommandEncoder
+    defer render_encoder->release()
+
+    if pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pass^))
+    else do panic("TODO!")
+
+	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
+    _metalimpl_bindings_apply(bindings, render_encoder)
+	render_encoder->drawPrimitivesWithInstanceCount(_metalimpl_primitive_to_glenum(primitive), (NS.UInteger)(first), (NS.UInteger)(count), (NS.UInteger)(instance_count))
+
+	render_encoder->endEncoding()
 }
 
 @(private)
-_metalimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int) {
+_metalimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int) {
+    render_encoder: ^MTL.RenderCommandEncoder
+    defer render_encoder->release()
+
+    if pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pass^))
+    else do panic("TODO!")
+
+    if bindings.index_buffer == nil do panic("Requesting pipeline_draw_elements without an index buffer in the bindings")
+
+	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
+    _metalimpl_bindings_apply(bindings, render_encoder)
+    render_encoder->drawIndexedPrimitivesWithInstanceCount(
+        _metalimpl_primitive_to_glenum(primitive), 
+        (NS.UInteger)(count), 
+        _metalimpl_indextype_to_glenum(type), 
+        _metalimpl_buffer_get_mtl_buffer(bindings.index_buffer.(Buffer)),
+        0,
+        (NS.UInteger)(instance_count),
+    )
+
+	render_encoder->endEncoding()
 }
 
 @(private)
@@ -161,5 +210,14 @@ _metalimpl_primitive_to_glenum :: proc(primitive: Primitive) -> MTL.PrimitiveTyp
     return .Triangle
 }
 
+@(private)
+_metalimpl_indextype_to_glenum :: proc(type: Index_Type) -> MTL.IndexType {
+    switch type {
+        case .U16: return .UInt16
+        case .U32: return .UInt32
+    }
+
+    return .UInt32
+}
 
 }

@@ -314,7 +314,6 @@ _glimpl_primitive_to_glenum :: proc(primitive: Primitive) -> u32 {
 @(private)
 _glimpl_indextype_to_glenum :: proc(type: Index_Type) -> u32 {
     switch type {
-        case .U8: return gl.UNSIGNED_BYTE
         case .U16: return gl.UNSIGNED_SHORT
         case .U32: return gl.UNSIGNED_INT
     }
