@@ -17,13 +17,16 @@
 - [ ] light stuff
 
 - [ ] text rendering
-- [ ] immediate mode graphics
+- [X] immediate mode graphics
 - [ ] microui
 
-- [ ] figure out why the skybox pipeline needs to have the depth disabled
+- [X] figure out why the skybox pipeline needs to have the depth disabled
 
 - [ ] chunk should have different meshes, depending on the type of the block
 - [ ] chunk should not own a mesh, instead should own an abstract mesh and the renderer will apply it to a real mesh.
 
 - [ ] allow creating an empty buffer with defined size
 - [ ] buffer resizing in a better way
+
+- [ ] OpenGL: Implement BlendColor
+- [ ] Common: Add remaining Src1 blend functions

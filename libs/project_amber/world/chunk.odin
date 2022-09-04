@@ -199,7 +199,7 @@ chunk_remesh :: proc(chunk: ^Chunk, world_accessor: World_Accessor) {
 draw_chunk :: proc(chunk: ^Chunk) {
     logic.transform_apply(&chunk.mesh.transform, &renderer.RENDERER_INSTANCE.full_block_solid_pipeline)
 
-    logic.meshcomponent_draw(chunk.mesh, &renderer.RENDERER_INSTANCE.full_block_solid_pipeline, renderer.renderer_get_pass(), []gfx.Texture_Binding {
+    logic.meshcomponent_draw(chunk.mesh, &renderer.RENDERER_INSTANCE.full_block_solid_pipeline, []gfx.Texture_Binding {
         utils.textureatlas_get_texture_bindings(renderer.RENDERER_INSTANCE.block_texture_atlas, renderer.BLOCK_TEXTURE_ATLAS_LOCATION),
     })
 }

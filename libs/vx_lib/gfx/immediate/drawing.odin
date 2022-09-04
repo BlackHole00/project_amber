@@ -63,8 +63,8 @@ resize_viewport :: proc(viewport: [2]uint, update_pass := false) {
 draw :: proc() {
     logic.camera_apply(CONTEXT_INSTANCE.camera, CONTEXT_INSTANCE.camera.position, CONTEXT_INSTANCE.camera.rotation, &CONTEXT_INSTANCE.textured_pipeline, gfx.IMMEDIATE_VIEW_UNIFORM_LOCATION, gfx.IMMEDIATE_PROJ_UNIFORM_LOCATION)
 
-    utils.batcher_draw(&CONTEXT_INSTANCE.color_batcher, &CONTEXT_INSTANCE.color_pipeline, CONTEXT_INSTANCE.pass)
-    utils.batcher_draw(&CONTEXT_INSTANCE.textured_batcher, &CONTEXT_INSTANCE.textured_pipeline, CONTEXT_INSTANCE.pass, []gfx.Texture_Binding {
+    utils.batcher_draw(&CONTEXT_INSTANCE.color_batcher, &CONTEXT_INSTANCE.color_pipeline)
+    utils.batcher_draw(&CONTEXT_INSTANCE.textured_batcher, &CONTEXT_INSTANCE.textured_pipeline, []gfx.Texture_Binding {
         utils.textureatlas_get_texture_bindings(CONTEXT_INSTANCE.font_atlas, gfx.IMMEDIATE_TEXTURE_UNIFORM_LOCATION),
     })
 

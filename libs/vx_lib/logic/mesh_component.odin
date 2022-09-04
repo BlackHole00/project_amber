@@ -78,13 +78,12 @@ meshcomponent_get_bindings :: proc(bindings: ^gfx.Bindings, mesh: Mesh_Component
     )
 }
 
-meshcomponent_draw :: proc(mesh: Mesh_Component, pipeline: ^gfx.Pipeline, pass: ^gfx.Pass, textures: []gfx.Texture_Binding = {}) {
+meshcomponent_draw :: proc(mesh: Mesh_Component, pipeline: ^gfx.Pipeline, textures: []gfx.Texture_Binding = {}) {
     bindings: gfx.Bindings = ---
     meshcomponent_get_bindings(&bindings, mesh, textures)
 
     gfx.pipeline_draw_elements(
         pipeline,
-        pass,
         &bindings,
         mesh.draw_type,
         mesh.index_buffer_type,

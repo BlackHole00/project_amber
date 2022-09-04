@@ -50,6 +50,7 @@ Pipeline_States :: struct {
     depth_func: Depth_Func,
 
     blend_enabled: bool,
+    blend_color: [4]f32,
     blend_src_rgb_func: Blend_Func,
     blend_dst_rgb_func: Blend_Func,
     blend_src_alpha_func: Blend_Func,
@@ -65,6 +66,7 @@ Pipeline_Descriptor :: struct {
     depth_enabled: bool,
     depth_func: Depth_Func,
     blend_enabled: bool,
+    blend_color: [4]f32,
     blend_src_rgb_func: Blend_Func,
     blend_dst_rgb_func: Blend_Func,
     blend_src_alpha_func: Blend_Func,
@@ -109,10 +111,12 @@ Pipeline :: struct {
     states: Pipeline_States,
 
     extra_data: rawptr,
+
+    pass: ^Pass,
 }
 
-pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor) {
-    GFX_PROCS.pipeline_init(pipeline, desc)
+pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, pass: ^Pass) {
+    GFX_PROCS.pipeline_init(pipeline, desc, pass)
 }
 
 pipeline_free :: proc(pipeline: ^Pipeline) {
@@ -123,20 +127,20 @@ pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
     GFX_PROCS.pipeline_set_wireframe(pipeline, wireframe)
 }
 
-pipeline_draw_arrays :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int) {
-    GFX_PROCS.pipeline_draw_arrays(pipeline, pass, bindings, primitive, first, count)
+pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int) {
+    GFX_PROCS.pipeline_draw_arrays(pipeline, bindings, primitive, first, count)
 }
 
-pipeline_draw_elements :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int) {
-    GFX_PROCS.pipeline_draw_elements(pipeline, pass, bindings, primitive, type, count)
+pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int) {
+    GFX_PROCS.pipeline_draw_elements(pipeline, bindings, primitive, type, count)
 }
 
-pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
-    GFX_PROCS.pipeline_draw_arrays_instanced(pipeline, pass, bindings, primitive, first, count, instance_count)
+pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
+    GFX_PROCS.pipeline_draw_arrays_instanced(pipeline, bindings, primitive, first, count, instance_count)
 }
 
-pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int) {
-    GFX_PROCS.pipeline_draw_elements_instanced(pipeline, pass, bindings, primitive, type, count, instance_count)
+pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int) {
+    GFX_PROCS.pipeline_draw_elements_instanced(pipeline, bindings, primitive, type, count, instance_count)
 }
 
 pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_location: uint, value: f32) {

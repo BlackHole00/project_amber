@@ -8,6 +8,7 @@ import "core:fmt"
 import "vx_lib:core"
 import "vx_lib:platform"
 import "vx_lib:common"
+import vxmath "vx_lib:math"
 import "vx_lib:gfx"
 import "vx_lib:gfx/immediate"
 import "vx_lib:logic"
@@ -56,7 +57,6 @@ State :: struct {
 	world_accessor: world.World_Accessor,
 
 	vertex_positions_buffer: gfx.Buffer,
-	vertex_colors_buffer: gfx.Buffer,
 	index_buffer: gfx.Buffer,
 	pipeline: gfx.Pipeline,
 	command_queue: ^MTL.CommandQueue,
@@ -65,39 +65,15 @@ State :: struct {
 STATE: core.Cell(State)
 
 init :: proc() {
-	build_buffers :: proc() -> (vertex_positions_buffer, vertex_colors_buffer: gfx.Buffer) {
-		positions := [?][3]f32{
-			{-0.8,  0.8, 0.0},
-			{-0.8, -0.8, 0.0},
-			{ 0.8, -0.8, 0.0},
-			{ 0.8,  0.8, 0.0},
-		}
-		colors := [?][3]f32{
-			{1.0, 0.0, 0.0},
-			{0.0, 1.0, 0.0},
-			{0.0, 0.0, 1.0},
-			{0.0, 1.0, 0.0},
-		}
-	
+	build_buffers :: proc() -> (vertex_positions_buffer: gfx.Buffer) {
 		gfx.buffer_init(&vertex_positions_buffer, gfx.Buffer_Descriptor {
 			type = .Vertex_Buffer,
 			usage = .Static_Draw,
-		}, positions[:])
-		gfx.buffer_init(&vertex_colors_buffer, gfx.Buffer_Descriptor {
-			type = .Vertex_Buffer,
-			usage = .Static_Draw,
-		}, colors[:])
+		}, vxmath.CUBE_VERTICES)
 		return
 	}
 
 	core.cell_init(&STATE)
-
-	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
-		source_path = "res/shader_test",
-
-		uniform_locations = 1,
-	})
-	gfx.pipeline_uniform_3f(&STATE.pipeline, 0, { 0.25, 0.25, 0.25 })
 
 	device := gfx.METAL_CONTEXT.device
 
@@ -106,11 +82,11 @@ init :: proc() {
 		2, 3, 0,
 	}
 
-	STATE.vertex_positions_buffer, STATE.vertex_colors_buffer = build_buffers()
+	STATE.vertex_positions_buffer = build_buffers()
 	gfx.buffer_init(&STATE.index_buffer, gfx.Buffer_Descriptor {
 		type = .Index_Buffer,
 		usage = .Static_Draw,
-	}, INDICES[:])
+	}, vxmath.CUBE_INDICES)
 
 	STATE.command_queue = device->newCommandQueue()
 
@@ -127,14 +103,31 @@ init :: proc() {
 //		pass = renderer.renderer_get_pass(),
 //	})
 //
-//	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
-//		fov = 3.14 / 2.0,
-//		viewport_size = platform.windowhelper_get_window_size(),
-//		near = 0.01, 
-//		far = 1000.0,
-//	})
-//	STATE.camera.position = { 0.0, 0.0, 0.0 }
-//	STATE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
+	logic.camera_init(&STATE.camera, logic.Perspective_Camera_Descriptor {
+		fov = 3.14 / 2.0,
+		viewport_size = platform.windowhelper_get_window_size(),
+		near = 0.01, 
+		far = 1000.0,
+	})
+	STATE.camera.position = { 0.0, 0.0, 0.0 }
+	STATE.camera.rotation = { math.to_radians_f32(180.0), 0.0, 0.0 }
+
+	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
+		cull_enabled = false,
+		cull_face = .Back,
+		cull_front_face = .Counter_Clockwise,
+
+		source_path = "res/shader_test",
+
+		uniform_locations = 3,
+
+		blend_enabled = true,
+        blend_src_rgb_func = .Src_Alpha,
+		blend_dst_rgb_func = .One_Minus_Src_Alpha,
+		blend_src_alpha_func = .One,
+		blend_dstdst_alphargb_func = .Zero,
+	}, &STATE.pass)
+
 //
 //	world.blockregistar_init()
 //	world.blockregistar_register_block("dirt", world.Block_Behaviour {
@@ -180,7 +173,7 @@ init :: proc() {
 
 tick :: proc() {
 	input_common()
-//	input_camera_movement()
+	input_camera_movement()
 }
 
 draw :: proc() {
@@ -189,11 +182,12 @@ draw :: proc() {
 	bindings: gfx.Bindings = ---
 	gfx.bindings_init(&bindings, []gfx.Buffer {
 		STATE.vertex_positions_buffer,
-		STATE.vertex_colors_buffer,
 	}, STATE.index_buffer)
 
 	//gfx.pipeline_draw_arrays(&STATE.pipeline, &STATE.pass, &bindings, .Triangles, 0, 3)
-	gfx.pipeline_draw_elements(&STATE.pipeline, &STATE.pass, &bindings, .Triangles, .U16, 6)
+	gfx.pipeline_draw_elements(&STATE.pipeline, &bindings, .Triangles, .U32, 36)
+
+	logic.camera_apply_full(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)
 
 	gfx.pass_end(&STATE.pass)
 }
@@ -206,9 +200,9 @@ close :: proc() {
 }
 
 resize :: proc() {
-//	size := platform.windowhelper_get_window_size()
-//
-//	logic.camera_resize_view_port(&STATE.camera, size)
+	size := platform.windowhelper_get_window_size()
+
+	logic.camera_resize_view_port(&STATE.camera, size)
 //
 //	renderer.renderer_resize(size)
 //
@@ -219,12 +213,11 @@ main :: proc() {
 	file, ok := os.open("log.txt", os.O_CREATE | os.O_WRONLY)
 
 	logger: log.Logger = ---
-	if ok != 0 do logger = log.create_console_logger(); else {
-		logger = log.create_multi_logger(
-			log.create_console_logger(),
-			log.create_file_logger(file),
-		)
-	}
+	if ok != 0 do logger = log.create_console_logger()
+	else do logger = log.create_multi_logger(
+		log.create_console_logger(),
+		log.create_file_logger(file),
+	)
 	context.logger = logger
 	if ok != 0 do log.warn("Could not open the log file!")
 

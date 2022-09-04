@@ -52,7 +52,7 @@ init :: proc(desc: Context_Descriptor) {
         source_path = "res/vx_lib/shaders/immediate_textured",
 
         layout = TEXTURED_LAYOUT,
-    })
+    }, desc.pass)
 
     gfx.pipeline_init(&CONTEXT_INSTANCE.color_pipeline, gfx.Pipeline_Descriptor {
         cull_enabled = false,
@@ -75,7 +75,7 @@ init :: proc(desc: Context_Descriptor) {
         source_path = "res/vx_lib/shaders/immediate_colored",
 
         layout = COLOR_LAYOUT,
-    })
+    }, desc.pass)
 
     utils.batcher_init(&CONTEXT_INSTANCE.color_batcher, utils.Batcher_Descriptor {
         primitive = .Triangles,

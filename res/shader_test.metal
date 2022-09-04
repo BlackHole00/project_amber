@@ -7,12 +7,14 @@ struct v2f {
 };
 
 v2f vertex vertex_main(uint vertex_id                        [[vertex_id]],
-					   device const packed_float3& u_position[[buffer(0)]],
-					   device const packed_float3* positions [[buffer(1)]],
-					   device const packed_float3* colors    [[buffer(2)]]) {
+					   device const float4x4& 	   u_model	 [[buffer(0)]],
+					   device const float4x4& 	   u_view	 [[buffer(1)]],
+					   device const float4x4& 	   u_proj	 [[buffer(2)]],
+					   device const packed_float3* positions [[buffer(3)]]) {
 	v2f o;
-	o.position = float4(positions[vertex_id] + u_position, 1.0);
-	o.color = half3(colors[vertex_id]);
+	o.position = u_proj * u_view * float4(positions[vertex_id], 1.0);
+	//o.position = float4(positions[vertex_id] + u_position, 1.0);
+	o.color = half3(1.0, 0.0, 0.0);
 	return o;
 }
 

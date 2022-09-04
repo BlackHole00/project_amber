@@ -63,13 +63,12 @@ instancedmeshcomponent_get_bindings :: proc(bindings: ^gfx.Bindings, mesh: Insta
     )
 }
 
-instancedmeshcomponent_draw :: proc(mesh: Instanced_Mesh_Component, pipeline: ^gfx.Pipeline, pass: ^gfx.Pass, textures: []gfx.Texture_Binding = {}) {
+instancedmeshcomponent_draw :: proc(mesh: Instanced_Mesh_Component, pipeline: ^gfx.Pipeline, textures: []gfx.Texture_Binding = {}) {
     bindings: gfx.Bindings = ---
     instancedmeshcomponent_get_bindings(&bindings, mesh, textures)
 
     gfx.pipeline_draw_elements_instanced(
         pipeline,
-        pass,
         &bindings,
         mesh.draw_type,
         mesh.index_buffer_type,

@@ -31,13 +31,13 @@ Gfx_Procs :: struct {
     framebuffer_get_color_texture_bindings: proc(framebuffer: Framebuffer, color_texture_location: uint) -> Texture_Binding,
     framebuffer_get_depth_stencil_texture_bindings: proc(framebuffer: Framebuffer, depth_stencil_texture_location: uint) -> Texture_Binding,
 
-    pipeline_init: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor),
+    pipeline_init: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, pass: ^Pass),
     pipeline_free: proc(pipeline: ^Pipeline),
     pipeline_set_wireframe: proc(pipeline: ^Pipeline, wireframe: bool),
-    pipeline_draw_arrays: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int),
-    pipeline_draw_elements: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int),
-    pipeline_draw_arrays_instanced: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int),
-    pipeline_draw_elements_instanced: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int),
+    pipeline_draw_arrays: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int),
+    pipeline_draw_elements: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int),
+    pipeline_draw_arrays_instanced: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int),
+    pipeline_draw_elements_instanced: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int),
     pipeline_uniform_1f: proc(pipeline: ^Pipeline, uniform_location: uint, value: f32),
     pipeline_uniform_2f: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec2),
     pipeline_uniform_3f: proc(pipeline: ^Pipeline, uniform_location: uint, value: glsl.vec3),
@@ -185,8 +185,8 @@ gfxprocs_init_with_metal :: proc() {
     core.safetize_function(&GFX_PROCS.pipeline_set_wireframe)
     GFX_PROCS.pipeline_draw_arrays = _metalimpl_pipeline_draw_arrays
     GFX_PROCS.pipeline_draw_elements = _metalimpl_pipeline_draw_elements
-    core.safetize_function(&GFX_PROCS.pipeline_draw_arrays_instanced)
-    core.safetize_function(&GFX_PROCS.pipeline_draw_elements_instanced)
+    GFX_PROCS.pipeline_draw_arrays_instanced = _metalimpl_pipeline_draw_arrays_instanced
+    GFX_PROCS.pipeline_draw_elements_instanced = _metalimpl_pipeline_draw_elements_instanced
     GFX_PROCS.pipeline_uniform_1f = _metalimpl_pipeline_uniform_1f
     GFX_PROCS.pipeline_uniform_2f = _metalimpl_pipeline_uniform_2f
     GFX_PROCS.pipeline_uniform_3f = _metalimpl_pipeline_uniform_3f

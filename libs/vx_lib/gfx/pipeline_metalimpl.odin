@@ -15,7 +15,7 @@ Mtl_Extra_Data :: struct {
 }
 
 @(private)
-_metalimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor) {
+_metalimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, pass: ^Pass) {
     if desc.layout == nil do log.warn("Creating a pipeline without a layout. This is fine in Metal, but will be a bug in other APIs")
 
     pipeline.states.cull_enabled = desc.cull_enabled
@@ -53,7 +53,10 @@ _metalimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor)
 	defer source_str->release()
 
 	library, library_err := METAL_CONTEXT.device->newLibraryWithSource(source_str, nil)
-    if library_err != nil do panic("Could not compile metal shader")
+    if library_err != nil {
+        log.error(library_err->localizedDescription()->odinString())
+        panic("Could not compile metal shader")
+    }
     defer library->release()
 
 	vertex_function := library->newFunctionWithName(NS.AT(SHADER_VERTEX_MAIN_FUNCTION))
@@ -61,17 +64,33 @@ _metalimpl_pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor)
 	defer vertex_function->release()
 	defer fragment_function->release()
 
-	desc := MTL.RenderPipelineDescriptor.alloc()->init()
-	defer desc->release()
+	mtl_desc := MTL.RenderPipelineDescriptor.alloc()->init()
+	defer mtl_desc->release()
 
-	desc->setVertexFunction(vertex_function)
-	desc->setFragmentFunction(fragment_function)
+	mtl_desc->setVertexFunction(vertex_function)
+	mtl_desc->setFragmentFunction(fragment_function)
 
-    desc->colorAttachments()->object(0)->setPixelFormat(.BGRA8Unorm_sRGB)
+    mtl_desc->colorAttachments()->object(0)->setPixelFormat(.BGRA8Unorm_sRGB)
 
-    mtl_pipeline, mtl_pipeline_err := METAL_CONTEXT.device->newRenderPipelineStateWithDescriptor(desc)
-    if mtl_pipeline_err != nil do panic("Could not create a metal pipeline")
+    if pipeline.states.blend_enabled {
+        color_attachment := mtl_desc->colorAttachments()->object(0)
+        color_attachment->setBlendingEnabled(true)
+
+        color_attachment->setDestinationRGBBlendFactor(_metalimpl_blendfunc_to_mtl(desc.blend_dst_rgb_func))
+        color_attachment->setDestinationAlphaBlendFactor(_metalimpl_blendfunc_to_mtl(desc.blend_dstdst_alphargb_func))
+        color_attachment->setSourceAlphaBlendFactor(_metalimpl_blendfunc_to_mtl(desc.blend_src_alpha_func))
+        color_attachment->setSourceRGBBlendFactor(_metalimpl_blendfunc_to_mtl(desc.blend_src_rgb_func))
+    }
+
+    mtl_pipeline, mtl_pipeline_err := METAL_CONTEXT.device->newRenderPipelineStateWithDescriptor(mtl_desc)
+    if mtl_pipeline_err != nil {
+        log.error(mtl_pipeline_err->localizedDescription()->odinString())
+        panic("Could not compile metal shader")
+    }
+
 	pipeline.shader_handle = _metalimpl_metalpipeline_to_shader_handle(mtl_pipeline)
+
+    pipeline.pass = pass
 }
 
 @(private)
@@ -84,40 +103,42 @@ _metalimpl_pipeline_free :: proc(pipeline: ^Pipeline) {
 
 @(private)
 _metalimpl_pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
-    pipeline.wireframe = wireframe
+    pipeline.states.wireframe = wireframe
 }
 
 @(private)
-_metalimpl_pipeline_draw_arrays :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int) {
+_metalimpl_pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int) {
     render_encoder: ^MTL.RenderCommandEncoder
     defer render_encoder->release()
 
-    if pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pass^))
+    if pipeline.pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pipeline.pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pipeline.pass^))
     else do panic("TODO!")
 
 	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
+    _metalimpl_apply_pipeline_states(pipeline^, render_encoder)
     _metalimpl_bindings_apply(bindings, render_encoder, (^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers)
-	render_encoder->drawPrimitives(_metalimpl_primitive_to_glenum(primitive), (NS.UInteger)(first), (NS.UInteger)(count))
+	render_encoder->drawPrimitives(_metalimpl_primitive_to_mtl(primitive), (NS.UInteger)(first), (NS.UInteger)(count))
 
 	render_encoder->endEncoding()
 }
 
 @(private)
-_metalimpl_pipeline_draw_elements :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int) {
+_metalimpl_pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int) {
     render_encoder: ^MTL.RenderCommandEncoder
     defer render_encoder->release()
 
-    if pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pass^))
+    if pipeline.pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pipeline.pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pipeline.pass^))
     else do panic("TODO!")
 
     if bindings.index_buffer == nil do panic("Requesting pipeline_draw_elements without an index buffer in the bindings")
 
 	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
+    _metalimpl_apply_pipeline_states(pipeline^, render_encoder)
     _metalimpl_bindings_apply(bindings, render_encoder, (^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers)
     render_encoder->drawIndexedPrimitives(
-        _metalimpl_primitive_to_glenum(primitive), 
+        _metalimpl_primitive_to_mtl(primitive), 
         (NS.UInteger)(count), 
-        _metalimpl_indextype_to_glenum(type), 
+        _metalimpl_indextype_to_mtl(type), 
         _metalimpl_buffer_get_mtl_buffer(bindings.index_buffer.(Buffer)),
         0,
     )
@@ -126,36 +147,38 @@ _metalimpl_pipeline_draw_elements :: proc(pipeline: ^Pipeline, pass: ^Pass, bind
 }
 
 @(private)
-_metalimpl_pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
+_metalimpl_pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
     render_encoder: ^MTL.RenderCommandEncoder
     defer render_encoder->release()
 
-    if pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pass^))
+    if pipeline.pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pipeline.pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pipeline.pass^))
     else do panic("TODO!")
 
 	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
+    _metalimpl_apply_pipeline_states(pipeline^, render_encoder)
     _metalimpl_bindings_apply(bindings, render_encoder, (^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers)
-	render_encoder->drawPrimitivesWithInstanceCount(_metalimpl_primitive_to_glenum(primitive), (NS.UInteger)(first), (NS.UInteger)(count), (NS.UInteger)(instance_count))
+	render_encoder->drawPrimitivesWithInstanceCount(_metalimpl_primitive_to_mtl(primitive), (NS.UInteger)(first), (NS.UInteger)(count), (NS.UInteger)(instance_count))
 
 	render_encoder->endEncoding()
 }
 
 @(private)
-_metalimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, pass: ^Pass, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int) {
+_metalimpl_pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int) {
     render_encoder: ^MTL.RenderCommandEncoder
     defer render_encoder->release()
 
-    if pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pass^))
+    if pipeline.pass.render_target == nil do render_encoder = _metalimpl_pass_get_commandbuffer(pipeline.pass^)->renderCommandEncoderWithDescriptor(_metalimpl_pass_get_mtl_pass(pipeline.pass^))
     else do panic("TODO!")
 
     if bindings.index_buffer == nil do panic("Requesting pipeline_draw_elements without an index buffer in the bindings")
 
 	render_encoder->setRenderPipelineState(_metalimpl_pipeline_get_mtl_pipeline(pipeline^))
+    _metalimpl_apply_pipeline_states(pipeline^, render_encoder)
     _metalimpl_bindings_apply(bindings, render_encoder, (^Mtl_Extra_Data)(pipeline.extra_data).uniform_buffers)
     render_encoder->drawIndexedPrimitivesWithInstanceCount(
-        _metalimpl_primitive_to_glenum(primitive), 
+        _metalimpl_primitive_to_mtl(primitive), 
         (NS.UInteger)(count), 
-        _metalimpl_indextype_to_glenum(type), 
+        _metalimpl_indextype_to_mtl(type), 
         _metalimpl_buffer_get_mtl_buffer(bindings.index_buffer.(Buffer)),
         0,
         (NS.UInteger)(instance_count),
@@ -216,7 +239,7 @@ _metalimpl_pipeline_get_mtl_pipeline :: proc(pipeline: Pipeline) -> ^MTL.RenderP
 }
 
 @(private)
-_metalimpl_primitive_to_glenum :: proc(primitive: Primitive) -> MTL.PrimitiveType {
+_metalimpl_primitive_to_mtl :: proc(primitive: Primitive) -> MTL.PrimitiveType {
     switch primitive {
         case .Triangles: return .Triangle
     }
@@ -225,13 +248,90 @@ _metalimpl_primitive_to_glenum :: proc(primitive: Primitive) -> MTL.PrimitiveTyp
 }
 
 @(private)
-_metalimpl_indextype_to_glenum :: proc(type: Index_Type) -> MTL.IndexType {
+_metalimpl_indextype_to_mtl :: proc(type: Index_Type) -> MTL.IndexType {
     switch type {
         case .U16: return .UInt16
         case .U32: return .UInt32
     }
 
     return .UInt32
+}
+
+@(private)
+_metalimpl_cullface_to_mtl :: proc(face: Cull_Face) -> MTL.CullMode {
+    switch face {
+        case .Front: return .Front
+        case .Back: return .Back
+    }
+
+    return .None
+}
+
+@(private)
+_metalimpl_frontface_to_mtl :: proc(front: Front_Face) -> MTL.Winding {
+    switch front {
+        case .Clockwise: return .Clockwise
+        case .Counter_Clockwise: return .CounterClockwise
+    }
+
+    return .Clockwise
+}
+
+@(private)
+_metalimpl_apply_pipeline_states :: proc(pipeline: Pipeline, encoder: ^MTL.RenderCommandEncoder) {
+    if pipeline.states.cull_enabled {
+        encoder->setCullMode(_metalimpl_cullface_to_mtl(pipeline.states.cull_face))
+        encoder->setFrontFacingWinding(_metalimpl_frontface_to_mtl(pipeline.states.cull_front_face))
+    } else do encoder->setCullMode(.None)
+
+    if pipeline.states.blend_enabled do encoder->setBlendColorRed( // ???
+        pipeline.states.blend_color[0],
+        pipeline.states.blend_color[1],
+        pipeline.states.blend_color[2],
+        pipeline.states.blend_color[3],
+    )
+
+    //if pipeline.states.depth_enabled {
+    //    glsm.Enable(gl.DEPTH_TEST)
+    //    glsm.DepthFunc(_glimpl_depthfunc_to_glenum(pipeline.states.depth_func))
+    //} else do glsm.Disable(gl.DEPTH_TEST)
+//
+    //if pipeline.states.blend_enabled {
+    //    glsm.Enable(gl.BLEND)
+    //    glsm.BlendFuncSeparate(_glimpl_blendfunc_to_glenum(pipeline.states.blend_src_rgb_func),
+    //        _glimpl_blendfunc_to_glenum(pipeline.states.blend_dst_rgb_func),
+    //        _glimpl_blendfunc_to_glenum(pipeline.states.blend_src_alpha_func),
+    //        _glimpl_blendfunc_to_glenum(pipeline.states.blend_dstdst_alphargb_func),
+    //    )
+    //} else do glsm.Disable(gl.BLEND)
+//
+    //if pipeline.states.wireframe do glsm.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+    //else do glsm.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
+}
+
+@(private)
+_metalimpl_blendfunc_to_mtl :: proc(func: Blend_Func) -> MTL.BlendFactor {
+    switch func {
+        case .Constant_Color: return .BlendColor
+        case .Constant_Alpha: return .BlendAlpha
+        case .One: return .One
+        case .Zero: return .Zero
+        case .Dst_Alpha: return .DestinationAlpha
+        case .Dst_Color: return .DestinationColor
+        case .One_Minus_Constant_Alpha: return .OneMinusBlendAlpha
+        case .One_Minus_Constant_Color: return .OneMinusBlendColor
+        case .One_Minus_Dst_Alpha: return .OneMinusDestinationAlpha
+        case .One_Minus_Dst_Color: return .OneMinusDestinationColor
+        case .One_Minus_Src_Alpha: return .OneMinusSourceAlpha
+        case .One_Minus_Src_Color: return .OneMinusSourceColor
+        case .Src_Alpha: return .SourceAlpha
+        case .Src_Color: return .Source1Color
+        case .Src_Alpha_Saturate: return .SourceAlphaSaturated
+        case .Src1_Alpha: return .Source1Alpha
+        case .Src1_Color: return .Source1Color
+    }
+
+    return .One
 }
 
 }

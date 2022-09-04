@@ -37,6 +37,14 @@ renderer_init :: proc() {
         gen_mipmaps = true,
     }, "res/project_amber/textures/block_atlas.png", "res/project_amber/textures/block_atlas.csv")
 
+    gfx.pass_init(&RENDERER_INSTANCE.pass, gfx.Pass_Descriptor {
+        clearing_color = { 0, 0, 0, 0 },
+        clear_color = true,
+        clear_depth = true,
+
+        viewport_size = window_size,
+    })
+
     gfx.pipeline_init(&RENDERER_INSTANCE.full_block_solid_pipeline, gfx.Pipeline_Descriptor {
         cull_enabled = true,
         cull_face = .Back,
@@ -54,7 +62,7 @@ renderer_init :: proc() {
         uniform_locations = 4,
 
         source_path = "res/project_amber/shaders/full_solid_block",
-    })
+    }, &RENDERER_INSTANCE.pass)
 
 	gfx.pipeline_init(&RENDERER_INSTANCE.skybox_pipeline, gfx.Pipeline_Descriptor { 
 		cull_enabled = false,
@@ -68,15 +76,7 @@ renderer_init :: proc() {
         layout = SKYBOX_LAYOUT,
 
         source_path = "res/project_amber/shaders/skybox",
-	})
-
-    gfx.pass_init(&RENDERER_INSTANCE.pass, gfx.Pass_Descriptor {
-        clearing_color = { 0, 0, 0, 0 },
-        clear_color = true,
-        clear_depth = true,
-
-        viewport_size = window_size,
-    })
+	}, &RENDERER_INSTANCE.pass)
 
 	logic.skybox_init(&RENDERER_INSTANCE.skybox.mesh, &RENDERER_INSTANCE.skybox.texture, 
         "res/project_amber/textures/skybox/right.bmp",
@@ -106,7 +106,7 @@ renderer_resize :: proc(size: [2]uint) {
 }
 
 renderer_draw_skybox :: proc() {
-	logic.skybox_draw(&RENDERER_INSTANCE.skybox_pipeline, &RENDERER_INSTANCE.pass, RENDERER_INSTANCE.skybox.mesh, RENDERER_INSTANCE.skybox.texture)
+	logic.skybox_draw(&RENDERER_INSTANCE.skybox_pipeline, RENDERER_INSTANCE.skybox.mesh, RENDERER_INSTANCE.skybox.texture)
 }
 
 renderer_begin_drawing :: proc() {
