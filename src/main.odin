@@ -126,6 +126,11 @@ init :: proc() {
 		blend_dst_rgb_func = .One_Minus_Src_Alpha,
 		blend_src_alpha_func = .One,
 		blend_dstdst_alphargb_func = .Zero,
+
+		depth_enabled = false,
+		depth_func = .LEqual,
+
+		wireframe = true,
 	}, &STATE.pass)
 
 //
@@ -184,7 +189,7 @@ draw :: proc() {
 		STATE.vertex_positions_buffer,
 	}, STATE.index_buffer)
 
-	//gfx.pipeline_draw_arrays(&STATE.pipeline, &STATE.pass, &bindings, .Triangles, 0, 3)
+	//gfx.pipeline_draw_arrays(&STATE.pipeline, &bindings, .Triangles, 0, 3)
 	gfx.pipeline_draw_elements(&STATE.pipeline, &bindings, .Triangles, .U32, 36)
 
 	logic.camera_apply_full(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)

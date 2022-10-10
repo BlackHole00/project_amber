@@ -4,7 +4,7 @@ when ODIN_OS == .Darwin {
 
 import MTL "vendor:darwin/Metal"
 
-//@(private)
+@(private)
 Mtl_Pass_Data :: struct {
     pass: ^MTL.RenderPassDescriptor,
     command_buffer: ^MTL.CommandBuffer,
@@ -32,7 +32,9 @@ _metalimpl_pass_begin :: proc(pass: ^Pass) {
         })
         color_attachment->setLoadAction(.Clear)
         color_attachment->setStoreAction(.Store)
-        color_attachment->setTexture(METAL_CONTEXT.drawable->texture())
+
+        if pass.render_target == nil do color_attachment->setTexture(METAL_CONTEXT.drawable->texture())
+        else do panic("TODO!")
     }
     if pass.clear_depth do panic("TODO!")
 

@@ -132,6 +132,8 @@ pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive
 }
 
 pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int) {
+    if bindings.index_buffer == nil do panic("Requesting pipeline_draw_elements without an index buffer in the bindings")
+
     GFX_PROCS.pipeline_draw_elements(pipeline, bindings, primitive, type, count)
 }
 
@@ -140,6 +142,8 @@ pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings,
 }
 
 pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, type: Index_Type, count: int, instance_count: int) {
+    if bindings.index_buffer == nil do panic("Requesting pipeline_draw_elements without an index buffer in the bindings")
+
     GFX_PROCS.pipeline_draw_elements_instanced(pipeline, bindings, primitive, type, count, instance_count)
 }
 
