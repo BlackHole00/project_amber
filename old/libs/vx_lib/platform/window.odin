@@ -19,8 +19,11 @@ WINDOW_INSTANCE: core.Cell(Window)
 window_init :: proc(desc: Window_Descriptor) {
     core.cell_init(&WINDOW_INSTANCE)
 
-    assert(core.cell_is_valid(WINDOWCONTEXT_INSTANCE), "Window context instance is not valid.")
-    windowcontext_safetize_procs()
+    if !core.cell_is_valid(WINDOWCONTEXT_INSTANCE) {
+        log.warn("Window context instance is not valid. A window without a context is being created.")
+    } else {
+        windowcontext_safetize_procs()
+    }
 
     title := strings.clone_to_cstring(desc.title, context.temp_allocator)
     monitor: glfw.MonitorHandle = desc.fullscreen ? glfw.GetPrimaryMonitor() : nil

@@ -11,14 +11,10 @@ Window_Context :: struct {
     close_proc: proc(),
 }
 
-Window_Context_Descriptor :: Window_Context
-
 WINDOWCONTEXT_INSTANCE: core.Cell(Window_Context)
 
-windowcontext_init :: proc(desc: Window_Context_Descriptor) {
+windowcontext_init :: proc() {
     core.cell_init(&WINDOWCONTEXT_INSTANCE)
-
-    WINDOWCONTEXT_INSTANCE.ptr^ = desc
 }
 
 windowcontext_free :: proc() {
