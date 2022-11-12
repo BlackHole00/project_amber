@@ -1,0 +1,55 @@
+[package]
+name = "wgpu-native"
+version = "0.6.0"
+authors = [
+	"Dzmitry Malyshau <kvark@mozilla.com>",
+	"Joshua Groves <josh@joshgroves.com>",
+	"Noah Charlton <ncharlton002@gmail.com>",
+	"Almar Klein <almar@almarklein.org>",
+]
+edition = "2021"
+description = "WebGPU native implementation on gfx-hal"
+homepage = "https://github.com/gfx-rs/wgpu-native"
+repository = "https://github.com/gfx-rs/wgpu-native"
+keywords = ["graphics"]
+license = "MIT OR Apache-2.0"
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[features]
+default = []
+angle = ["wgc/angle"]
+vulkan-portability = ["wgc/vulkan-portability"]
+
+[dependencies.wgc]
+package = "wgpu-core"
+git = "https://github.com/gfx-rs/wgpu"
+rev = "261069d"
+# path = "../wgpu/wgpu-core"
+version = "0.14"
+features = ["raw-window-handle", "trace"]
+
+[dependencies.wgt]
+package = "wgpu-types"
+git = "https://github.com/gfx-rs/wgpu"
+rev = "261069d"
+# path = "../wgpu/wgpu-types"
+version = "0.14"
+
+[dependencies.naga]
+git = "https://github.com/gfx-rs/naga"
+rev = "c52d9102"
+# version = "0.10"
+features = ["spv-in", "glsl-in"]
+
+[dependencies]
+lazy_static = "1.4"
+raw-window-handle = "0.5"
+paste = "1.0"
+log = "0.4"
+thiserror = "1"
+
+[build-dependencies]
+bindgen = "0.60.1"
+cfg_aliases = "0.1"
