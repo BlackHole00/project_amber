@@ -1,6 +1,6 @@
 package vx_lib_platform
 
-import "vx_lib:core"
+import "shared:vx_lib/core"
 import "core:c"
 import "core:strings"
 import "core:time"

@@ -3,9 +3,9 @@ package main
 import "core:log"
 import "core:os"
 import "core:mem"
-import "vx_lib:core"
-import "vx_lib:platform"
-import "vx_lib:common"
+import "shared:vx_lib/core"
+import "shared:vx_lib/platform"
+import "shared:vx_lib/common"
 
 State :: struct {
 }

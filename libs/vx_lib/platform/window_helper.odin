@@ -1,6 +1,6 @@
 package vx_lib_platform
 
-import "vx_lib:core"
+import "shared:vx_lib/core"
 import "vendor:glfw"
 import "core:fmt"
 import "core:strings"

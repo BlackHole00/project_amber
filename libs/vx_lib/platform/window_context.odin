@@ -1,7 +1,7 @@
 package vx_lib_platform
 
 import "vendor:glfw"
-import "vx_lib:core"
+import "shared:vx_lib/core"
 
 Window_Context :: struct {
     pre_window_init_proc: proc()-> (bool, string),

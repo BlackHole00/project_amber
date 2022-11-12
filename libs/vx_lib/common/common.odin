@@ -1,6 +1,6 @@
 package vx_lib_common
 
-import "vx_lib:platform"
+import "shared:vx_lib/platform"
 
 vx_lib_init :: proc() {
     platform.platform_init()

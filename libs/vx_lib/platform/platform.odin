@@ -1,7 +1,7 @@
 package vx_lib_platform
 
 import "core:log"
-import "vx_lib:core"
+import "shared:vx_lib/core"
 
 Platform_Proc_Result :: enum {
     Ok,

@@ -1,6 +1,6 @@
 package main
 
-import "vx_lib:platform"
+import "shared:vx_lib/platform"
 import "vendor:glfw"
 
 input_common :: proc() {
