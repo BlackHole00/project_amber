@@ -7,4 +7,6 @@ copy .\.vscode\windows_default\ols.json .\ols.json
 copy .\.vscode\windows_default\run.bat .\run.bat
 copy .\.vscode\windows_default\build.bat .\build.bat
 
+cd tools
+
 echo DONE!

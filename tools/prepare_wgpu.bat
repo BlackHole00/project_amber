@@ -6,4 +6,6 @@ cd ..\libs\wgpu\wgpu-native
 make package
 copy .\target\debug\wgpu_native.lib ..\wgpu_native.lib
 
+cd ..\..\..\tools
+
 echo DONE!
