@@ -1,4 +1,4 @@
-build/main.*
+build
 toold/build/*.exe
 log.txt
 .vscode/launch.json
@@ -8,3 +8,5 @@ ols.json
 **/*.disabled
 libs/wgpu/wgpu-native/target
 libs/wgpu/wgpu_native.lib
+run.bat
+build.bat

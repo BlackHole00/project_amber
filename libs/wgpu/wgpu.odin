@@ -4,178 +4,178 @@ foreign import "wgpu_native.lib"
 
 import _c "core:c"
 
-WGPU_ARRAY_LAYER_COUNT_UNDEFINED :: 4294967295;
-WGPU_COPY_STRIDE_UNDEFINED :: 4294967295;
-WGPU_LIMIT_U32_UNDEFINED :: 4294967295;
-WGPU_LIMIT_U64_UNDEFINED :: -1;
-WGPU_MIP_LEVEL_COUNT_UNDEFINED :: 4294967295;
-WGPU_WHOLE_SIZE :: -1;
+WGPU_ARRAY_LAYER_COUNT_UNDEFINED :: 4294967295
+WGPU_COPY_STRIDE_UNDEFINED :: 4294967295
+WGPU_LIMIT_U32_UNDEFINED :: 4294967295
+WGPU_LIMIT_U64_UNDEFINED :: -1
+WGPU_MIP_LEVEL_COUNT_UNDEFINED :: 4294967295
+WGPU_WHOLE_SIZE :: -1
 
-Flags :: u32;
-Adapter :: ^AdapterImpl;
-BindGroup :: ^BindGroupImpl;
-BindGroupLayout :: ^BindGroupLayoutImpl;
-Buffer :: ^BufferImpl;
-CommandBuffer :: ^CommandBufferImpl;
-CommandEncoder :: ^CommandEncoderImpl;
-ComputePassEncoder :: ^ComputePassEncoderImpl;
-ComputePipeline :: ^ComputePipelineImpl;
-Device :: ^DeviceImpl;
-Instance :: ^InstanceImpl;
-PipelineLayout :: ^PipelineLayoutImpl;
-QuerySet :: ^QuerySetImpl;
-Queue :: ^QueueImpl;
-RenderBundle :: ^RenderBundleImpl;
-RenderBundleEncoder :: ^RenderBundleEncoderImpl;
-RenderPassEncoder :: ^RenderPassEncoderImpl;
-RenderPipeline :: ^RenderPipelineImpl;
-Sampler :: ^SamplerImpl;
-ShaderModule :: ^ShaderModuleImpl;
-Surface :: ^SurfaceImpl;
-SwapChain :: ^SwapChainImpl;
-Texture :: ^TextureImpl;
-TextureView :: ^TextureViewImpl;
-BufferUsageFlags :: u32;
-ColorWriteMaskFlags :: u32;
-MapModeFlags :: u32;
-ShaderStageFlags :: u32;
-TextureUsageFlags :: u32;
-BufferMapCallback :: #type proc(status : BufferMapAsyncStatus, userdata : rawptr);
-CompilationInfoCallback :: #type proc(status : CompilationInfoRequestStatus, compilation_info : ^CompilationInfo, userdata : rawptr);
-CreateComputePipelineAsyncCallback :: #type proc(status : CreatePipelineAsyncStatus, pipeline : ComputePipeline, message : cstring, userdata : rawptr);
-CreateRenderPipelineAsyncCallback :: #type proc(status : CreatePipelineAsyncStatus, pipeline : RenderPipeline, message : cstring, userdata : rawptr);
-DeviceLostCallback :: #type proc(reason : DeviceLostReason, message : cstring, userdata : rawptr);
-ErrorCallback :: #type proc(type : ErrorType, message : cstring, userdata : rawptr);
-Proc :: #type proc();
-QueueWorkDoneCallback :: #type proc(status : QueueWorkDoneStatus, userdata : rawptr);
-RequestAdapterCallback :: #type proc(status : RequestAdapterStatus, adapter : Adapter, message : cstring, userdata : rawptr);
-RequestDeviceCallback :: #type proc(status : RequestDeviceStatus, device : Device, message : cstring, userdata : rawptr);
-ProcCreateInstance :: #type proc(descriptor : ^InstanceDescriptor) -> Instance;
-ProcGetProcAddress :: #type proc(device : Device, proc_name : cstring) -> Proc;
-ProcAdapterEnumerateFeatures :: #type proc(adapter : Adapter, features : ^FeatureName) -> _c.size_t;
-ProcAdapterGetLimits :: #type proc(adapter : Adapter, limits : ^SupportedLimits) -> Bool;
-ProcAdapterGetProperties :: #type proc(adapter : Adapter, properties : ^AdapterProperties);
-ProcAdapterHasFeature :: #type proc(adapter : Adapter, feature : FeatureName) -> Bool;
-ProcAdapterRequestDevice :: #type proc(adapter : Adapter, descriptor : ^DeviceDescriptor, callback : RequestDeviceCallback, userdata : rawptr);
-ProcBindGroupSetLabel :: #type proc(bind_group : BindGroup, label : cstring);
-ProcBindGroupLayoutSetLabel :: #type proc(bind_group_layout : BindGroupLayout, label : cstring);
-ProcBufferDestroy :: #type proc(buffer : Buffer);
-ProcBufferGetConstMappedRange :: #type proc(buffer : Buffer, offset : _c.size_t, size : _c.size_t) -> rawptr;
-ProcBufferGetMappedRange :: #type proc(buffer : Buffer, offset : _c.size_t, size : _c.size_t) -> rawptr;
-ProcBufferMapAsync :: #type proc(buffer : Buffer, mode : u32, offset : _c.size_t, size : _c.size_t, callback : BufferMapCallback, userdata : rawptr);
-ProcBufferSetLabel :: #type proc(buffer : Buffer, label : cstring);
-ProcBufferUnmap :: #type proc(buffer : Buffer);
-ProcCommandBufferSetLabel :: #type proc(command_buffer : CommandBuffer, label : cstring);
-ProcCommandEncoderBeginComputePass :: #type proc(command_encoder : CommandEncoder, descriptor : ^ComputePassDescriptor) -> ComputePassEncoder;
-ProcCommandEncoderBeginRenderPass :: #type proc(command_encoder : CommandEncoder, descriptor : ^RenderPassDescriptor) -> RenderPassEncoder;
-ProcCommandEncoderClearBuffer :: #type proc(command_encoder : CommandEncoder, buffer : Buffer, offset : u64, size : u64);
-ProcCommandEncoderCopyBufferToBuffer :: #type proc(command_encoder : CommandEncoder, source : Buffer, source_offset : u64, destination : Buffer, destination_offset : u64, size : u64);
-ProcCommandEncoderCopyBufferToTexture :: #type proc(command_encoder : CommandEncoder, source : ^ImageCopyBuffer, destination : ^ImageCopyTexture, copy_size : ^Extent3D);
-ProcCommandEncoderCopyTextureToBuffer :: #type proc(command_encoder : CommandEncoder, source : ^ImageCopyTexture, destination : ^ImageCopyBuffer, copy_size : ^Extent3D);
-ProcCommandEncoderCopyTextureToTexture :: #type proc(command_encoder : CommandEncoder, source : ^ImageCopyTexture, destination : ^ImageCopyTexture, copy_size : ^Extent3D);
-ProcCommandEncoderFinish :: #type proc(command_encoder : CommandEncoder, descriptor : ^CommandBufferDescriptor) -> CommandBuffer;
-ProcCommandEncoderInsertDebugMarker :: #type proc(command_encoder : CommandEncoder, marker_label : cstring);
-ProcCommandEncoderPopDebugGroup :: #type proc(command_encoder : CommandEncoder);
-ProcCommandEncoderPushDebugGroup :: #type proc(command_encoder : CommandEncoder, group_label : cstring);
-ProcCommandEncoderResolveQuerySet :: #type proc(command_encoder : CommandEncoder, query_set : QuerySet, first_query : u32, query_count : u32, destination : Buffer, destination_offset : u64);
-ProcCommandEncoderSetLabel :: #type proc(command_encoder : CommandEncoder, label : cstring);
-ProcCommandEncoderWriteTimestamp :: #type proc(command_encoder : CommandEncoder, query_set : QuerySet, query_index : u32);
-ProcComputePassEncoderBeginPipelineStatisticsQuery :: #type proc(compute_pass_encoder : ComputePassEncoder, query_set : QuerySet, query_index : u32);
-ProcComputePassEncoderDispatchWorkgroups :: #type proc(compute_pass_encoder : ComputePassEncoder, workgroup_count_x : u32, workgroup_count_y : u32, workgroup_count_z : u32);
-ProcComputePassEncoderDispatchWorkgroupsIndirect :: #type proc(compute_pass_encoder : ComputePassEncoder, indirect_buffer : Buffer, indirect_offset : u64);
-ProcComputePassEncoderEnd :: #type proc(compute_pass_encoder : ComputePassEncoder);
-ProcComputePassEncoderEndPipelineStatisticsQuery :: #type proc(compute_pass_encoder : ComputePassEncoder);
-ProcComputePassEncoderInsertDebugMarker :: #type proc(compute_pass_encoder : ComputePassEncoder, marker_label : cstring);
-ProcComputePassEncoderPopDebugGroup :: #type proc(compute_pass_encoder : ComputePassEncoder);
-ProcComputePassEncoderPushDebugGroup :: #type proc(compute_pass_encoder : ComputePassEncoder, group_label : cstring);
-ProcComputePassEncoderSetBindGroup :: #type proc(compute_pass_encoder : ComputePassEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32);
-ProcComputePassEncoderSetLabel :: #type proc(compute_pass_encoder : ComputePassEncoder, label : cstring);
-ProcComputePassEncoderSetPipeline :: #type proc(compute_pass_encoder : ComputePassEncoder, pipeline : ComputePipeline);
-ProcComputePipelineGetBindGroupLayout :: #type proc(compute_pipeline : ComputePipeline, group_index : u32) -> BindGroupLayout;
-ProcComputePipelineSetLabel :: #type proc(compute_pipeline : ComputePipeline, label : cstring);
-ProcDeviceCreateBindGroup :: #type proc(device : Device, descriptor : ^BindGroupDescriptor) -> BindGroup;
-ProcDeviceCreateBindGroupLayout :: #type proc(device : Device, descriptor : ^BindGroupLayoutDescriptor) -> BindGroupLayout;
-ProcDeviceCreateBuffer :: #type proc(device : Device, descriptor : ^BufferDescriptor) -> Buffer;
-ProcDeviceCreateCommandEncoder :: #type proc(device : Device, descriptor : ^CommandEncoderDescriptor) -> CommandEncoder;
-ProcDeviceCreateComputePipeline :: #type proc(device : Device, descriptor : ^ComputePipelineDescriptor) -> ComputePipeline;
-ProcDeviceCreateComputePipelineAsync :: #type proc(device : Device, descriptor : ^ComputePipelineDescriptor, callback : CreateComputePipelineAsyncCallback, userdata : rawptr);
-ProcDeviceCreatePipelineLayout :: #type proc(device : Device, descriptor : ^PipelineLayoutDescriptor) -> PipelineLayout;
-ProcDeviceCreateQuerySet :: #type proc(device : Device, descriptor : ^QuerySetDescriptor) -> QuerySet;
-ProcDeviceCreateRenderBundleEncoder :: #type proc(device : Device, descriptor : ^RenderBundleEncoderDescriptor) -> RenderBundleEncoder;
-ProcDeviceCreateRenderPipeline :: #type proc(device : Device, descriptor : ^RenderPipelineDescriptor) -> RenderPipeline;
-ProcDeviceCreateRenderPipelineAsync :: #type proc(device : Device, descriptor : ^RenderPipelineDescriptor, callback : CreateRenderPipelineAsyncCallback, userdata : rawptr);
-ProcDeviceCreateSampler :: #type proc(device : Device, descriptor : ^SamplerDescriptor) -> Sampler;
-ProcDeviceCreateShaderModule :: #type proc(device : Device, descriptor : ^ShaderModuleDescriptor) -> ShaderModule;
-ProcDeviceCreateSwapChain :: #type proc(device : Device, surface : Surface, descriptor : ^SwapChainDescriptor) -> SwapChain;
-ProcDeviceCreateTexture :: #type proc(device : Device, descriptor : ^TextureDescriptor) -> Texture;
-ProcDeviceDestroy :: #type proc(device : Device);
-ProcDeviceEnumerateFeatures :: #type proc(device : Device, features : ^FeatureName) -> _c.size_t;
-ProcDeviceGetLimits :: #type proc(device : Device, limits : ^SupportedLimits) -> Bool;
-ProcDeviceGetQueue :: #type proc(device : Device) -> Queue;
-ProcDeviceHasFeature :: #type proc(device : Device, feature : FeatureName) -> Bool;
-ProcDevicePopErrorScope :: #type proc(device : Device, callback : ErrorCallback, userdata : rawptr) -> Bool;
-ProcDevicePushErrorScope :: #type proc(device : Device, filter : ErrorFilter);
-ProcDeviceSetDeviceLostCallback :: #type proc(device : Device, callback : DeviceLostCallback, userdata : rawptr);
-ProcDeviceSetLabel :: #type proc(device : Device, label : cstring);
-ProcDeviceSetUncapturedErrorCallback :: #type proc(device : Device, callback : ErrorCallback, userdata : rawptr);
-ProcInstanceCreateSurface :: #type proc(instance : Instance, descriptor : ^SurfaceDescriptor) -> Surface;
-ProcInstanceProcessEvents :: #type proc(instance : Instance);
-ProcInstanceRequestAdapter :: #type proc(instance : Instance, options : ^RequestAdapterOptions, callback : RequestAdapterCallback, userdata : rawptr);
-ProcPipelineLayoutSetLabel :: #type proc(pipeline_layout : PipelineLayout, label : cstring);
-ProcQuerySetDestroy :: #type proc(query_set : QuerySet);
-ProcQuerySetSetLabel :: #type proc(query_set : QuerySet, label : cstring);
-ProcQueueOnSubmittedWorkDone :: #type proc(queue : Queue, callback : QueueWorkDoneCallback, userdata : rawptr);
-ProcQueueSetLabel :: #type proc(queue : Queue, label : cstring);
-ProcQueueSubmit :: #type proc(queue : Queue, command_count : u32, commands : ^CommandBuffer);
-ProcQueueWriteBuffer :: #type proc(queue : Queue, buffer : Buffer, buffer_offset : u64, data : rawptr, size : _c.size_t);
-ProcQueueWriteTexture :: #type proc(queue : Queue, destination : ^ImageCopyTexture, data : rawptr, data_size : _c.size_t, data_layout : ^TextureDataLayout, write_size : ^Extent3D);
-ProcRenderBundleEncoderDraw :: #type proc(render_bundle_encoder : RenderBundleEncoder, vertex_count : u32, instance_count : u32, first_vertex : u32, first_instance : u32);
-ProcRenderBundleEncoderDrawIndexed :: #type proc(render_bundle_encoder : RenderBundleEncoder, index_count : u32, instance_count : u32, first_index : u32, base_vertex : i32, first_instance : u32);
-ProcRenderBundleEncoderDrawIndexedIndirect :: #type proc(render_bundle_encoder : RenderBundleEncoder, indirect_buffer : Buffer, indirect_offset : u64);
-ProcRenderBundleEncoderDrawIndirect :: #type proc(render_bundle_encoder : RenderBundleEncoder, indirect_buffer : Buffer, indirect_offset : u64);
-ProcRenderBundleEncoderFinish :: #type proc(render_bundle_encoder : RenderBundleEncoder, descriptor : ^RenderBundleDescriptor) -> RenderBundle;
-ProcRenderBundleEncoderInsertDebugMarker :: #type proc(render_bundle_encoder : RenderBundleEncoder, marker_label : cstring);
-ProcRenderBundleEncoderPopDebugGroup :: #type proc(render_bundle_encoder : RenderBundleEncoder);
-ProcRenderBundleEncoderPushDebugGroup :: #type proc(render_bundle_encoder : RenderBundleEncoder, group_label : cstring);
-ProcRenderBundleEncoderSetBindGroup :: #type proc(render_bundle_encoder : RenderBundleEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32);
-ProcRenderBundleEncoderSetIndexBuffer :: #type proc(render_bundle_encoder : RenderBundleEncoder, buffer : Buffer, format : IndexFormat, offset : u64, size : u64);
-ProcRenderBundleEncoderSetLabel :: #type proc(render_bundle_encoder : RenderBundleEncoder, label : cstring);
-ProcRenderBundleEncoderSetPipeline :: #type proc(render_bundle_encoder : RenderBundleEncoder, pipeline : RenderPipeline);
-ProcRenderBundleEncoderSetVertexBuffer :: #type proc(render_bundle_encoder : RenderBundleEncoder, slot : u32, buffer : Buffer, offset : u64, size : u64);
-ProcRenderPassEncoderBeginOcclusionQuery :: #type proc(render_pass_encoder : RenderPassEncoder, query_index : u32);
-ProcRenderPassEncoderBeginPipelineStatisticsQuery :: #type proc(render_pass_encoder : RenderPassEncoder, query_set : QuerySet, query_index : u32);
-ProcRenderPassEncoderDraw :: #type proc(render_pass_encoder : RenderPassEncoder, vertex_count : u32, instance_count : u32, first_vertex : u32, first_instance : u32);
-ProcRenderPassEncoderDrawIndexed :: #type proc(render_pass_encoder : RenderPassEncoder, index_count : u32, instance_count : u32, first_index : u32, base_vertex : i32, first_instance : u32);
-ProcRenderPassEncoderDrawIndexedIndirect :: #type proc(render_pass_encoder : RenderPassEncoder, indirect_buffer : Buffer, indirect_offset : u64);
-ProcRenderPassEncoderDrawIndirect :: #type proc(render_pass_encoder : RenderPassEncoder, indirect_buffer : Buffer, indirect_offset : u64);
-ProcRenderPassEncoderEnd :: #type proc(render_pass_encoder : RenderPassEncoder);
-ProcRenderPassEncoderEndOcclusionQuery :: #type proc(render_pass_encoder : RenderPassEncoder);
-ProcRenderPassEncoderEndPipelineStatisticsQuery :: #type proc(render_pass_encoder : RenderPassEncoder);
-ProcRenderPassEncoderExecuteBundles :: #type proc(render_pass_encoder : RenderPassEncoder, bundles_count : u32, bundles : ^RenderBundle);
-ProcRenderPassEncoderInsertDebugMarker :: #type proc(render_pass_encoder : RenderPassEncoder, marker_label : cstring);
-ProcRenderPassEncoderPopDebugGroup :: #type proc(render_pass_encoder : RenderPassEncoder);
-ProcRenderPassEncoderPushDebugGroup :: #type proc(render_pass_encoder : RenderPassEncoder, group_label : cstring);
-ProcRenderPassEncoderSetBindGroup :: #type proc(render_pass_encoder : RenderPassEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32);
-ProcRenderPassEncoderSetBlendConstant :: #type proc(render_pass_encoder : RenderPassEncoder, color : ^Color);
-ProcRenderPassEncoderSetIndexBuffer :: #type proc(render_pass_encoder : RenderPassEncoder, buffer : Buffer, format : IndexFormat, offset : u64, size : u64);
-ProcRenderPassEncoderSetLabel :: #type proc(render_pass_encoder : RenderPassEncoder, label : cstring);
-ProcRenderPassEncoderSetPipeline :: #type proc(render_pass_encoder : RenderPassEncoder, pipeline : RenderPipeline);
-ProcRenderPassEncoderSetScissorRect :: #type proc(render_pass_encoder : RenderPassEncoder, x : u32, y : u32, width : u32, height : u32);
-ProcRenderPassEncoderSetStencilReference :: #type proc(render_pass_encoder : RenderPassEncoder, reference : u32);
-ProcRenderPassEncoderSetVertexBuffer :: #type proc(render_pass_encoder : RenderPassEncoder, slot : u32, buffer : Buffer, offset : u64, size : u64);
-ProcRenderPassEncoderSetViewport :: #type proc(render_pass_encoder : RenderPassEncoder, x : _c.float, y : _c.float, width : _c.float, height : _c.float, min_depth : _c.float, max_depth : _c.float);
-ProcRenderPipelineGetBindGroupLayout :: #type proc(render_pipeline : RenderPipeline, group_index : u32) -> BindGroupLayout;
-ProcRenderPipelineSetLabel :: #type proc(render_pipeline : RenderPipeline, label : cstring);
-ProcSamplerSetLabel :: #type proc(sampler : Sampler, label : cstring);
-ProcShaderModuleGetCompilationInfo :: #type proc(shader_module : ShaderModule, callback : CompilationInfoCallback, userdata : rawptr);
-ProcShaderModuleSetLabel :: #type proc(shader_module : ShaderModule, label : cstring);
-ProcSurfaceGetPreferredFormat :: #type proc(surface : Surface, adapter : Adapter) -> TextureFormat;
-ProcSwapChainGetCurrentTextureView :: #type proc(swap_chain : SwapChain) -> TextureView;
-ProcSwapChainPresent :: #type proc(swap_chain : SwapChain);
-ProcTextureCreateView :: #type proc(texture : Texture, descriptor : ^TextureViewDescriptor) -> TextureView;
-ProcTextureDestroy :: #type proc(texture : Texture);
-ProcTextureSetLabel :: #type proc(texture : Texture, label : cstring);
-ProcTextureViewSetLabel :: #type proc(texture_view : TextureView, label : cstring);
+Flags :: u32
+Adapter :: ^AdapterImpl
+BindGroup :: ^BindGroupImpl
+BindGroupLayout :: ^BindGroupLayoutImpl
+Buffer :: ^BufferImpl
+CommandBuffer :: ^CommandBufferImpl
+CommandEncoder :: ^CommandEncoderImpl
+ComputePassEncoder :: ^ComputePassEncoderImpl
+ComputePipeline :: ^ComputePipelineImpl
+Device :: ^DeviceImpl
+Instance :: ^InstanceImpl
+PipelineLayout :: ^PipelineLayoutImpl
+QuerySet :: ^QuerySetImpl
+Queue :: ^QueueImpl
+RenderBundle :: ^RenderBundleImpl
+RenderBundleEncoder :: ^RenderBundleEncoderImpl
+RenderPassEncoder :: ^RenderPassEncoderImpl
+RenderPipeline :: ^RenderPipelineImpl
+Sampler :: ^SamplerImpl
+ShaderModule :: ^ShaderModuleImpl
+Surface :: ^SurfaceImpl
+SwapChain :: ^SwapChainImpl
+Texture :: ^TextureImpl
+TextureView :: ^TextureViewImpl
+BufferUsageFlags :: u32
+ColorWriteMaskFlags :: u32
+MapModeFlags :: u32
+ShaderStageFlags :: u32
+TextureUsageFlags :: u32
+BufferMapCallback :: #type proc(status : BufferMapAsyncStatus, userdata : rawptr)
+CompilationInfoCallback :: #type proc(status : CompilationInfoRequestStatus, compilation_info : ^CompilationInfo, userdata : rawptr)
+CreateComputePipelineAsyncCallback :: #type proc(status : CreatePipelineAsyncStatus, pipeline : ComputePipeline, message : cstring, userdata : rawptr)
+CreateRenderPipelineAsyncCallback :: #type proc(status : CreatePipelineAsyncStatus, pipeline : RenderPipeline, message : cstring, userdata : rawptr)
+DeviceLostCallback :: #type proc(reason : DeviceLostReason, message : cstring, userdata : rawptr)
+ErrorCallback :: #type proc(type : ErrorType, message : cstring, userdata : rawptr)
+Proc :: #type proc()
+QueueWorkDoneCallback :: #type proc(status : QueueWorkDoneStatus, userdata : rawptr)
+RequestAdapterCallback :: #type proc(status : RequestAdapterStatus, adapter : Adapter, message : cstring, userdata : rawptr)
+RequestDeviceCallback :: #type proc(status : RequestDeviceStatus, device : Device, message : cstring, userdata : rawptr)
+ProcCreateInstance :: #type proc(descriptor : ^InstanceDescriptor) -> Instance
+ProcGetProcAddress :: #type proc(device : Device, proc_name : cstring) -> Proc
+ProcAdapterEnumerateFeatures :: #type proc(adapter : Adapter, features : ^FeatureName) -> _c.size_t
+ProcAdapterGetLimits :: #type proc(adapter : Adapter, limits : ^SupportedLimits) -> Bool
+ProcAdapterGetProperties :: #type proc(adapter : Adapter, properties : ^AdapterProperties)
+ProcAdapterHasFeature :: #type proc(adapter : Adapter, feature : FeatureName) -> Bool
+ProcAdapterRequestDevice :: #type proc(adapter : Adapter, descriptor : ^DeviceDescriptor, callback : RequestDeviceCallback, userdata : rawptr)
+ProcBindGroupSetLabel :: #type proc(bind_group : BindGroup, label : cstring)
+ProcBindGroupLayoutSetLabel :: #type proc(bind_group_layout : BindGroupLayout, label : cstring)
+ProcBufferDestroy :: #type proc(buffer : Buffer)
+ProcBufferGetConstMappedRange :: #type proc(buffer : Buffer, offset : _c.size_t, size : _c.size_t) -> rawptr
+ProcBufferGetMappedRange :: #type proc(buffer : Buffer, offset : _c.size_t, size : _c.size_t) -> rawptr
+ProcBufferMapAsync :: #type proc(buffer : Buffer, mode : u32, offset : _c.size_t, size : _c.size_t, callback : BufferMapCallback, userdata : rawptr)
+ProcBufferSetLabel :: #type proc(buffer : Buffer, label : cstring)
+ProcBufferUnmap :: #type proc(buffer : Buffer)
+ProcCommandBufferSetLabel :: #type proc(command_buffer : CommandBuffer, label : cstring)
+ProcCommandEncoderBeginComputePass :: #type proc(command_encoder : CommandEncoder, descriptor : ^ComputePassDescriptor) -> ComputePassEncoder
+ProcCommandEncoderBeginRenderPass :: #type proc(command_encoder : CommandEncoder, descriptor : ^RenderPassDescriptor) -> RenderPassEncoder
+ProcCommandEncoderClearBuffer :: #type proc(command_encoder : CommandEncoder, buffer : Buffer, offset : u64, size : u64)
+ProcCommandEncoderCopyBufferToBuffer :: #type proc(command_encoder : CommandEncoder, source : Buffer, source_offset : u64, destination : Buffer, destination_offset : u64, size : u64)
+ProcCommandEncoderCopyBufferToTexture :: #type proc(command_encoder : CommandEncoder, source : ^ImageCopyBuffer, destination : ^ImageCopyTexture, copy_size : ^Extent3D)
+ProcCommandEncoderCopyTextureToBuffer :: #type proc(command_encoder : CommandEncoder, source : ^ImageCopyTexture, destination : ^ImageCopyBuffer, copy_size : ^Extent3D)
+ProcCommandEncoderCopyTextureToTexture :: #type proc(command_encoder : CommandEncoder, source : ^ImageCopyTexture, destination : ^ImageCopyTexture, copy_size : ^Extent3D)
+ProcCommandEncoderFinish :: #type proc(command_encoder : CommandEncoder, descriptor : ^CommandBufferDescriptor) -> CommandBuffer
+ProcCommandEncoderInsertDebugMarker :: #type proc(command_encoder : CommandEncoder, marker_label : cstring)
+ProcCommandEncoderPopDebugGroup :: #type proc(command_encoder : CommandEncoder)
+ProcCommandEncoderPushDebugGroup :: #type proc(command_encoder : CommandEncoder, group_label : cstring)
+ProcCommandEncoderResolveQuerySet :: #type proc(command_encoder : CommandEncoder, query_set : QuerySet, first_query : u32, query_count : u32, destination : Buffer, destination_offset : u64)
+ProcCommandEncoderSetLabel :: #type proc(command_encoder : CommandEncoder, label : cstring)
+ProcCommandEncoderWriteTimestamp :: #type proc(command_encoder : CommandEncoder, query_set : QuerySet, query_index : u32)
+ProcComputePassEncoderBeginPipelineStatisticsQuery :: #type proc(compute_pass_encoder : ComputePassEncoder, query_set : QuerySet, query_index : u32)
+ProcComputePassEncoderDispatchWorkgroups :: #type proc(compute_pass_encoder : ComputePassEncoder, workgroup_count_x : u32, workgroup_count_y : u32, workgroup_count_z : u32)
+ProcComputePassEncoderDispatchWorkgroupsIndirect :: #type proc(compute_pass_encoder : ComputePassEncoder, indirect_buffer : Buffer, indirect_offset : u64)
+ProcComputePassEncoderEnd :: #type proc(compute_pass_encoder : ComputePassEncoder)
+ProcComputePassEncoderEndPipelineStatisticsQuery :: #type proc(compute_pass_encoder : ComputePassEncoder)
+ProcComputePassEncoderInsertDebugMarker :: #type proc(compute_pass_encoder : ComputePassEncoder, marker_label : cstring)
+ProcComputePassEncoderPopDebugGroup :: #type proc(compute_pass_encoder : ComputePassEncoder)
+ProcComputePassEncoderPushDebugGroup :: #type proc(compute_pass_encoder : ComputePassEncoder, group_label : cstring)
+ProcComputePassEncoderSetBindGroup :: #type proc(compute_pass_encoder : ComputePassEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32)
+ProcComputePassEncoderSetLabel :: #type proc(compute_pass_encoder : ComputePassEncoder, label : cstring)
+ProcComputePassEncoderSetPipeline :: #type proc(compute_pass_encoder : ComputePassEncoder, pipeline : ComputePipeline)
+ProcComputePipelineGetBindGroupLayout :: #type proc(compute_pipeline : ComputePipeline, group_index : u32) -> BindGroupLayout
+ProcComputePipelineSetLabel :: #type proc(compute_pipeline : ComputePipeline, label : cstring)
+ProcDeviceCreateBindGroup :: #type proc(device : Device, descriptor : ^BindGroupDescriptor) -> BindGroup
+ProcDeviceCreateBindGroupLayout :: #type proc(device : Device, descriptor : ^BindGroupLayoutDescriptor) -> BindGroupLayout
+ProcDeviceCreateBuffer :: #type proc(device : Device, descriptor : ^BufferDescriptor) -> Buffer
+ProcDeviceCreateCommandEncoder :: #type proc(device : Device, descriptor : ^CommandEncoderDescriptor) -> CommandEncoder
+ProcDeviceCreateComputePipeline :: #type proc(device : Device, descriptor : ^ComputePipelineDescriptor) -> ComputePipeline
+ProcDeviceCreateComputePipelineAsync :: #type proc(device : Device, descriptor : ^ComputePipelineDescriptor, callback : CreateComputePipelineAsyncCallback, userdata : rawptr)
+ProcDeviceCreatePipelineLayout :: #type proc(device : Device, descriptor : ^PipelineLayoutDescriptor) -> PipelineLayout
+ProcDeviceCreateQuerySet :: #type proc(device : Device, descriptor : ^QuerySetDescriptor) -> QuerySet
+ProcDeviceCreateRenderBundleEncoder :: #type proc(device : Device, descriptor : ^RenderBundleEncoderDescriptor) -> RenderBundleEncoder
+ProcDeviceCreateRenderPipeline :: #type proc(device : Device, descriptor : ^RenderPipelineDescriptor) -> RenderPipeline
+ProcDeviceCreateRenderPipelineAsync :: #type proc(device : Device, descriptor : ^RenderPipelineDescriptor, callback : CreateRenderPipelineAsyncCallback, userdata : rawptr)
+ProcDeviceCreateSampler :: #type proc(device : Device, descriptor : ^SamplerDescriptor) -> Sampler
+ProcDeviceCreateShaderModule :: #type proc(device : Device, descriptor : ^ShaderModuleDescriptor) -> ShaderModule
+ProcDeviceCreateSwapChain :: #type proc(device : Device, surface : Surface, descriptor : ^SwapChainDescriptor) -> SwapChain
+ProcDeviceCreateTexture :: #type proc(device : Device, descriptor : ^TextureDescriptor) -> Texture
+ProcDeviceDestroy :: #type proc(device : Device)
+ProcDeviceEnumerateFeatures :: #type proc(device : Device, features : ^FeatureName) -> _c.size_t
+ProcDeviceGetLimits :: #type proc(device : Device, limits : ^SupportedLimits) -> Bool
+ProcDeviceGetQueue :: #type proc(device : Device) -> Queue
+ProcDeviceHasFeature :: #type proc(device : Device, feature : FeatureName) -> Bool
+ProcDevicePopErrorScope :: #type proc(device : Device, callback : ErrorCallback, userdata : rawptr) -> Bool
+ProcDevicePushErrorScope :: #type proc(device : Device, filter : ErrorFilter)
+ProcDeviceSetDeviceLostCallback :: #type proc(device : Device, callback : DeviceLostCallback, userdata : rawptr)
+ProcDeviceSetLabel :: #type proc(device : Device, label : cstring)
+ProcDeviceSetUncapturedErrorCallback :: #type proc(device : Device, callback : ErrorCallback, userdata : rawptr)
+ProcInstanceCreateSurface :: #type proc(instance : Instance, descriptor : ^SurfaceDescriptor) -> Surface
+ProcInstanceProcessEvents :: #type proc(instance : Instance)
+ProcInstanceRequestAdapter :: #type proc(instance : Instance, options : ^RequestAdapterOptions, callback : RequestAdapterCallback, userdata : rawptr)
+ProcPipelineLayoutSetLabel :: #type proc(pipeline_layout : PipelineLayout, label : cstring)
+ProcQuerySetDestroy :: #type proc(query_set : QuerySet)
+ProcQuerySetSetLabel :: #type proc(query_set : QuerySet, label : cstring)
+ProcQueueOnSubmittedWorkDone :: #type proc(queue : Queue, callback : QueueWorkDoneCallback, userdata : rawptr)
+ProcQueueSetLabel :: #type proc(queue : Queue, label : cstring)
+ProcQueueSubmit :: #type proc(queue : Queue, command_count : u32, commands : ^CommandBuffer)
+ProcQueueWriteBuffer :: #type proc(queue : Queue, buffer : Buffer, buffer_offset : u64, data : rawptr, size : _c.size_t)
+ProcQueueWriteTexture :: #type proc(queue : Queue, destination : ^ImageCopyTexture, data : rawptr, data_size : _c.size_t, data_layout : ^TextureDataLayout, write_size : ^Extent3D)
+ProcRenderBundleEncoderDraw :: #type proc(render_bundle_encoder : RenderBundleEncoder, vertex_count : u32, instance_count : u32, first_vertex : u32, first_instance : u32)
+ProcRenderBundleEncoderDrawIndexed :: #type proc(render_bundle_encoder : RenderBundleEncoder, index_count : u32, instance_count : u32, first_index : u32, base_vertex : i32, first_instance : u32)
+ProcRenderBundleEncoderDrawIndexedIndirect :: #type proc(render_bundle_encoder : RenderBundleEncoder, indirect_buffer : Buffer, indirect_offset : u64)
+ProcRenderBundleEncoderDrawIndirect :: #type proc(render_bundle_encoder : RenderBundleEncoder, indirect_buffer : Buffer, indirect_offset : u64)
+ProcRenderBundleEncoderFinish :: #type proc(render_bundle_encoder : RenderBundleEncoder, descriptor : ^RenderBundleDescriptor) -> RenderBundle
+ProcRenderBundleEncoderInsertDebugMarker :: #type proc(render_bundle_encoder : RenderBundleEncoder, marker_label : cstring)
+ProcRenderBundleEncoderPopDebugGroup :: #type proc(render_bundle_encoder : RenderBundleEncoder)
+ProcRenderBundleEncoderPushDebugGroup :: #type proc(render_bundle_encoder : RenderBundleEncoder, group_label : cstring)
+ProcRenderBundleEncoderSetBindGroup :: #type proc(render_bundle_encoder : RenderBundleEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32)
+ProcRenderBundleEncoderSetIndexBuffer :: #type proc(render_bundle_encoder : RenderBundleEncoder, buffer : Buffer, format : IndexFormat, offset : u64, size : u64)
+ProcRenderBundleEncoderSetLabel :: #type proc(render_bundle_encoder : RenderBundleEncoder, label : cstring)
+ProcRenderBundleEncoderSetPipeline :: #type proc(render_bundle_encoder : RenderBundleEncoder, pipeline : RenderPipeline)
+ProcRenderBundleEncoderSetVertexBuffer :: #type proc(render_bundle_encoder : RenderBundleEncoder, slot : u32, buffer : Buffer, offset : u64, size : u64)
+ProcRenderPassEncoderBeginOcclusionQuery :: #type proc(render_pass_encoder : RenderPassEncoder, query_index : u32)
+ProcRenderPassEncoderBeginPipelineStatisticsQuery :: #type proc(render_pass_encoder : RenderPassEncoder, query_set : QuerySet, query_index : u32)
+ProcRenderPassEncoderDraw :: #type proc(render_pass_encoder : RenderPassEncoder, vertex_count : u32, instance_count : u32, first_vertex : u32, first_instance : u32)
+ProcRenderPassEncoderDrawIndexed :: #type proc(render_pass_encoder : RenderPassEncoder, index_count : u32, instance_count : u32, first_index : u32, base_vertex : i32, first_instance : u32)
+ProcRenderPassEncoderDrawIndexedIndirect :: #type proc(render_pass_encoder : RenderPassEncoder, indirect_buffer : Buffer, indirect_offset : u64)
+ProcRenderPassEncoderDrawIndirect :: #type proc(render_pass_encoder : RenderPassEncoder, indirect_buffer : Buffer, indirect_offset : u64)
+ProcRenderPassEncoderEnd :: #type proc(render_pass_encoder : RenderPassEncoder)
+ProcRenderPassEncoderEndOcclusionQuery :: #type proc(render_pass_encoder : RenderPassEncoder)
+ProcRenderPassEncoderEndPipelineStatisticsQuery :: #type proc(render_pass_encoder : RenderPassEncoder)
+ProcRenderPassEncoderExecuteBundles :: #type proc(render_pass_encoder : RenderPassEncoder, bundles_count : u32, bundles : ^RenderBundle)
+ProcRenderPassEncoderInsertDebugMarker :: #type proc(render_pass_encoder : RenderPassEncoder, marker_label : cstring)
+ProcRenderPassEncoderPopDebugGroup :: #type proc(render_pass_encoder : RenderPassEncoder)
+ProcRenderPassEncoderPushDebugGroup :: #type proc(render_pass_encoder : RenderPassEncoder, group_label : cstring)
+ProcRenderPassEncoderSetBindGroup :: #type proc(render_pass_encoder : RenderPassEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32)
+ProcRenderPassEncoderSetBlendConstant :: #type proc(render_pass_encoder : RenderPassEncoder, color : ^Color)
+ProcRenderPassEncoderSetIndexBuffer :: #type proc(render_pass_encoder : RenderPassEncoder, buffer : Buffer, format : IndexFormat, offset : u64, size : u64)
+ProcRenderPassEncoderSetLabel :: #type proc(render_pass_encoder : RenderPassEncoder, label : cstring)
+ProcRenderPassEncoderSetPipeline :: #type proc(render_pass_encoder : RenderPassEncoder, pipeline : RenderPipeline)
+ProcRenderPassEncoderSetScissorRect :: #type proc(render_pass_encoder : RenderPassEncoder, x : u32, y : u32, width : u32, height : u32)
+ProcRenderPassEncoderSetStencilReference :: #type proc(render_pass_encoder : RenderPassEncoder, reference : u32)
+ProcRenderPassEncoderSetVertexBuffer :: #type proc(render_pass_encoder : RenderPassEncoder, slot : u32, buffer : Buffer, offset : u64, size : u64)
+ProcRenderPassEncoderSetViewport :: #type proc(render_pass_encoder : RenderPassEncoder, x : _c.float, y : _c.float, width : _c.float, height : _c.float, min_depth : _c.float, max_depth : _c.float)
+ProcRenderPipelineGetBindGroupLayout :: #type proc(render_pipeline : RenderPipeline, group_index : u32) -> BindGroupLayout
+ProcRenderPipelineSetLabel :: #type proc(render_pipeline : RenderPipeline, label : cstring)
+ProcSamplerSetLabel :: #type proc(sampler : Sampler, label : cstring)
+ProcShaderModuleGetCompilationInfo :: #type proc(shader_module : ShaderModule, callback : CompilationInfoCallback, userdata : rawptr)
+ProcShaderModuleSetLabel :: #type proc(shader_module : ShaderModule, label : cstring)
+ProcSurfaceGetPreferredFormat :: #type proc(surface : Surface, adapter : Adapter) -> TextureFormat
+ProcSwapChainGetCurrentTextureView :: #type proc(swap_chain : SwapChain) -> TextureView
+ProcSwapChainPresent :: #type proc(swap_chain : SwapChain)
+ProcTextureCreateView :: #type proc(texture : Texture, descriptor : ^TextureViewDescriptor) -> TextureView
+ProcTextureDestroy :: #type proc(texture : Texture)
+ProcTextureSetLabel :: #type proc(texture : Texture, label : cstring)
+ProcTextureViewSetLabel :: #type proc(texture_view : TextureView, label : cstring)
 
 AdapterType :: enum i32 {
     AdaptertypeDiscretegpu = 0,
@@ -183,14 +183,14 @@ AdapterType :: enum i32 {
     AdaptertypeCpu = 2,
     AdaptertypeUnknown = 3,
     AdaptertypeForce32 = 2147483647,
-};
+}
 
 AddressMode :: enum i32 {
     AddressmodeRepeat = 0,
     AddressmodeMirrorrepeat = 1,
     AddressmodeClamptoedge = 2,
     AddressmodeForce32 = 2147483647,
-};
+}
 
 BackendType :: enum i32 {
     BackendtypeNull = 0,
@@ -202,7 +202,7 @@ BackendType :: enum i32 {
     BackendtypeOpengl = 6,
     BackendtypeOpengles = 7,
     BackendtypeForce32 = 2147483647,
-};
+}
 
 BlendFactor :: enum i32 {
     BlendfactorZero = 0,
@@ -219,7 +219,7 @@ BlendFactor :: enum i32 {
     BlendfactorConstant = 11,
     BlendfactorOneminusconstant = 12,
     BlendfactorForce32 = 2147483647,
-};
+}
 
 BlendOperation :: enum i32 {
     BlendoperationAdd = 0,
@@ -228,7 +228,7 @@ BlendOperation :: enum i32 {
     BlendoperationMin = 3,
     BlendoperationMax = 4,
     BlendoperationForce32 = 2147483647,
-};
+}
 
 BufferBindingType :: enum i32 {
     BufferbindingtypeUndefined = 0,
@@ -236,7 +236,7 @@ BufferBindingType :: enum i32 {
     BufferbindingtypeStorage = 2,
     BufferbindingtypeReadonlystorage = 3,
     BufferbindingtypeForce32 = 2147483647,
-};
+}
 
 BufferMapAsyncStatus :: enum i32 {
     BuffermapasyncstatusSuccess = 0,
@@ -246,7 +246,7 @@ BufferMapAsyncStatus :: enum i32 {
     BuffermapasyncstatusDestroyedbeforecallback = 4,
     BuffermapasyncstatusUnmappedbeforecallback = 5,
     BuffermapasyncstatusForce32 = 2147483647,
-};
+}
 
 CompareFunction :: enum i32 {
     ComparefunctionUndefined = 0,
@@ -259,7 +259,7 @@ CompareFunction :: enum i32 {
     ComparefunctionNotequal = 7,
     ComparefunctionAlways = 8,
     ComparefunctionForce32 = 2147483647,
-};
+}
 
 CompilationInfoRequestStatus :: enum i32 {
     CompilationinforequeststatusSuccess = 0,
@@ -267,20 +267,20 @@ CompilationInfoRequestStatus :: enum i32 {
     CompilationinforequeststatusDevicelost = 2,
     CompilationinforequeststatusUnknown = 3,
     CompilationinforequeststatusForce32 = 2147483647,
-};
+}
 
 CompilationMessageType :: enum i32 {
     CompilationmessagetypeError = 0,
     CompilationmessagetypeWarning = 1,
     CompilationmessagetypeInfo = 2,
     CompilationmessagetypeForce32 = 2147483647,
-};
+}
 
 ComputePassTimestampLocation :: enum i32 {
     ComputepasstimestamplocationBeginning = 0,
     ComputepasstimestamplocationEnd = 1,
     ComputepasstimestamplocationForce32 = 2147483647,
-};
+}
 
 CreatePipelineAsyncStatus :: enum i32 {
     CreatepipelineasyncstatusSuccess = 0,
@@ -289,26 +289,26 @@ CreatePipelineAsyncStatus :: enum i32 {
     CreatepipelineasyncstatusDevicedestroyed = 3,
     CreatepipelineasyncstatusUnknown = 4,
     CreatepipelineasyncstatusForce32 = 2147483647,
-};
+}
 
 CullMode :: enum i32 {
     CullmodeNone = 0,
     CullmodeFront = 1,
     CullmodeBack = 2,
     CullmodeForce32 = 2147483647,
-};
+}
 
 DeviceLostReason :: enum i32 {
     DevicelostreasonUndefined = 0,
     DevicelostreasonDestroyed = 1,
     DevicelostreasonForce32 = 2147483647,
-};
+}
 
 ErrorFilter :: enum i32 {
     ErrorfilterValidation = 0,
     ErrorfilterOutofmemory = 1,
     ErrorfilterForce32 = 2147483647,
-};
+}
 
 ErrorType :: enum i32 {
     ErrortypeNoerror = 0,
@@ -317,7 +317,7 @@ ErrorType :: enum i32 {
     ErrortypeUnknown = 3,
     ErrortypeDevicelost = 4,
     ErrortypeForce32 = 2147483647,
-};
+}
 
 FeatureName :: enum i32 {
     FeaturenameUndefined = 0,
@@ -331,39 +331,39 @@ FeatureName :: enum i32 {
     FeaturenameTexturecompressionastc = 8,
     FeaturenameIndirectfirstinstance = 9,
     FeaturenameForce32 = 2147483647,
-};
+}
 
 FilterMode :: enum i32 {
     FiltermodeNearest = 0,
     FiltermodeLinear = 1,
     FiltermodeForce32 = 2147483647,
-};
+}
 
 FrontFace :: enum i32 {
     FrontfaceCcw = 0,
     FrontfaceCw = 1,
     FrontfaceForce32 = 2147483647,
-};
+}
 
 IndexFormat :: enum i32 {
     IndexformatUndefined = 0,
     IndexformatUint16 = 1,
     IndexformatUint32 = 2,
     IndexformatForce32 = 2147483647,
-};
+}
 
 LoadOp :: enum i32 {
     LoadopUndefined = 0,
     LoadopClear = 1,
     LoadopLoad = 2,
     LoadopForce32 = 2147483647,
-};
+}
 
 MipmapFilterMode :: enum i32 {
     MipmapfiltermodeNearest = 0,
     MipmapfiltermodeLinear = 1,
     MipmapfiltermodeForce32 = 2147483647,
-};
+}
 
 PipelineStatisticName :: enum i32 {
     PipelinestatisticnameVertexshaderinvocations = 0,
@@ -372,27 +372,27 @@ PipelineStatisticName :: enum i32 {
     PipelinestatisticnameFragmentshaderinvocations = 3,
     PipelinestatisticnameComputeshaderinvocations = 4,
     PipelinestatisticnameForce32 = 2147483647,
-};
+}
 
 PowerPreference :: enum i32 {
     PowerpreferenceUndefined = 0,
     PowerpreferenceLowpower = 1,
     PowerpreferenceHighperformance = 2,
     PowerpreferenceForce32 = 2147483647,
-};
+}
 
 PredefinedColorSpace :: enum i32 {
     PredefinedcolorspaceUndefined = 0,
     PredefinedcolorspaceSrgb = 1,
     PredefinedcolorspaceForce32 = 2147483647,
-};
+}
 
 PresentMode :: enum i32 {
     PresentmodeImmediate = 0,
     PresentmodeMailbox = 1,
     PresentmodeFifo = 2,
     PresentmodeForce32 = 2147483647,
-};
+}
 
 PrimitiveTopology :: enum i32 {
     PrimitivetopologyPointlist = 0,
@@ -401,14 +401,14 @@ PrimitiveTopology :: enum i32 {
     PrimitivetopologyTrianglelist = 3,
     PrimitivetopologyTrianglestrip = 4,
     PrimitivetopologyForce32 = 2147483647,
-};
+}
 
 QueryType :: enum i32 {
     QuerytypeOcclusion = 0,
     QuerytypePipelinestatistics = 1,
     QuerytypeTimestamp = 2,
     QuerytypeForce32 = 2147483647,
-};
+}
 
 QueueWorkDoneStatus :: enum i32 {
     QueueworkdonestatusSuccess = 0,
@@ -416,13 +416,13 @@ QueueWorkDoneStatus :: enum i32 {
     QueueworkdonestatusUnknown = 2,
     QueueworkdonestatusDevicelost = 3,
     QueueworkdonestatusForce32 = 2147483647,
-};
+}
 
 RenderPassTimestampLocation :: enum i32 {
     RenderpasstimestamplocationBeginning = 0,
     RenderpasstimestamplocationEnd = 1,
     RenderpasstimestamplocationForce32 = 2147483647,
-};
+}
 
 RequestAdapterStatus :: enum i32 {
     RequestadapterstatusSuccess = 0,
@@ -430,14 +430,14 @@ RequestAdapterStatus :: enum i32 {
     RequestadapterstatusError = 2,
     RequestadapterstatusUnknown = 3,
     RequestadapterstatusForce32 = 2147483647,
-};
+}
 
 RequestDeviceStatus :: enum i32 {
     RequestdevicestatusSuccess = 0,
     RequestdevicestatusError = 1,
     RequestdevicestatusUnknown = 2,
     RequestdevicestatusForce32 = 2147483647,
-};
+}
 
 SType :: enum i32 {
     StypeInvalid = 0,
@@ -452,7 +452,7 @@ SType :: enum i32 {
     StypeSurfacedescriptorfromandroidnativewindow = 9,
     StypeSurfacedescriptorfromxcbwindow = 10,
     StypeForce32 = 2147483647,
-};
+}
 
 SamplerBindingType :: enum i32 {
     SamplerbindingtypeUndefined = 0,
@@ -460,7 +460,7 @@ SamplerBindingType :: enum i32 {
     SamplerbindingtypeNonfiltering = 2,
     SamplerbindingtypeComparison = 3,
     SamplerbindingtypeForce32 = 2147483647,
-};
+}
 
 StencilOperation :: enum i32 {
     StenciloperationKeep = 0,
@@ -472,27 +472,27 @@ StencilOperation :: enum i32 {
     StenciloperationIncrementwrap = 6,
     StenciloperationDecrementwrap = 7,
     StenciloperationForce32 = 2147483647,
-};
+}
 
 StorageTextureAccess :: enum i32 {
     StoragetextureaccessUndefined = 0,
     StoragetextureaccessWriteonly = 1,
     StoragetextureaccessForce32 = 2147483647,
-};
+}
 
 StoreOp :: enum i32 {
     StoreopUndefined = 0,
     StoreopStore = 1,
     StoreopDiscard = 2,
     StoreopForce32 = 2147483647,
-};
+}
 
 TextureAspect :: enum i32 {
     TextureaspectAll = 0,
     TextureaspectStencilonly = 1,
     TextureaspectDepthonly = 2,
     TextureaspectForce32 = 2147483647,
-};
+}
 
 TextureComponentType :: enum i32 {
     TexturecomponenttypeFloat = 0,
@@ -500,14 +500,14 @@ TextureComponentType :: enum i32 {
     TexturecomponenttypeUint = 2,
     TexturecomponenttypeDepthcomparison = 3,
     TexturecomponenttypeForce32 = 2147483647,
-};
+}
 
 TextureDimension :: enum i32 {
     Texturedimension1D = 0,
     Texturedimension2D = 1,
     Texturedimension3D = 2,
     TexturedimensionForce32 = 2147483647,
-};
+}
 
 TextureFormat :: enum i32 {
     TextureformatUndefined = 0,
@@ -607,7 +607,7 @@ TextureFormat :: enum i32 {
     TextureformatAstc12X12Unorm = 94,
     TextureformatAstc12X12Unormsrgb = 95,
     TextureformatForce32 = 2147483647,
-};
+}
 
 TextureSampleType :: enum i32 {
     TexturesampletypeUndefined = 0,
@@ -617,7 +617,7 @@ TextureSampleType :: enum i32 {
     TexturesampletypeSint = 4,
     TexturesampletypeUint = 5,
     TexturesampletypeForce32 = 2147483647,
-};
+}
 
 TextureViewDimension :: enum i32 {
     TextureviewdimensionUndefined = 0,
@@ -628,7 +628,7 @@ TextureViewDimension :: enum i32 {
     TextureviewdimensionCubearray = 5,
     Textureviewdimension3D = 6,
     TextureviewdimensionForce32 = 2147483647,
-};
+}
 
 VertexFormat :: enum i32 {
     VertexformatUndefined = 0,
@@ -663,13 +663,13 @@ VertexFormat :: enum i32 {
     VertexformatSint32X3 = 29,
     VertexformatSint32X4 = 30,
     VertexformatForce32 = 2147483647,
-};
+}
 
 VertexStepMode :: enum i32 {
     VertexstepmodeVertex = 0,
     VertexstepmodeInstance = 1,
     VertexstepmodeForce32 = 2147483647,
-};
+}
 
 BufferUsage :: enum i32 {
     BufferusageNone = 0,
@@ -684,7 +684,7 @@ BufferUsage :: enum i32 {
     BufferusageIndirect = 256,
     BufferusageQueryresolve = 512,
     BufferusageForce32 = 2147483647,
-};
+}
 
 ColorWriteMask :: enum i32 {
     ColorwritemaskNone = 0,
@@ -694,14 +694,14 @@ ColorWriteMask :: enum i32 {
     ColorwritemaskAlpha = 8,
     ColorwritemaskAll = 15,
     ColorwritemaskForce32 = 2147483647,
-};
+}
 
 MapMode :: enum i32 {
     MapmodeNone = 0,
     MapmodeRead = 1,
     MapmodeWrite = 2,
     MapmodeForce32 = 2147483647,
-};
+}
 
 ShaderStage :: enum i32 {
     ShaderstageNone = 0,
@@ -709,7 +709,7 @@ ShaderStage :: enum i32 {
     ShaderstageFragment = 2,
     ShaderstageCompute = 4,
     ShaderstageForce32 = 2147483647,
-};
+}
 
 TextureUsage :: enum i32 {
     TextureusageNone = 0,
@@ -719,63 +719,63 @@ TextureUsage :: enum i32 {
     TextureusageStoragebinding = 8,
     TextureusageRenderattachment = 16,
     TextureusageForce32 = 2147483647,
-};
+}
 
-AdapterImpl :: struct {};
+AdapterImpl :: struct {}
 
-BindGroupImpl :: struct {};
+BindGroupImpl :: struct {}
 
-BindGroupLayoutImpl :: struct {};
+BindGroupLayoutImpl :: struct {}
 
-BufferImpl :: struct {};
+BufferImpl :: struct {}
 
-CommandBufferImpl :: struct {};
+CommandBufferImpl :: struct {}
 
-CommandEncoderImpl :: struct {};
+CommandEncoderImpl :: struct {}
 
-ComputePassEncoderImpl :: struct {};
+ComputePassEncoderImpl :: struct {}
 
-ComputePipelineImpl :: struct {};
+ComputePipelineImpl :: struct {}
 
-DeviceImpl :: struct {};
+DeviceImpl :: struct {}
 
-InstanceImpl :: struct {};
+InstanceImpl :: struct {}
 
-PipelineLayoutImpl :: struct {};
+PipelineLayoutImpl :: struct {}
 
-QuerySetImpl :: struct {};
+QuerySetImpl :: struct {}
 
-QueueImpl :: struct {};
+QueueImpl :: struct {}
 
-RenderBundleImpl :: struct {};
+RenderBundleImpl :: struct {}
 
-RenderBundleEncoderImpl :: struct {};
+RenderBundleEncoderImpl :: struct {}
 
-RenderPassEncoderImpl :: struct {};
+RenderPassEncoderImpl :: struct {}
 
-RenderPipelineImpl :: struct {};
+RenderPipelineImpl :: struct {}
 
-SamplerImpl :: struct {};
+SamplerImpl :: struct {}
 
-ShaderModuleImpl :: struct {};
+ShaderModuleImpl :: struct {}
 
-SurfaceImpl :: struct {};
+SurfaceImpl :: struct {}
 
-SwapChainImpl :: struct {};
+SwapChainImpl :: struct {}
 
-TextureImpl :: struct {};
+TextureImpl :: struct {}
 
-TextureViewImpl :: struct {};
+TextureViewImpl :: struct {}
 
 ChainedStruct :: struct {
     next : ^ChainedStruct,
     s_type : SType,
-};
+}
 
 ChainedStructOut :: struct {
     next : ^ChainedStructOut,
     s_type : SType,
-};
+}
 
 AdapterProperties :: struct {
     next_in_chain : ^ChainedStructOut,
@@ -785,7 +785,7 @@ AdapterProperties :: struct {
     driver_description : cstring,
     adapter_type : AdapterType,
     backend_type : BackendType,
-};
+}
 
 BindGroupEntry :: struct {
     next_in_chain : ^ChainedStruct,
@@ -795,20 +795,20 @@ BindGroupEntry :: struct {
     size : u64,
     sampler : Sampler,
     texture_view : TextureView,
-};
+}
 
 BlendComponent :: struct {
     operation : BlendOperation,
     src_factor : BlendFactor,
     dst_factor : BlendFactor,
-};
+}
 
 BufferBindingLayout :: struct {
     next_in_chain : ^ChainedStruct,
     type : BufferBindingType,
     has_dynamic_offset : Bool,
     min_binding_size : u64,
-};
+}
 
 BufferDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -816,24 +816,24 @@ BufferDescriptor :: struct {
     usage : u32,
     size : u64,
     mapped_at_creation : Bool,
-};
+}
 
 Color :: struct {
     r : _c.double,
     g : _c.double,
     b : _c.double,
     a : _c.double,
-};
+}
 
 CommandBufferDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
     label : cstring,
-};
+}
 
 CommandEncoderDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
     label : cstring,
-};
+}
 
 CompilationMessage :: struct {
     next_in_chain : ^ChainedStruct,
@@ -843,29 +843,29 @@ CompilationMessage :: struct {
     line_pos : u64,
     offset : u64,
     length : u64,
-};
+}
 
 ComputePassTimestampWrite :: struct {
     query_set : QuerySet,
     query_index : u32,
     location : ComputePassTimestampLocation,
-};
+}
 
 ConstantEntry :: struct {
     next_in_chain : ^ChainedStruct,
     key : cstring,
     value : _c.double,
-};
+}
 
 Extent3D :: struct {
     width : u32,
     height : u32,
     depth_or_array_layers : u32,
-};
+}
 
 InstanceDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
-};
+}
 
 Limits :: struct {
     max_texture_dimension1_d : u32,
@@ -894,32 +894,32 @@ Limits :: struct {
     max_compute_workgroup_size_y : u32,
     max_compute_workgroup_size_z : u32,
     max_compute_workgroups_per_dimension : u32,
-};
+}
 
 MultisampleState :: struct {
     next_in_chain : ^ChainedStruct,
     count : u32,
     mask : u32,
     alpha_to_coverage_enabled : Bool,
-};
+}
 
 Origin3D :: struct {
     x : u32,
     y : u32,
     z : u32,
-};
+}
 
 PipelineLayoutDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
     label : cstring,
     bind_group_layout_count : u32,
     bind_group_layouts : ^BindGroupLayout,
-};
+}
 
 PrimitiveDepthClipControl :: struct {
     chain : ChainedStruct,
     unclipped_depth : Bool,
-};
+}
 
 PrimitiveState :: struct {
     next_in_chain : ^ChainedStruct,
@@ -927,7 +927,7 @@ PrimitiveState :: struct {
     strip_index_format : IndexFormat,
     front_face : FrontFace,
     cull_mode : CullMode,
-};
+}
 
 QuerySetDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -936,17 +936,17 @@ QuerySetDescriptor :: struct {
     count : u32,
     pipeline_statistics : ^PipelineStatisticName,
     pipeline_statistics_count : u32,
-};
+}
 
 QueueDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
     label : cstring,
-};
+}
 
 RenderBundleDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
     label : cstring,
-};
+}
 
 RenderBundleEncoderDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -957,7 +957,7 @@ RenderBundleEncoderDescriptor :: struct {
     sample_count : u32,
     depth_read_only : Bool,
     stencil_read_only : Bool,
-};
+}
 
 RenderPassDepthStencilAttachment :: struct {
     view : TextureView,
@@ -969,25 +969,25 @@ RenderPassDepthStencilAttachment :: struct {
     stencil_store_op : StoreOp,
     stencil_clear_value : u32,
     stencil_read_only : Bool,
-};
+}
 
 RenderPassTimestampWrite :: struct {
     query_set : QuerySet,
     query_index : u32,
     location : RenderPassTimestampLocation,
-};
+}
 
 RequestAdapterOptions :: struct {
     next_in_chain : ^ChainedStruct,
     compatible_surface : Surface,
     power_preference : PowerPreference,
     force_fallback_adapter : Bool,
-};
+}
 
 SamplerBindingLayout :: struct {
     next_in_chain : ^ChainedStruct,
     type : SamplerBindingType,
-};
+}
 
 SamplerDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1002,82 +1002,82 @@ SamplerDescriptor :: struct {
     lod_max_clamp : _c.float,
     compare : CompareFunction,
     max_anisotropy : u16,
-};
+}
 
 ShaderModuleCompilationHint :: struct {
     next_in_chain : ^ChainedStruct,
     entry_point : cstring,
     layout : PipelineLayout,
-};
+}
 
 ShaderModuleSpirvDescriptor :: struct {
     chain : ChainedStruct,
     code_size : u32,
     code : ^u32,
-};
+}
 
 ShaderModuleWgslDescriptor :: struct {
     chain : ChainedStruct,
     code : cstring,
-};
+}
 
 StencilFaceState :: struct {
     compare : CompareFunction,
     fail_op : StencilOperation,
     depth_fail_op : StencilOperation,
     pass_op : StencilOperation,
-};
+}
 
 StorageTextureBindingLayout :: struct {
     next_in_chain : ^ChainedStruct,
     access : StorageTextureAccess,
     format : TextureFormat,
     view_dimension : TextureViewDimension,
-};
+}
 
 SurfaceDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
     label : cstring,
-};
+}
 
 SurfaceDescriptorFromAndroidNativeWindow :: struct {
     chain : ChainedStruct,
     window : rawptr,
-};
+}
 
 SurfaceDescriptorFromCanvasHtmlSelector :: struct {
     chain : ChainedStruct,
     selector : cstring,
-};
+}
 
 SurfaceDescriptorFromMetalLayer :: struct {
     chain : ChainedStruct,
     layer : rawptr,
-};
+}
 
 SurfaceDescriptorFromWaylandSurface :: struct {
     chain : ChainedStruct,
     display : rawptr,
     surface : rawptr,
-};
+}
 
 SurfaceDescriptorFromWindowsHwnd :: struct {
     chain : ChainedStruct,
     hinstance : rawptr,
     hwnd : rawptr,
-};
+}
 
 SurfaceDescriptorFromXcbWindow :: struct {
     chain : ChainedStruct,
     connection : rawptr,
     window : u32,
-};
+}
 
 SurfaceDescriptorFromXlibWindow :: struct {
     chain : ChainedStruct,
     display : rawptr,
     window : u32,
-};
+}
 
 SwapChainDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1087,21 +1087,21 @@ SwapChainDescriptor :: struct {
     width : u32,
     height : u32,
     present_mode : PresentMode,
-};
+}
 
 TextureBindingLayout :: struct {
     next_in_chain : ^ChainedStruct,
     sample_type : TextureSampleType,
     view_dimension : TextureViewDimension,
     multisampled : Bool,
-};
+}
 
 TextureDataLayout :: struct {
     next_in_chain : ^ChainedStruct,
     offset : u64,
     bytes_per_row : u32,
     rows_per_image : u32,
-};
+}
 
 TextureViewDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1113,13 +1113,13 @@ TextureViewDescriptor :: struct {
     base_array_layer : u32,
     array_layer_count : u32,
     aspect : TextureAspect,
-};
+}
 
 VertexAttribute :: struct {
     format : VertexFormat,
     offset : u64,
     shader_location : u32,
-};
+}
 
 BindGroupDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1127,7 +1127,7 @@ BindGroupDescriptor :: struct {
     layout : BindGroupLayout,
     entry_count : u32,
     entries : ^BindGroupEntry,
-};
+}
 
 BindGroupLayoutEntry :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1137,25 +1137,25 @@ BindGroupLayoutEntry :: struct {
     sampler : SamplerBindingLayout,
     texture : TextureBindingLayout,
     storage_texture : StorageTextureBindingLayout,
-};
+}
 
 BlendState :: struct {
     color : BlendComponent,
     alpha : BlendComponent,
-};
+}
 
 CompilationInfo :: struct {
     next_in_chain : ^ChainedStruct,
     message_count : u32,
     messages : ^CompilationMessage,
-};
+}
 
 ComputePassDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
     label : cstring,
     timestamp_write_count : u32,
     timestamp_writes : ^ComputePassTimestampWrite,
-};
+}
 
 DepthStencilState :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1169,13 +1169,13 @@ DepthStencilState :: struct {
     depth_bias : i32,
     depth_bias_slope_scale : _c.float,
     depth_bias_clamp : _c.float,
-};
+}
 
 ImageCopyBuffer :: struct {
     next_in_chain : ^ChainedStruct,
     layout : TextureDataLayout,
     buffer : Buffer,
-};
+}
 
 ImageCopyTexture :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1183,7 +1183,7 @@ ImageCopyTexture :: struct {
     mip_level : u32,
     origin : Origin3D,
     aspect : TextureAspect,
-};
+}
 
 ProgrammableStageDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1191,7 +1191,7 @@ ProgrammableStageDescriptor :: struct {
     entry_point : cstring,
     constant_count : u32,
     constants : ^ConstantEntry,
-};
+}
 
 RenderPassColorAttachment :: struct {
     view : TextureView,
@@ -1199,24 +1199,24 @@ RenderPassColorAttachment :: struct {
     load_op : LoadOp,
     store_op : StoreOp,
     clear_value : Color,
-};
+}
 
 RequiredLimits :: struct {
     next_in_chain : ^ChainedStruct,
     limits : Limits,
-};
+}
 
 ShaderModuleDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
     label : cstring,
     hint_count : u32,
     hints : ^ShaderModuleCompilationHint,
-};
+}
 
 SupportedLimits :: struct {
     next_in_chain : ^ChainedStructOut,
     limits : Limits,
-};
+}
 
 TextureDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1229,35 +1229,35 @@ TextureDescriptor :: struct {
     sample_count : u32,
     view_format_count : u32,
     view_formats : ^TextureFormat,
-};
+}
 
 VertexBufferLayout :: struct {
     array_stride : u64,
     step_mode : VertexStepMode,
     attribute_count : u32,
     attributes : ^VertexAttribute,
-};
+}
 
 BindGroupLayoutDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
     label : cstring,
     entry_count : u32,
     entries : ^BindGroupLayoutEntry,
-};
+}
 
 ColorTargetState :: struct {
     next_in_chain : ^ChainedStruct,
     format : TextureFormat,
     blend : ^BlendState,
     write_mask : u32,
-};
+}
 
 ComputePipelineDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
     label : cstring,
     layout : PipelineLayout,
     compute : ProgrammableStageDescriptor,
-};
+}
 
 DeviceDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1266,7 +1266,7 @@ DeviceDescriptor :: struct {
     required_features : ^FeatureName,
     required_limits : ^RequiredLimits,
     default_queue : QueueDescriptor,
-};
+}
 
 RenderPassDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1277,7 +1277,7 @@ RenderPassDescriptor :: struct {
     occlusion_query_set : QuerySet,
     timestamp_write_count : u32,
     timestamp_writes : ^RenderPassTimestampWrite,
-};
+}
 
 VertexState :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1287,7 +1287,7 @@ VertexState :: struct {
     constants : ^ConstantEntry,
     buffer_count : u32,
     buffers : ^VertexBufferLayout,
-};
+}
 
 FragmentState :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1297,7 +1297,7 @@ FragmentState :: struct {
     constants : ^ConstantEntry,
     target_count : u32,
     targets : ^ColorTargetState,
-};
+}
 
 RenderPipelineDescriptor :: struct {
     next_in_chain : ^ChainedStruct,
@@ -1308,387 +1308,387 @@ RenderPipelineDescriptor :: struct {
     depth_stencil : ^DepthStencilState,
     multisample : MultisampleState,
     fragment : ^FragmentState,
-};
+}
 
 @(default_calling_convention="c")
 foreign wgpu_native {
 
     @(link_name="wgpuCreateInstance")
-    create_instance :: proc(descriptor : ^InstanceDescriptor) -> Instance ---;
+    create_instance :: proc(descriptor : ^InstanceDescriptor) -> Instance ---
 
     @(link_name="wgpuGetProcAddress")
-    get_proc_address :: proc(device : Device, proc_name : cstring) -> Proc ---;
+    get_proc_address :: proc(device : Device, proc_name : cstring) -> Proc ---
 
     @(link_name="wgpuAdapterEnumerateFeatures")
-    adapter_enumerate_features :: proc(adapter : Adapter, features : ^FeatureName) -> _c.size_t ---;
+    adapter_enumerate_features :: proc(adapter : Adapter, features : ^FeatureName) -> _c.size_t ---
 
     @(link_name="wgpuAdapterGetLimits")
-    adapter_get_limits :: proc(adapter : Adapter, limits : ^SupportedLimits) -> Bool ---;
+    adapter_get_limits :: proc(adapter : Adapter, limits : ^SupportedLimits) -> Bool ---
 
     @(link_name="wgpuAdapterGetProperties")
-    adapter_get_properties :: proc(adapter : Adapter, properties : ^AdapterProperties) ---;
+    adapter_get_properties :: proc(adapter : Adapter, properties : ^AdapterProperties) ---
 
     @(link_name="wgpuAdapterHasFeature")
-    adapter_has_feature :: proc(adapter : Adapter, feature : FeatureName) -> Bool ---;
+    adapter_has_feature :: proc(adapter : Adapter, feature : FeatureName) -> Bool ---
 
     @(link_name="wgpuAdapterRequestDevice")
-    adapter_request_device :: proc(adapter : Adapter, descriptor : ^DeviceDescriptor, callback : RequestDeviceCallback, userdata : rawptr) ---;
+    adapter_request_device :: proc(adapter : Adapter, descriptor : ^DeviceDescriptor, callback : RequestDeviceCallback, userdata : rawptr) ---
 
     @(link_name="wgpuBindGroupSetLabel")
-    bind_group_set_label :: proc(bind_group : BindGroup, label : cstring) ---;
+    bind_group_set_label :: proc(bind_group : BindGroup, label : cstring) ---
 
     @(link_name="wgpuBindGroupLayoutSetLabel")
-    bind_group_layout_set_label :: proc(bind_group_layout : BindGroupLayout, label : cstring) ---;
+    bind_group_layout_set_label :: proc(bind_group_layout : BindGroupLayout, label : cstring) ---
 
     @(link_name="wgpuBufferDestroy")
-    buffer_destroy :: proc(buffer : Buffer) ---;
+    buffer_destroy :: proc(buffer : Buffer) ---
 
     @(link_name="wgpuBufferGetConstMappedRange")
-    buffer_get_const_mapped_range :: proc(buffer : Buffer, offset : _c.size_t, size : _c.size_t) -> rawptr ---;
+    buffer_get_const_mapped_range :: proc(buffer : Buffer, offset : _c.size_t, size : _c.size_t) -> rawptr ---
 
     @(link_name="wgpuBufferGetMappedRange")
-    buffer_get_mapped_range :: proc(buffer : Buffer, offset : _c.size_t, size : _c.size_t) -> rawptr ---;
+    buffer_get_mapped_range :: proc(buffer : Buffer, offset : _c.size_t, size : _c.size_t) -> rawptr ---
 
     @(link_name="wgpuBufferMapAsync")
-    buffer_map_async :: proc(buffer : Buffer, mode : u32, offset : _c.size_t, size : _c.size_t, callback : BufferMapCallback, userdata : rawptr) ---;
+    buffer_map_async :: proc(buffer : Buffer, mode : u32, offset : _c.size_t, size : _c.size_t, callback : BufferMapCallback, userdata : rawptr) ---
 
     @(link_name="wgpuBufferSetLabel")
-    buffer_set_label :: proc(buffer : Buffer, label : cstring) ---;
+    buffer_set_label :: proc(buffer : Buffer, label : cstring) ---
 
     @(link_name="wgpuBufferUnmap")
-    buffer_unmap :: proc(buffer : Buffer) ---;
+    buffer_unmap :: proc(buffer : Buffer) ---
 
     @(link_name="wgpuCommandBufferSetLabel")
-    command_buffer_set_label :: proc(command_buffer : CommandBuffer, label : cstring) ---;
+    command_buffer_set_label :: proc(command_buffer : CommandBuffer, label : cstring) ---
 
     @(link_name="wgpuCommandEncoderBeginComputePass")
-    command_encoder_begin_compute_pass :: proc(command_encoder : CommandEncoder, descriptor : ^ComputePassDescriptor) -> ComputePassEncoder ---;
+    command_encoder_begin_compute_pass :: proc(command_encoder : CommandEncoder, descriptor : ^ComputePassDescriptor) -> ComputePassEncoder ---
 
     @(link_name="wgpuCommandEncoderBeginRenderPass")
-    command_encoder_begin_render_pass :: proc(command_encoder : CommandEncoder, descriptor : ^RenderPassDescriptor) -> RenderPassEncoder ---;
+    command_encoder_begin_render_pass :: proc(command_encoder : CommandEncoder, descriptor : ^RenderPassDescriptor) -> RenderPassEncoder ---
 
     @(link_name="wgpuCommandEncoderClearBuffer")
-    command_encoder_clear_buffer :: proc(command_encoder : CommandEncoder, buffer : Buffer, offset : u64, size : u64) ---;
+    command_encoder_clear_buffer :: proc(command_encoder : CommandEncoder, buffer : Buffer, offset : u64, size : u64) ---
 
     @(link_name="wgpuCommandEncoderCopyBufferToBuffer")
-    command_encoder_copy_buffer_to_buffer :: proc(command_encoder : CommandEncoder, source : Buffer, source_offset : u64, destination : Buffer, destination_offset : u64, size : u64) ---;
+    command_encoder_copy_buffer_to_buffer :: proc(command_encoder : CommandEncoder, source : Buffer, source_offset : u64, destination : Buffer, destination_offset : u64, size : u64) ---
 
     @(link_name="wgpuCommandEncoderCopyBufferToTexture")
-    command_encoder_copy_buffer_to_texture :: proc(command_encoder : CommandEncoder, source : ^ImageCopyBuffer, destination : ^ImageCopyTexture, copy_size : ^Extent3D) ---;
+    command_encoder_copy_buffer_to_texture :: proc(command_encoder : CommandEncoder, source : ^ImageCopyBuffer, destination : ^ImageCopyTexture, copy_size : ^Extent3D) ---
 
     @(link_name="wgpuCommandEncoderCopyTextureToBuffer")
-    command_encoder_copy_texture_to_buffer :: proc(command_encoder : CommandEncoder, source : ^ImageCopyTexture, destination : ^ImageCopyBuffer, copy_size : ^Extent3D) ---;
+    command_encoder_copy_texture_to_buffer :: proc(command_encoder : CommandEncoder, source : ^ImageCopyTexture, destination : ^ImageCopyBuffer, copy_size : ^Extent3D) ---
 
     @(link_name="wgpuCommandEncoderCopyTextureToTexture")
-    command_encoder_copy_texture_to_texture :: proc(command_encoder : CommandEncoder, source : ^ImageCopyTexture, destination : ^ImageCopyTexture, copy_size : ^Extent3D) ---;
+    command_encoder_copy_texture_to_texture :: proc(command_encoder : CommandEncoder, source : ^ImageCopyTexture, destination : ^ImageCopyTexture, copy_size : ^Extent3D) ---
 
     @(link_name="wgpuCommandEncoderFinish")
-    command_encoder_finish :: proc(command_encoder : CommandEncoder, descriptor : ^CommandBufferDescriptor) -> CommandBuffer ---;
+    command_encoder_finish :: proc(command_encoder : CommandEncoder, descriptor : ^CommandBufferDescriptor) -> CommandBuffer ---
 
     @(link_name="wgpuCommandEncoderInsertDebugMarker")
-    command_encoder_insert_debug_marker :: proc(command_encoder : CommandEncoder, marker_label : cstring) ---;
+    command_encoder_insert_debug_marker :: proc(command_encoder : CommandEncoder, marker_label : cstring) ---
 
     @(link_name="wgpuCommandEncoderPopDebugGroup")
-    command_encoder_pop_debug_group :: proc(command_encoder : CommandEncoder) ---;
+    command_encoder_pop_debug_group :: proc(command_encoder : CommandEncoder) ---
 
     @(link_name="wgpuCommandEncoderPushDebugGroup")
-    command_encoder_push_debug_group :: proc(command_encoder : CommandEncoder, group_label : cstring) ---;
+    command_encoder_push_debug_group :: proc(command_encoder : CommandEncoder, group_label : cstring) ---
 
     @(link_name="wgpuCommandEncoderResolveQuerySet")
-    command_encoder_resolve_query_set :: proc(command_encoder : CommandEncoder, query_set : QuerySet, first_query : u32, query_count : u32, destination : Buffer, destination_offset : u64) ---;
+    command_encoder_resolve_query_set :: proc(command_encoder : CommandEncoder, query_set : QuerySet, first_query : u32, query_count : u32, destination : Buffer, destination_offset : u64) ---
 
     @(link_name="wgpuCommandEncoderSetLabel")
-    command_encoder_set_label :: proc(command_encoder : CommandEncoder, label : cstring) ---;
+    command_encoder_set_label :: proc(command_encoder : CommandEncoder, label : cstring) ---
 
     @(link_name="wgpuCommandEncoderWriteTimestamp")
-    command_encoder_write_timestamp :: proc(command_encoder : CommandEncoder, query_set : QuerySet, query_index : u32) ---;
+    command_encoder_write_timestamp :: proc(command_encoder : CommandEncoder, query_set : QuerySet, query_index : u32) ---
 
     @(link_name="wgpuComputePassEncoderBeginPipelineStatisticsQuery")
-    compute_pass_encoder_begin_pipeline_statistics_query :: proc(compute_pass_encoder : ComputePassEncoder, query_set : QuerySet, query_index : u32) ---;
+    compute_pass_encoder_begin_pipeline_statistics_query :: proc(compute_pass_encoder : ComputePassEncoder, query_set : QuerySet, query_index : u32) ---
 
     @(link_name="wgpuComputePassEncoderDispatchWorkgroups")
-    compute_pass_encoder_dispatch_workgroups :: proc(compute_pass_encoder : ComputePassEncoder, workgroup_count_x : u32, workgroup_count_y : u32, workgroup_count_z : u32) ---;
+    compute_pass_encoder_dispatch_workgroups :: proc(compute_pass_encoder : ComputePassEncoder, workgroup_count_x : u32, workgroup_count_y : u32, workgroup_count_z : u32) ---
 
     @(link_name="wgpuComputePassEncoderDispatchWorkgroupsIndirect")
-    compute_pass_encoder_dispatch_workgroups_indirect :: proc(compute_pass_encoder : ComputePassEncoder, indirect_buffer : Buffer, indirect_offset : u64) ---;
+    compute_pass_encoder_dispatch_workgroups_indirect :: proc(compute_pass_encoder : ComputePassEncoder, indirect_buffer : Buffer, indirect_offset : u64) ---
 
     @(link_name="wgpuComputePassEncoderEnd")
-    compute_pass_encoder_end :: proc(compute_pass_encoder : ComputePassEncoder) ---;
+    compute_pass_encoder_end :: proc(compute_pass_encoder : ComputePassEncoder) ---
 
     @(link_name="wgpuComputePassEncoderEndPipelineStatisticsQuery")
-    compute_pass_encoder_end_pipeline_statistics_query :: proc(compute_pass_encoder : ComputePassEncoder) ---;
+    compute_pass_encoder_end_pipeline_statistics_query :: proc(compute_pass_encoder : ComputePassEncoder) ---
 
     @(link_name="wgpuComputePassEncoderInsertDebugMarker")
-    compute_pass_encoder_insert_debug_marker :: proc(compute_pass_encoder : ComputePassEncoder, marker_label : cstring) ---;
+    compute_pass_encoder_insert_debug_marker :: proc(compute_pass_encoder : ComputePassEncoder, marker_label : cstring) ---
 
     @(link_name="wgpuComputePassEncoderPopDebugGroup")
-    compute_pass_encoder_pop_debug_group :: proc(compute_pass_encoder : ComputePassEncoder) ---;
+    compute_pass_encoder_pop_debug_group :: proc(compute_pass_encoder : ComputePassEncoder) ---
 
     @(link_name="wgpuComputePassEncoderPushDebugGroup")
-    compute_pass_encoder_push_debug_group :: proc(compute_pass_encoder : ComputePassEncoder, group_label : cstring) ---;
+    compute_pass_encoder_push_debug_group :: proc(compute_pass_encoder : ComputePassEncoder, group_label : cstring) ---
 
     @(link_name="wgpuComputePassEncoderSetBindGroup")
-    compute_pass_encoder_set_bind_group :: proc(compute_pass_encoder : ComputePassEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32) ---;
+    compute_pass_encoder_set_bind_group :: proc(compute_pass_encoder : ComputePassEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32) ---
 
     @(link_name="wgpuComputePassEncoderSetLabel")
-    compute_pass_encoder_set_label :: proc(compute_pass_encoder : ComputePassEncoder, label : cstring) ---;
+    compute_pass_encoder_set_label :: proc(compute_pass_encoder : ComputePassEncoder, label : cstring) ---
 
     @(link_name="wgpuComputePassEncoderSetPipeline")
-    compute_pass_encoder_set_pipeline :: proc(compute_pass_encoder : ComputePassEncoder, pipeline : ComputePipeline) ---;
+    compute_pass_encoder_set_pipeline :: proc(compute_pass_encoder : ComputePassEncoder, pipeline : ComputePipeline) ---
 
     @(link_name="wgpuComputePipelineGetBindGroupLayout")
-    compute_pipeline_get_bind_group_layout :: proc(compute_pipeline : ComputePipeline, group_index : u32) -> BindGroupLayout ---;
+    compute_pipeline_get_bind_group_layout :: proc(compute_pipeline : ComputePipeline, group_index : u32) -> BindGroupLayout ---
 
     @(link_name="wgpuComputePipelineSetLabel")
-    compute_pipeline_set_label :: proc(compute_pipeline : ComputePipeline, label : cstring) ---;
+    compute_pipeline_set_label :: proc(compute_pipeline : ComputePipeline, label : cstring) ---
 
     @(link_name="wgpuDeviceCreateBindGroup")
-    device_create_bind_group :: proc(device : Device, descriptor : ^BindGroupDescriptor) -> BindGroup ---;
+    device_create_bind_group :: proc(device : Device, descriptor : ^BindGroupDescriptor) -> BindGroup ---
 
     @(link_name="wgpuDeviceCreateBindGroupLayout")
-    device_create_bind_group_layout :: proc(device : Device, descriptor : ^BindGroupLayoutDescriptor) -> BindGroupLayout ---;
+    device_create_bind_group_layout :: proc(device : Device, descriptor : ^BindGroupLayoutDescriptor) -> BindGroupLayout ---
 
     @(link_name="wgpuDeviceCreateBuffer")
-    device_create_buffer :: proc(device : Device, descriptor : ^BufferDescriptor) -> Buffer ---;
+    device_create_buffer :: proc(device : Device, descriptor : ^BufferDescriptor) -> Buffer ---
 
     @(link_name="wgpuDeviceCreateCommandEncoder")
-    device_create_command_encoder :: proc(device : Device, descriptor : ^CommandEncoderDescriptor) -> CommandEncoder ---;
+    device_create_command_encoder :: proc(device : Device, descriptor : ^CommandEncoderDescriptor) -> CommandEncoder ---
 
     @(link_name="wgpuDeviceCreateComputePipeline")
-    device_create_compute_pipeline :: proc(device : Device, descriptor : ^ComputePipelineDescriptor) -> ComputePipeline ---;
+    device_create_compute_pipeline :: proc(device : Device, descriptor : ^ComputePipelineDescriptor) -> ComputePipeline ---
 
     @(link_name="wgpuDeviceCreateComputePipelineAsync")
-    device_create_compute_pipeline_async :: proc(device : Device, descriptor : ^ComputePipelineDescriptor, callback : CreateComputePipelineAsyncCallback, userdata : rawptr) ---;
+    device_create_compute_pipeline_async :: proc(device : Device, descriptor : ^ComputePipelineDescriptor, callback : CreateComputePipelineAsyncCallback, userdata : rawptr) ---
 
     @(link_name="wgpuDeviceCreatePipelineLayout")
-    device_create_pipeline_layout :: proc(device : Device, descriptor : ^PipelineLayoutDescriptor) -> PipelineLayout ---;
+    device_create_pipeline_layout :: proc(device : Device, descriptor : ^PipelineLayoutDescriptor) -> PipelineLayout ---
 
     @(link_name="wgpuDeviceCreateQuerySet")
-    device_create_query_set :: proc(device : Device, descriptor : ^QuerySetDescriptor) -> QuerySet ---;
+    device_create_query_set :: proc(device : Device, descriptor : ^QuerySetDescriptor) -> QuerySet ---
 
     @(link_name="wgpuDeviceCreateRenderBundleEncoder")
-    device_create_render_bundle_encoder :: proc(device : Device, descriptor : ^RenderBundleEncoderDescriptor) -> RenderBundleEncoder ---;
+    device_create_render_bundle_encoder :: proc(device : Device, descriptor : ^RenderBundleEncoderDescriptor) -> RenderBundleEncoder ---
 
     @(link_name="wgpuDeviceCreateRenderPipeline")
-    device_create_render_pipeline :: proc(device : Device, descriptor : ^RenderPipelineDescriptor) -> RenderPipeline ---;
+    device_create_render_pipeline :: proc(device : Device, descriptor : ^RenderPipelineDescriptor) -> RenderPipeline ---
 
     @(link_name="wgpuDeviceCreateRenderPipelineAsync")
-    device_create_render_pipeline_async :: proc(device : Device, descriptor : ^RenderPipelineDescriptor, callback : CreateRenderPipelineAsyncCallback, userdata : rawptr) ---;
+    device_create_render_pipeline_async :: proc(device : Device, descriptor : ^RenderPipelineDescriptor, callback : CreateRenderPipelineAsyncCallback, userdata : rawptr) ---
 
     @(link_name="wgpuDeviceCreateSampler")
-    device_create_sampler :: proc(device : Device, descriptor : ^SamplerDescriptor) -> Sampler ---;
+    device_create_sampler :: proc(device : Device, descriptor : ^SamplerDescriptor) -> Sampler ---
 
     @(link_name="wgpuDeviceCreateShaderModule")
-    device_create_shader_module :: proc(device : Device, descriptor : ^ShaderModuleDescriptor) -> ShaderModule ---;
+    device_create_shader_module :: proc(device : Device, descriptor : ^ShaderModuleDescriptor) -> ShaderModule ---
 
     @(link_name="wgpuDeviceCreateSwapChain")
-    device_create_swap_chain :: proc(device : Device, surface : Surface, descriptor : ^SwapChainDescriptor) -> SwapChain ---;
+    device_create_swap_chain :: proc(device : Device, surface : Surface, descriptor : ^SwapChainDescriptor) -> SwapChain ---
 
     @(link_name="wgpuDeviceCreateTexture")
-    device_create_texture :: proc(device : Device, descriptor : ^TextureDescriptor) -> Texture ---;
+    device_create_texture :: proc(device : Device, descriptor : ^TextureDescriptor) -> Texture ---
 
     @(link_name="wgpuDeviceDestroy")
-    device_destroy :: proc(device : Device) ---;
+    device_destroy :: proc(device : Device) ---
 
     @(link_name="wgpuDeviceEnumerateFeatures")
-    device_enumerate_features :: proc(device : Device, features : ^FeatureName) -> _c.size_t ---;
+    device_enumerate_features :: proc(device : Device, features : ^FeatureName) -> _c.size_t ---
 
     @(link_name="wgpuDeviceGetLimits")
-    device_get_limits :: proc(device : Device, limits : ^SupportedLimits) -> Bool ---;
+    device_get_limits :: proc(device : Device, limits : ^SupportedLimits) -> Bool ---
 
     @(link_name="wgpuDeviceGetQueue")
-    device_get_queue :: proc(device : Device) -> Queue ---;
+    device_get_queue :: proc(device : Device) -> Queue ---
 
     @(link_name="wgpuDeviceHasFeature")
-    device_has_feature :: proc(device : Device, feature : FeatureName) -> Bool ---;
+    device_has_feature :: proc(device : Device, feature : FeatureName) -> Bool ---
 
     @(link_name="wgpuDevicePopErrorScope")
-    device_pop_error_scope :: proc(device : Device, callback : ErrorCallback, userdata : rawptr) -> Bool ---;
+    device_pop_error_scope :: proc(device : Device, callback : ErrorCallback, userdata : rawptr) -> Bool ---
 
     @(link_name="wgpuDevicePushErrorScope")
-    device_push_error_scope :: proc(device : Device, filter : ErrorFilter) ---;
+    device_push_error_scope :: proc(device : Device, filter : ErrorFilter) ---
 
     @(link_name="wgpuDeviceSetDeviceLostCallback")
-    device_set_device_lost_callback :: proc(device : Device, callback : DeviceLostCallback, userdata : rawptr) ---;
+    device_set_device_lost_callback :: proc(device : Device, callback : DeviceLostCallback, userdata : rawptr) ---
 
     @(link_name="wgpuDeviceSetLabel")
-    device_set_label :: proc(device : Device, label : cstring) ---;
+    device_set_label :: proc(device : Device, label : cstring) ---
 
     @(link_name="wgpuDeviceSetUncapturedErrorCallback")
-    device_set_uncaptured_error_callback :: proc(device : Device, callback : ErrorCallback, userdata : rawptr) ---;
+    device_set_uncaptured_error_callback :: proc(device : Device, callback : ErrorCallback, userdata : rawptr) ---
 
     @(link_name="wgpuInstanceCreateSurface")
-    instance_create_surface :: proc(instance : Instance, descriptor : ^SurfaceDescriptor) -> Surface ---;
+    instance_create_surface :: proc(instance : Instance, descriptor : ^SurfaceDescriptor) -> Surface ---
 
     @(link_name="wgpuInstanceProcessEvents")
-    instance_process_events :: proc(instance : Instance) ---;
+    instance_process_events :: proc(instance : Instance) ---
 
     @(link_name="wgpuInstanceRequestAdapter")
-    instance_request_adapter :: proc(instance : Instance, options : ^RequestAdapterOptions, callback : RequestAdapterCallback, userdata : rawptr) ---;
+    instance_request_adapter :: proc(instance : Instance, options : ^RequestAdapterOptions, callback : RequestAdapterCallback, userdata : rawptr) ---
 
     @(link_name="wgpuPipelineLayoutSetLabel")
-    pipeline_layout_set_label :: proc(pipeline_layout : PipelineLayout, label : cstring) ---;
+    pipeline_layout_set_label :: proc(pipeline_layout : PipelineLayout, label : cstring) ---
 
     @(link_name="wgpuQuerySetDestroy")
-    query_set_destroy :: proc(query_set : QuerySet) ---;
+    query_set_destroy :: proc(query_set : QuerySet) ---
 
     @(link_name="wgpuQuerySetSetLabel")
-    query_set_set_label :: proc(query_set : QuerySet, label : cstring) ---;
+    query_set_set_label :: proc(query_set : QuerySet, label : cstring) ---
 
     @(link_name="wgpuQueueOnSubmittedWorkDone")
-    queue_on_submitted_work_done :: proc(queue : Queue, callback : QueueWorkDoneCallback, userdata : rawptr) ---;
+    queue_on_submitted_work_done :: proc(queue : Queue, callback : QueueWorkDoneCallback, userdata : rawptr) ---
 
     @(link_name="wgpuQueueSetLabel")
-    queue_set_label :: proc(queue : Queue, label : cstring) ---;
+    queue_set_label :: proc(queue : Queue, label : cstring) ---
 
     @(link_name="wgpuQueueSubmit")
-    queue_submit :: proc(queue : Queue, command_count : u32, commands : ^CommandBuffer) ---;
+    queue_submit :: proc(queue : Queue, command_count : u32, commands : ^CommandBuffer) ---
 
     @(link_name="wgpuQueueWriteBuffer")
-    queue_write_buffer :: proc(queue : Queue, buffer : Buffer, buffer_offset : u64, data : rawptr, size : _c.size_t) ---;
+    queue_write_buffer :: proc(queue : Queue, buffer : Buffer, buffer_offset : u64, data : rawptr, size : _c.size_t) ---
 
     @(link_name="wgpuQueueWriteTexture")
-    queue_write_texture :: proc(queue : Queue, destination : ^ImageCopyTexture, data : rawptr, data_size : _c.size_t, data_layout : ^TextureDataLayout, write_size : ^Extent3D) ---;
+    queue_write_texture :: proc(queue : Queue, destination : ^ImageCopyTexture, data : rawptr, data_size : _c.size_t, data_layout : ^TextureDataLayout, write_size : ^Extent3D) ---
 
     @(link_name="wgpuRenderBundleEncoderDraw")
-    render_bundle_encoder_draw :: proc(render_bundle_encoder : RenderBundleEncoder, vertex_count : u32, instance_count : u32, first_vertex : u32, first_instance : u32) ---;
+    render_bundle_encoder_draw :: proc(render_bundle_encoder : RenderBundleEncoder, vertex_count : u32, instance_count : u32, first_vertex : u32, first_instance : u32) ---
 
     @(link_name="wgpuRenderBundleEncoderDrawIndexed")
-    render_bundle_encoder_draw_indexed :: proc(render_bundle_encoder : RenderBundleEncoder, index_count : u32, instance_count : u32, first_index : u32, base_vertex : i32, first_instance : u32) ---;
+    render_bundle_encoder_draw_indexed :: proc(render_bundle_encoder : RenderBundleEncoder, index_count : u32, instance_count : u32, first_index : u32, base_vertex : i32, first_instance : u32) ---
 
     @(link_name="wgpuRenderBundleEncoderDrawIndexedIndirect")
-    render_bundle_encoder_draw_indexed_indirect :: proc(render_bundle_encoder : RenderBundleEncoder, indirect_buffer : Buffer, indirect_offset : u64) ---;
+    render_bundle_encoder_draw_indexed_indirect :: proc(render_bundle_encoder : RenderBundleEncoder, indirect_buffer : Buffer, indirect_offset : u64) ---
 
     @(link_name="wgpuRenderBundleEncoderDrawIndirect")
-    render_bundle_encoder_draw_indirect :: proc(render_bundle_encoder : RenderBundleEncoder, indirect_buffer : Buffer, indirect_offset : u64) ---;
+    render_bundle_encoder_draw_indirect :: proc(render_bundle_encoder : RenderBundleEncoder, indirect_buffer : Buffer, indirect_offset : u64) ---
 
     @(link_name="wgpuRenderBundleEncoderFinish")
-    render_bundle_encoder_finish :: proc(render_bundle_encoder : RenderBundleEncoder, descriptor : ^RenderBundleDescriptor) -> RenderBundle ---;
+    render_bundle_encoder_finish :: proc(render_bundle_encoder : RenderBundleEncoder, descriptor : ^RenderBundleDescriptor) -> RenderBundle ---
 
     @(link_name="wgpuRenderBundleEncoderInsertDebugMarker")
-    render_bundle_encoder_insert_debug_marker :: proc(render_bundle_encoder : RenderBundleEncoder, marker_label : cstring) ---;
+    render_bundle_encoder_insert_debug_marker :: proc(render_bundle_encoder : RenderBundleEncoder, marker_label : cstring) ---
 
     @(link_name="wgpuRenderBundleEncoderPopDebugGroup")
-    render_bundle_encoder_pop_debug_group :: proc(render_bundle_encoder : RenderBundleEncoder) ---;
+    render_bundle_encoder_pop_debug_group :: proc(render_bundle_encoder : RenderBundleEncoder) ---
 
     @(link_name="wgpuRenderBundleEncoderPushDebugGroup")
-    render_bundle_encoder_push_debug_group :: proc(render_bundle_encoder : RenderBundleEncoder, group_label : cstring) ---;
+    render_bundle_encoder_push_debug_group :: proc(render_bundle_encoder : RenderBundleEncoder, group_label : cstring) ---
 
     @(link_name="wgpuRenderBundleEncoderSetBindGroup")
-    render_bundle_encoder_set_bind_group :: proc(render_bundle_encoder : RenderBundleEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32) ---;
+    render_bundle_encoder_set_bind_group :: proc(render_bundle_encoder : RenderBundleEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32) ---
 
     @(link_name="wgpuRenderBundleEncoderSetIndexBuffer")
-    render_bundle_encoder_set_index_buffer :: proc(render_bundle_encoder : RenderBundleEncoder, buffer : Buffer, format : IndexFormat, offset : u64, size : u64) ---;
+    render_bundle_encoder_set_index_buffer :: proc(render_bundle_encoder : RenderBundleEncoder, buffer : Buffer, format : IndexFormat, offset : u64, size : u64) ---
 
     @(link_name="wgpuRenderBundleEncoderSetLabel")
-    render_bundle_encoder_set_label :: proc(render_bundle_encoder : RenderBundleEncoder, label : cstring) ---;
+    render_bundle_encoder_set_label :: proc(render_bundle_encoder : RenderBundleEncoder, label : cstring) ---
 
     @(link_name="wgpuRenderBundleEncoderSetPipeline")
-    render_bundle_encoder_set_pipeline :: proc(render_bundle_encoder : RenderBundleEncoder, pipeline : RenderPipeline) ---;
+    render_bundle_encoder_set_pipeline :: proc(render_bundle_encoder : RenderBundleEncoder, pipeline : RenderPipeline) ---
 
     @(link_name="wgpuRenderBundleEncoderSetVertexBuffer")
-    render_bundle_encoder_set_vertex_buffer :: proc(render_bundle_encoder : RenderBundleEncoder, slot : u32, buffer : Buffer, offset : u64, size : u64) ---;
+    render_bundle_encoder_set_vertex_buffer :: proc(render_bundle_encoder : RenderBundleEncoder, slot : u32, buffer : Buffer, offset : u64, size : u64) ---
 
     @(link_name="wgpuRenderPassEncoderBeginOcclusionQuery")
-    render_pass_encoder_begin_occlusion_query :: proc(render_pass_encoder : RenderPassEncoder, query_index : u32) ---;
+    render_pass_encoder_begin_occlusion_query :: proc(render_pass_encoder : RenderPassEncoder, query_index : u32) ---
 
     @(link_name="wgpuRenderPassEncoderBeginPipelineStatisticsQuery")
-    render_pass_encoder_begin_pipeline_statistics_query :: proc(render_pass_encoder : RenderPassEncoder, query_set : QuerySet, query_index : u32) ---;
+    render_pass_encoder_begin_pipeline_statistics_query :: proc(render_pass_encoder : RenderPassEncoder, query_set : QuerySet, query_index : u32) ---
 
     @(link_name="wgpuRenderPassEncoderDraw")
-    render_pass_encoder_draw :: proc(render_pass_encoder : RenderPassEncoder, vertex_count : u32, instance_count : u32, first_vertex : u32, first_instance : u32) ---;
+    render_pass_encoder_draw :: proc(render_pass_encoder : RenderPassEncoder, vertex_count : u32, instance_count : u32, first_vertex : u32, first_instance : u32) ---
 
     @(link_name="wgpuRenderPassEncoderDrawIndexed")
-    render_pass_encoder_draw_indexed :: proc(render_pass_encoder : RenderPassEncoder, index_count : u32, instance_count : u32, first_index : u32, base_vertex : i32, first_instance : u32) ---;
+    render_pass_encoder_draw_indexed :: proc(render_pass_encoder : RenderPassEncoder, index_count : u32, instance_count : u32, first_index : u32, base_vertex : i32, first_instance : u32) ---
 
     @(link_name="wgpuRenderPassEncoderDrawIndexedIndirect")
-    render_pass_encoder_draw_indexed_indirect :: proc(render_pass_encoder : RenderPassEncoder, indirect_buffer : Buffer, indirect_offset : u64) ---;
+    render_pass_encoder_draw_indexed_indirect :: proc(render_pass_encoder : RenderPassEncoder, indirect_buffer : Buffer, indirect_offset : u64) ---
 
     @(link_name="wgpuRenderPassEncoderDrawIndirect")
-    render_pass_encoder_draw_indirect :: proc(render_pass_encoder : RenderPassEncoder, indirect_buffer : Buffer, indirect_offset : u64) ---;
+    render_pass_encoder_draw_indirect :: proc(render_pass_encoder : RenderPassEncoder, indirect_buffer : Buffer, indirect_offset : u64) ---
 
     @(link_name="wgpuRenderPassEncoderEnd")
-    render_pass_encoder_end :: proc(render_pass_encoder : RenderPassEncoder) ---;
+    render_pass_encoder_end :: proc(render_pass_encoder : RenderPassEncoder) ---
 
     @(link_name="wgpuRenderPassEncoderEndOcclusionQuery")
-    render_pass_encoder_end_occlusion_query :: proc(render_pass_encoder : RenderPassEncoder) ---;
+    render_pass_encoder_end_occlusion_query :: proc(render_pass_encoder : RenderPassEncoder) ---
 
     @(link_name="wgpuRenderPassEncoderEndPipelineStatisticsQuery")
-    render_pass_encoder_end_pipeline_statistics_query :: proc(render_pass_encoder : RenderPassEncoder) ---;
+    render_pass_encoder_end_pipeline_statistics_query :: proc(render_pass_encoder : RenderPassEncoder) ---
 
     @(link_name="wgpuRenderPassEncoderExecuteBundles")
-    render_pass_encoder_execute_bundles :: proc(render_pass_encoder : RenderPassEncoder, bundles_count : u32, bundles : ^RenderBundle) ---;
+    render_pass_encoder_execute_bundles :: proc(render_pass_encoder : RenderPassEncoder, bundles_count : u32, bundles : ^RenderBundle) ---
 
     @(link_name="wgpuRenderPassEncoderInsertDebugMarker")
-    render_pass_encoder_insert_debug_marker :: proc(render_pass_encoder : RenderPassEncoder, marker_label : cstring) ---;
+    render_pass_encoder_insert_debug_marker :: proc(render_pass_encoder : RenderPassEncoder, marker_label : cstring) ---
 
     @(link_name="wgpuRenderPassEncoderPopDebugGroup")
-    render_pass_encoder_pop_debug_group :: proc(render_pass_encoder : RenderPassEncoder) ---;
+    render_pass_encoder_pop_debug_group :: proc(render_pass_encoder : RenderPassEncoder) ---
 
     @(link_name="wgpuRenderPassEncoderPushDebugGroup")
-    render_pass_encoder_push_debug_group :: proc(render_pass_encoder : RenderPassEncoder, group_label : cstring) ---;
+    render_pass_encoder_push_debug_group :: proc(render_pass_encoder : RenderPassEncoder, group_label : cstring) ---
 
     @(link_name="wgpuRenderPassEncoderSetBindGroup")
-    render_pass_encoder_set_bind_group :: proc(render_pass_encoder : RenderPassEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32) ---;
+    render_pass_encoder_set_bind_group :: proc(render_pass_encoder : RenderPassEncoder, group_index : u32, group : BindGroup, dynamic_offset_count : u32, dynamic_offsets : ^u32) ---
 
     @(link_name="wgpuRenderPassEncoderSetBlendConstant")
-    render_pass_encoder_set_blend_constant :: proc(render_pass_encoder : RenderPassEncoder, color : ^Color) ---;
+    render_pass_encoder_set_blend_constant :: proc(render_pass_encoder : RenderPassEncoder, color : ^Color) ---
 
     @(link_name="wgpuRenderPassEncoderSetIndexBuffer")
-    render_pass_encoder_set_index_buffer :: proc(render_pass_encoder : RenderPassEncoder, buffer : Buffer, format : IndexFormat, offset : u64, size : u64) ---;
+    render_pass_encoder_set_index_buffer :: proc(render_pass_encoder : RenderPassEncoder, buffer : Buffer, format : IndexFormat, offset : u64, size : u64) ---
 
     @(link_name="wgpuRenderPassEncoderSetLabel")
-    render_pass_encoder_set_label :: proc(render_pass_encoder : RenderPassEncoder, label : cstring) ---;
+    render_pass_encoder_set_label :: proc(render_pass_encoder : RenderPassEncoder, label : cstring) ---
 
     @(link_name="wgpuRenderPassEncoderSetPipeline")
-    render_pass_encoder_set_pipeline :: proc(render_pass_encoder : RenderPassEncoder, pipeline : RenderPipeline) ---;
+    render_pass_encoder_set_pipeline :: proc(render_pass_encoder : RenderPassEncoder, pipeline : RenderPipeline) ---
 
     @(link_name="wgpuRenderPassEncoderSetScissorRect")
-    render_pass_encoder_set_scissor_rect :: proc(render_pass_encoder : RenderPassEncoder, x : u32, y : u32, width : u32, height : u32) ---;
+    render_pass_encoder_set_scissor_rect :: proc(render_pass_encoder : RenderPassEncoder, x : u32, y : u32, width : u32, height : u32) ---
 
     @(link_name="wgpuRenderPassEncoderSetStencilReference")
-    render_pass_encoder_set_stencil_reference :: proc(render_pass_encoder : RenderPassEncoder, reference : u32) ---;
+    render_pass_encoder_set_stencil_reference :: proc(render_pass_encoder : RenderPassEncoder, reference : u32) ---
 
     @(link_name="wgpuRenderPassEncoderSetVertexBuffer")
-    render_pass_encoder_set_vertex_buffer :: proc(render_pass_encoder : RenderPassEncoder, slot : u32, buffer : Buffer, offset : u64, size : u64) ---;
+    render_pass_encoder_set_vertex_buffer :: proc(render_pass_encoder : RenderPassEncoder, slot : u32, buffer : Buffer, offset : u64, size : u64) ---
 
     @(link_name="wgpuRenderPassEncoderSetViewport")
-    render_pass_encoder_set_viewport :: proc(render_pass_encoder : RenderPassEncoder, x : _c.float, y : _c.float, width : _c.float, height : _c.float, min_depth : _c.float, max_depth : _c.float) ---;
+    render_pass_encoder_set_viewport :: proc(render_pass_encoder : RenderPassEncoder, x : _c.float, y : _c.float, width : _c.float, height : _c.float, min_depth : _c.float, max_depth : _c.float) ---
 
     @(link_name="wgpuRenderPipelineGetBindGroupLayout")
-    render_pipeline_get_bind_group_layout :: proc(render_pipeline : RenderPipeline, group_index : u32) -> BindGroupLayout ---;
+    render_pipeline_get_bind_group_layout :: proc(render_pipeline : RenderPipeline, group_index : u32) -> BindGroupLayout ---
 
     @(link_name="wgpuRenderPipelineSetLabel")
-    render_pipeline_set_label :: proc(render_pipeline : RenderPipeline, label : cstring) ---;
+    render_pipeline_set_label :: proc(render_pipeline : RenderPipeline, label : cstring) ---
 
     @(link_name="wgpuSamplerSetLabel")
-    sampler_set_label :: proc(sampler : Sampler, label : cstring) ---;
+    sampler_set_label :: proc(sampler : Sampler, label : cstring) ---
 
     @(link_name="wgpuShaderModuleGetCompilationInfo")
-    shader_module_get_compilation_info :: proc(shader_module : ShaderModule, callback : CompilationInfoCallback, userdata : rawptr) ---;
+    shader_module_get_compilation_info :: proc(shader_module : ShaderModule, callback : CompilationInfoCallback, userdata : rawptr) ---
 
     @(link_name="wgpuShaderModuleSetLabel")
-    shader_module_set_label :: proc(shader_module : ShaderModule, label : cstring) ---;
+    shader_module_set_label :: proc(shader_module : ShaderModule, label : cstring) ---
 
     @(link_name="wgpuSurfaceGetPreferredFormat")
-    surface_get_preferred_format :: proc(surface : Surface, adapter : Adapter) -> TextureFormat ---;
+    surface_get_preferred_format :: proc(surface : Surface, adapter : Adapter) -> TextureFormat ---
 
     @(link_name="wgpuSwapChainGetCurrentTextureView")
-    swap_chain_get_current_texture_view :: proc(swap_chain : SwapChain) -> TextureView ---;
+    swap_chain_get_current_texture_view :: proc(swap_chain : SwapChain) -> TextureView ---
 
     @(link_name="wgpuSwapChainPresent")
-    swap_chain_present :: proc(swap_chain : SwapChain) ---;
+    swap_chain_present :: proc(swap_chain : SwapChain) ---
 
     @(link_name="wgpuTextureCreateView")
-    texture_create_view :: proc(texture : Texture, descriptor : ^TextureViewDescriptor) -> TextureView ---;
+    texture_create_view :: proc(texture : Texture, descriptor : ^TextureViewDescriptor) -> TextureView ---
 
     @(link_name="wgpuTextureDestroy")
-    texture_destroy :: proc(texture : Texture) ---;
+    texture_destroy :: proc(texture : Texture) ---
 
     @(link_name="wgpuTextureSetLabel")
-    texture_set_label :: proc(texture : Texture, label : cstring) ---;
+    texture_set_label :: proc(texture : Texture, label : cstring) ---
 
     @(link_name="wgpuTextureViewSetLabel")
-    texture_view_set_label :: proc(texture_view : TextureView, label : cstring) ---;
+    texture_view_set_label :: proc(texture_view : TextureView, label : cstring) ---
 
 }

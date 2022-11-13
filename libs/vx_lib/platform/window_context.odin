@@ -31,8 +31,12 @@ windowcontext_safetize_procs :: proc() {
         return true, ""
     }
 
-    WINDOWCONTEXT_INSTANCE.pre_window_init_proc = dummy_pre_post_window_init_proc
-    WINDOWCONTEXT_INSTANCE.post_window_init_proc = transmute(proc(glfw.WindowHandle, Window_Descriptor) -> (bool, string))(dummy_pre_post_window_init_proc)
+    if WINDOWCONTEXT_INSTANCE.pre_window_init_proc == nil {
+        WINDOWCONTEXT_INSTANCE.pre_window_init_proc = dummy_pre_post_window_init_proc
+    }
+    if WINDOWCONTEXT_INSTANCE.post_window_init_proc == nil {
+        WINDOWCONTEXT_INSTANCE.post_window_init_proc = transmute(proc(glfw.WindowHandle, Window_Descriptor) -> (bool, string))(dummy_pre_post_window_init_proc)
+    }
     core.safetize_function(&WINDOWCONTEXT_INSTANCE.post_frame_proc)
     core.safetize_function(&WINDOWCONTEXT_INSTANCE.close_proc)
     core.safetize_function(&WINDOWCONTEXT_INSTANCE.pre_frame_proc)

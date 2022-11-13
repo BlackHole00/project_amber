@@ -37,8 +37,8 @@ main :: proc() {
     // thus it is configured as a postfix below.
     // Generated value will be accessible with vk.DebugReportObjectTypeEXT.Instance,
     // this follow vulkan.hpp project convention.
-    options.enumValuePrefixes = []string{"Wgpu", "WGPU", "wgpu"};
-    //options.enumValuePostfixes = []string{"_BIT", "BEGIN_RANGE", "END_RANGE", "RANGE_SIZE", "MAX_ENUM"};
+    options.enumValuePrefixes = []string{"Wgpu", "WGPU", "wgpu", "WGPUSType_"};
+    options.enumValuePostfixes = []string{"SType_", "WGPUSType_"};
     //options.enumValueTransparentPostfixes = []string{"_KHR", "_EXT", "_AMD", "_NV", "_NVX", "_IMG", "_GOOGLE"};
     options.enumValueCase = bindgen.Case.Pascal;
     options.enumValueNameRemove = true;
@@ -71,6 +71,8 @@ main :: proc() {
         headerFiles = []string{"../libs/wgpu/wgpu-native/ffi/webgpu-headers/webgpu.h"},
         options = options,
     )
+
+    libc.system(`odin strip-semicolon ../libs/wgpu -no-entry-point`)
 }
 
 clear_webgpu_header :: proc() {

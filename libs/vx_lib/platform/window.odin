@@ -6,6 +6,7 @@ import "core:strings"
 import "core:time"
 import "core:runtime"
 import "core:log"
+import "core:mem"
 import "vendor:glfw"
 
 Window :: struct {
@@ -29,13 +30,15 @@ window_init :: proc(desc: Window_Descriptor) {
     glfw.WindowHint(glfw.RESIZABLE, (c.int)(desc.resizable))
 
     if ok, msg := WINDOWCONTEXT_INSTANCE.pre_window_init_proc(); !ok {
-        log.error("Window context creation has failed with the following message:", msg)
+        log.fatal("Window context creation has failed with the following message:", msg)
+        panic("Error when initializing window user gfx context")
     }
 
     WINDOW_INSTANCE.handle = glfw.CreateWindow((c.int)(desc.size.x), (c.int)(desc.size.y), title, monitor, nil)
 
     if ok, msg := WINDOWCONTEXT_INSTANCE.post_window_init_proc(WINDOW_INSTANCE.handle, desc); !ok {
-        log.error("Window context creation has failed with the following message:", msg)
+        log.fatal("Window context creation has failed with the following message:", msg)
+        panic("Error when initializing window user gfx context")
     }
 
     glfw.SetWindowSizeCallback(WINDOW_INSTANCE.handle, window_resize_callback)
@@ -77,6 +80,8 @@ window_run :: proc() {
         windowhelper_post_frame_update()
         glfw.PollEvents()
         WINDOWCONTEXT_INSTANCE.post_frame_proc(WINDOW_INSTANCE.handle)
+
+        mem.free_all(context.temp_allocator)
     }
 
     WINDOW_INSTANCE.callbacks.close_proc()

@@ -6,14 +6,10 @@ vx_lib_init :: proc() {
     platform.platform_init()
     platform_register_default_procs()
 
-    windowcontext_init_empty()
+    windowcontext_init_with_wgpu()
 }
 
 vx_lib_free :: proc() {
     platform.windowcontext_free()
     platform.platform_free()
-}
-
-windowcontext_init_empty :: proc() {
-    platform.windowcontext_init(platform.Window_Context_Descriptor {})
 }

@@ -1,0 +1,3 @@
+package wgpu
+
+Bool :: bool
