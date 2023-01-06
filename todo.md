@@ -1,32 +1,22 @@
-### TODOs:
-
-- [ ] move gfx.pipeline_bind_rendertarget into renderbuffer and resize renderbuffers directly
-    - maybe not: the pipeline should be in charge of clearing. If the buffer is not large enough is the programmer's fault.
-- [ ] migrate prs stuff to logic.Transform and logic.AbstractTransform
-- [X] remove gfx.Layout and gfx.Shader and unite then in gfx.Pipeline
-- [X] do not use gfx.*_bind/*_apply functions and create gfx.Bindings
-- [X] remove texture_unit and add them to bindings
-- [X] find better name for gfx.pipeline_bind
-- [X] decide what to do about gfx.Texture_Bundle (moved to gfx.old) -> removed
-- [X] make gfx.Gl_State_Manager to not bind already bound stuff
-- [ ] rename gl_drawmode into gl_primitive
-- [X] use DMA and DSA since I'm using opengl 4.6
-- [ ] test framebuffer
-- [X] layout should not need gl.VertexArrayAttribFormat for every bind. Fix.
-
-- [ ] light stuff
-
-- [ ] text rendering
-- [X] immediate mode graphics
-- [ ] microui
-
-- [X] figure out why the skybox pipeline needs to have the depth disabled
-
-- [ ] chunk should have different meshes, depending on the type of the block
-- [ ] chunk should not own a mesh, instead should own an abstract mesh and the renderer will apply it to a real mesh.
-
-- [ ] allow creating an empty buffer with defined size
-- [ ] buffer resizing in a better way
-
-- [ ] OpenGL: Implement BlendColor
-- [ ] Common: Add remaining Src1 blend functions
+- [ ] Bindings should have a Bindings_Descriptor
+- [ ] Uniforms should be handled in bindings, somehow
+    - something similar to the texture
+    - ability to set uniform after initialization (unlike textures)
+- [X] Layout_Element's gl_type should be an enum
+- [X] gfx.pipeline_draw_*'s Index_Type should be stored in Bindings.
+- [ ] gfx.pipeline_draw_elements*'s indices should not be a rawptr
+- [ ] OpenGL handles should be a pointer so something instead, so if a texture is resized, a valid handle will be used
+- [ ] texture_copy_1/2d should not take a Z offset
+- [ ] verify that the copy functions are ok when using offsets and non DSA opengl. (I already know that it is not the same)
+- [ ] texture_copy only works on DSA opengl apparently.
+- [ ] glsm should take care of framebuffers
+- [ ] framebuffers should support multiple color attachments.
+- [ ] finish renderbuffers and integrate them with the enviroment.
+- [ ] make renderbuffers use DSA opengl when MODERN_OPENGL is true
+- [ ] texture_set_size_1d should not use the internal format as format
+- [ ] examples: 04_hello_framebuffer
+- [ ] gfx.Bindings should use slices and have a destructor.
+- [ ] finish documentation of vx_core
+- [ ] finish documentation of gfx
+- [ ] the platform should use a custom key enum instead of GLFW constants
+- [ ] support multisampled textures.

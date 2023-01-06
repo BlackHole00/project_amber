@@ -1,7 +1,16 @@
 package vx_lib_platform
 
 import "core:log"
-import "shared:vx_lib/core"
+import core "shared:vx_core"
+
+// A platform callback. It will be called at the initializaion if the procedure 
+// has been registered with platform_register_starting_proc() or it will be
+// called at the deinitialization it platform_register_closing_proc() has been
+// used.  
+// It must return a result of the operation and an eventual error message 
+// (should be "" if no error has been encountered). It the result is .Fatal the
+// application will panic.
+Platform_Proc :: #type proc() -> (ok: Platform_Proc_Result, error_message: string)
 
 Platform_Proc_Result :: enum {
     Ok,
@@ -11,18 +20,24 @@ Platform_Proc_Result :: enum {
 
 @(private)
 Platform_Proc_Record :: struct {
-    procedure: proc() -> (ok: Platform_Proc_Result, error_message: string),
+    procedure: Platform_Proc,
     name: string,
 }
 
+// SINGLETON - This struct is used to intialize the platform and all its 
+// components and libraries before the window initialization.
 Platform :: struct {
     started: bool,
     closed: bool,
 
+    // Contains the procedure that will be called when the platform needs to be
+    // initialized.
     starting_procs: [dynamic]Platform_Proc_Record,
+
+    // Contains the procedure that will be called when the platform needs to be
+    // deinitialized.
     closing_procs: [dynamic]Platform_Proc_Record,
 }
-
 PLATFORM_INSTANCE: core.Cell(Platform)
 
 platform_init :: proc() {
@@ -39,14 +54,16 @@ platform_free :: proc() {
     core.cell_free(&PLATFORM_INSTANCE)
 }
 
-platform_register_starting_proc :: proc(name: string, procedure: proc() -> (ok: Platform_Proc_Result, error_message: string)) {
+// Adds a function that will be called at the initialization.
+platform_register_starting_proc :: proc(name: string, procedure: Platform_Proc) {
     append(&PLATFORM_INSTANCE.starting_procs, Platform_Proc_Record {
         procedure,
         name,
     })
 }
 
-platform_register_closing_proc :: proc(name: string, procedure: proc() -> (ok: Platform_Proc_Result, error_message: string)) {
+// Adds a function that will be called at the deinitialization.
+platform_register_closing_proc :: proc(name: string, procedure: Platform_Proc) {
     append(&PLATFORM_INSTANCE.closing_procs, Platform_Proc_Record {
         procedure,
         name,
@@ -54,13 +71,14 @@ platform_register_closing_proc :: proc(name: string, procedure: proc() -> (ok: P
 }
 
 platform_register_procs :: proc(name: string,
-    starting_proc: proc() -> (ok: Platform_Proc_Result, error_message: string),
-    closing_proc: proc() -> (ok: Platform_Proc_Result, error_message: string),
+    starting_proc: Platform_Proc,
+    closing_proc: Platform_Proc,
 ) {
     platform_register_starting_proc(name, starting_proc)
     platform_register_closing_proc(name, closing_proc)
 }
 
+// Initializes all the libaries requested.
 platform_start :: proc() {
     when ODIN_DEBUG {
         if PLATFORM_INSTANCE.started {
@@ -69,7 +87,9 @@ platform_start :: proc() {
         }
     }
 
+    log.info("Initializating the platform.")
     for record in PLATFORM_INSTANCE.starting_procs {
+        log.info("Running", record.name, "initialization.")
         err, message := record.procedure()
 
         switch err {
@@ -81,10 +101,12 @@ platform_start :: proc() {
             }
         }
     }
+    log.info("Successfully initializated the platform.")
 
     PLATFORM_INSTANCE.started = true
 }
 
+// Deinitializes all the libaries requested.
 platform_close :: proc() {
     when ODIN_DEBUG {
         if PLATFORM_INSTANCE.closed {
@@ -93,12 +115,21 @@ platform_close :: proc() {
         }
     }
 
+    log.info("Deinitializing the platform.")
+    had_errors := false
     for record in PLATFORM_INSTANCE.closing_procs {
+        log.info("Running", record.name, "deinitialization.")
         err, message := record.procedure()
 
         if err == .Ok do log.info("Successfully ran", record.name, "closing procedure")
-        else do log.warn("Closing procedure", record.name, "has encountered a non-fatal error: ", message)
+        else {
+            log.warn("Closing procedure", record.name, "has encountered an error: ", message)
+            had_errors = true
+        }
     }
+
+    if had_errors do log.warn("Deinitializated the platform with errors.")
+    else do log.info("Successfullty deinitializated the platform.")
 
     PLATFORM_INSTANCE.closed = true
 }
