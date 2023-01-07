@@ -83,8 +83,8 @@ Pipeline_Descriptor :: struct {
     wireframe: bool,
     viewport_size: [2]uint,
 
-    vertex_source: string,
-    fragment_source: string,
+    vertex_source: Maybe(string),
+    fragment_source: Maybe(string),
 
     layout: Pipeline_Layout,
 
@@ -130,6 +130,8 @@ Pipeline_Impl :: struct {
     layout_offsets: []u32,
     layout_elements: []Layout_Element,
 
+    is_draw_pipeline: bool,
+
     states: Pipeline_States,
     render_target: Maybe(Framebuffer),
 }
@@ -138,15 +140,19 @@ Pipeline :: ^Pipeline_Impl
 pipeline_new :: proc(desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer) = nil) -> Pipeline {
     pipeline := new(Pipeline_Impl, OPENGL_CONTEXT.gl_allocator)
 
-    pipeline.uniform_locations = make(map[string]i32, mem.DEFAULT_RESERVE_CAPACITY, OPENGL_CONTEXT.gl_allocator)
+    if desc.vertex_source != nil && desc.fragment_source != nil {
+        when MODERN_OPENGL do gl.CreateVertexArrays(1, &pipeline.layout_handle)
+        else do gl.GenVertexArrays(1, &pipeline.layout_handle)
+        pipeline_layout_resolve(pipeline, desc.layout)
 
-    when MODERN_OPENGL do gl.CreateVertexArrays(1, &pipeline.layout_handle)
-    else do gl.GenVertexArrays(1, &pipeline.layout_handle)
-    pipeline_layout_resolve(pipeline, desc.layout)
+        if program, ok := gl.load_shaders_source(desc.vertex_source.?, desc.fragment_source.?); !ok {
+            panic("Could not compile shaders")
+        } else do pipeline.shader_handle = program
 
-    if program, ok := gl.load_shaders_source(desc.vertex_source, desc.fragment_source); !ok {
-		panic("Could not compile shaders")
-	} else do pipeline.shader_handle = program
+        pipeline.uniform_locations = make(map[string]i32, mem.DEFAULT_RESERVE_CAPACITY, OPENGL_CONTEXT.gl_allocator)
+
+        pipeline.is_draw_pipeline = true
+    } else do pipeline.is_draw_pipeline = false
 
     pipeline.states.cull_enabled = desc.cull_enabled
     pipeline.states.cull_face = cullface_to_glenum(desc.cull_face)
@@ -170,16 +176,18 @@ pipeline_new :: proc(desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer
 }
 
 pipeline_free :: proc(pipeline: Pipeline) {
-    gl.DeleteProgram(pipeline.shader_handle)
-    pipeline.shader_handle = INVALID_HANDLE
+    if pipeline.is_draw_pipeline {
+        gl.DeleteProgram(pipeline.shader_handle)
+        pipeline.shader_handle = INVALID_HANDLE
 
-    gl.DeleteVertexArrays(1, &pipeline.layout_handle)
-    pipeline.layout_handle = INVALID_HANDLE
+        gl.DeleteVertexArrays(1, &pipeline.layout_handle)
+        pipeline.layout_handle = INVALID_HANDLE
 
-    delete(pipeline.layout_strides)
-    delete(pipeline.layout_offsets)
-    delete(pipeline.layout_elements)
-    delete(pipeline.uniform_locations)
+        delete(pipeline.layout_strides)
+        delete(pipeline.layout_offsets)
+        delete(pipeline.layout_elements)
+        delete(pipeline.uniform_locations)
+    }
 
     free(pipeline, OPENGL_CONTEXT.gl_allocator)
 }
@@ -217,6 +225,8 @@ pipeline_set_wireframe :: proc(pipeline: Pipeline, wireframe: bool) {
 }
 
 pipeline_draw_arrays :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, first: int, count: int) {
+    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
+
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
@@ -228,6 +238,7 @@ pipeline_draw_arrays :: proc(pipeline: Pipeline, bindings: Bindings, primitive: 
 
 pipeline_draw_elements :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, count: int) {
     when ODIN_DEBUG do if bindings.index_buffer == nil do panic("Draw elements should have a valid index buffer in the bindings.")
+    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
 
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
@@ -239,6 +250,8 @@ pipeline_draw_elements :: proc(pipeline: Pipeline, bindings: Bindings, primitive
 }
 
 pipeline_draw_arrays_instanced :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
+    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
+
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
@@ -250,6 +263,7 @@ pipeline_draw_arrays_instanced :: proc(pipeline: Pipeline, bindings: Bindings, p
 
 pipeline_draw_elements_instanced :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, count: int, instance_count: int) {
     when ODIN_DEBUG do if bindings.index_buffer == nil do panic("Draw elements should have a valid index buffer in the bindings.")
+    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
 
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
@@ -261,6 +275,8 @@ pipeline_draw_elements_instanced :: proc(pipeline: Pipeline, bindings: Bindings,
 }
 
 pipeline_uniform_1f :: proc(pipeline: Pipeline, uniform_name: string, value: f32) {
+    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
+
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -273,6 +289,8 @@ pipeline_uniform_1f :: proc(pipeline: Pipeline, uniform_name: string, value: f32
 }
 
 pipeline_uniform_2f :: proc(pipeline: Pipeline, uniform_name: string, value: glsl.vec2) {
+    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
+    
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -285,6 +303,8 @@ pipeline_uniform_2f :: proc(pipeline: Pipeline, uniform_name: string, value: gls
 }
 
 pipeline_uniform_3f :: proc(pipeline: Pipeline, uniform_name: string, value: glsl.vec3) {
+    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
+    
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -297,6 +317,8 @@ pipeline_uniform_3f :: proc(pipeline: Pipeline, uniform_name: string, value: gls
 }
 
 pipeline_uniform_4f :: proc(pipeline: Pipeline, uniform_name: string, value: glsl.vec4) {
+    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
+    
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -309,6 +331,8 @@ pipeline_uniform_4f :: proc(pipeline: Pipeline, uniform_name: string, value: gls
 }
 
 pipeline_uniform_mat4f :: proc(pipeline: Pipeline, uniform_name: string, value: ^glsl.mat4) {
+    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
+    
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -321,6 +345,8 @@ pipeline_uniform_mat4f :: proc(pipeline: Pipeline, uniform_name: string, value: 
 }
 
 pipeline_uniform_1i :: proc(pipeline: Pipeline, uniform_name: string, value: i32) {
+    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
+    
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -338,8 +364,10 @@ pipeline_uniform_1i :: proc(pipeline: Pipeline, uniform_name: string, value: i32
 
 @(private)
 pipeline_bind :: proc(pipeline: Pipeline) {
-    pipeline_shader_bind(pipeline)
-    pipeline_layout_bind(pipeline)
+    if pipeline.is_draw_pipeline {
+        pipeline_shader_bind(pipeline)
+        pipeline_layout_bind(pipeline)
+    }
 
     pipeline_bind_rendertarget(pipeline)
 }
@@ -347,6 +375,8 @@ pipeline_bind :: proc(pipeline: Pipeline) {
 @(private)
 pipeline_apply :: proc(pipeline: Pipeline) {
     pipeline_bind(pipeline)
+
+    if !pipeline.is_draw_pipeline do return
 
     if pipeline.states.cull_enabled {
         glsm.Enable(gl.CULL_FACE)

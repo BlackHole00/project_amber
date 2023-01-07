@@ -15,6 +15,7 @@
 - [ ] make renderbuffers use DSA opengl when MODERN_OPENGL is true
 - [ ] texture_set_size_1d should not use the internal format as format
 - [ ] examples: 04_hello_framebuffer
+- [ ] fix older examples
 - [X] gfx.Bindings should use slices and have a destructor.
 - [ ] finish documentation of vx_core
 - [ ] finish documentation of gfx
@@ -23,3 +24,5 @@
 - [ ] make framebuffer resizable
 - [ ] virtualize all gfx functions in a NICE WAY (Only public API calls)
 - [X] gfx objects that allocate memory should contain an allocator
+- [ ] Study OpenGL Sync Objects and implement them.
+- [ ] Make a renderer (in vx_lib/utils ?) with render lists (akin to render passes).
