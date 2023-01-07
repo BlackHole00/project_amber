@@ -2,11 +2,11 @@
     "collections": [
         {
             "name": "core",
-            "path": "/Users/vicix/Programs/odin-macos-amd64-dev-2022-05/core"
+            "path": "/Users/vicix/Programs/odin-macos-amd64-dev-2022-09/core"
         },
         {
             "name": "vendor",
-            "path": "/Users/vicix/Programs/odin-macos-amd64-dev-2022-05/vendor"
+            "path": "/Users/vicix/Programs/odin-macos-amd64-dev-2022-09/vendor"
         },
         {
             "name": "shared",

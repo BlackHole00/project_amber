@@ -40,8 +40,8 @@ init :: proc() {
     		internal_texture_format = .R8G8B8A8,
     		color_texture_warp_s = .Clamp_To_Border,
     		color_texture_warp_t = .Clamp_To_Border,
-    		color_texture_min_filter = .Nearest,
-    		color_texture_mag_filter = .Nearest,
+    		color_texture_min_filter = .Linear,
+    		color_texture_mag_filter = .Linear,
     		color_texture_gen_mipmaps = true,
 
     		framebuffer_size = platform.windowhelper_get_window_size(),
@@ -275,18 +275,20 @@ close :: proc() {
 	gfx.buffer_free(&STATE.v_buffer)
 	gfx.buffer_free(&STATE.i_buffer)
 	gfx.texture_free(&STATE.texture)
+	gfx.bindings_free(STATE.bindings)
 
 	gfx.framebuffer_free(&STATE.framebuffer)
 
 	gfx.pipeline_free(&STATE.basic_pipeline)
 	gfx.buffer_free(&STATE.basic_v_buffer)
 	gfx.buffer_free(&STATE.basic_i_buffer)
+	gfx.bindings_free(STATE.basic_bindings)
 
 	core.cell_free(&STATE)
 }
 
 resize :: proc() {
-	gfx.SetViewport(platform.windowhelper_get_window_size())
+	gfx.pipeline_resize(&STATE.basic_pipeline, platform.windowhelper_get_window_size())
 }
 
 main :: proc() {
@@ -310,7 +312,7 @@ main :: proc() {
 	desc.resize_proc = resize
 	desc.close_proc = close
 	desc.vsync = false
-	desc.resizable = false
+	desc.resizable = true
 	desc.fullscreen = false
 
 	platform.window_init(desc)

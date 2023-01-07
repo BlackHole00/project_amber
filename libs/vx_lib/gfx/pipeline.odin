@@ -469,7 +469,8 @@ pipeline_shader_bind :: proc(pipeline: Pipeline) {
 }
 
 @(private)
-pipeline_texture_apply:: proc(pipeline: ^Pipeline, texture_unit: u32, uniform_name: string) {
+pipeline_texture_apply:: proc(pipeline: ^Pipeline, texture: Texture, texture_unit: u32, uniform_name: string) {
+    texture_full_bind(texture, (u32)(texture_unit))
     pipeline_uniform_1i(pipeline, uniform_name, (i32)(texture_unit))
 }
 

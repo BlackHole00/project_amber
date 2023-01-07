@@ -15,8 +15,11 @@
 - [ ] make renderbuffers use DSA opengl when MODERN_OPENGL is true
 - [ ] texture_set_size_1d should not use the internal format as format
 - [ ] examples: 04_hello_framebuffer
-- [ ] gfx.Bindings should use slices and have a destructor.
+- [X] gfx.Bindings should use slices and have a destructor.
 - [ ] finish documentation of vx_core
 - [ ] finish documentation of gfx
 - [ ] the platform should use a custom key enum instead of GLFW constants
 - [ ] support multisampled textures.
+- [ ] make framebuffer resizable
+- [ ] virtualize all gfx functions in a NICE WAY (Only public API calls)
+- [ ] gfx objects that allocate memory should contain an allocator
