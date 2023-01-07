@@ -1,10 +1,8 @@
 package vx_lib_common
 
-import gl "vendor:OpenGL"
 import "vendor:glfw"
 import "shared:vx_lib/platform"
 import "shared:vx_lib/gfx"
-import glsm "shared:vx_lib/gfx/glstatemanager"
 
 // MODERN_OPENGL defines what version of OpenGl should be used. If it is false
 // OpenGl 3.3 will be used, without DSA. This is usefull for older devices and
@@ -23,13 +21,12 @@ when #config(MODERN_OPENGL, false) {
 
 windowcontext_init_with_gl :: proc() {
     init_gl :: proc(handle: glfw.WindowHandle, desc: platform.Window_Descriptor) -> (bool, string) {
-        glfw.MakeContextCurrent(handle)
-        glfw.SwapInterval(desc.vsync ? 1 : 0)
-
-        gl.load_up_to(OPENGL_VERSION[0], OPENGL_VERSION[1], glfw.gl_set_proc_address)
-        glsm.init()
-
-        if !gfx.opencl_init() do return false, "Could not initialize OpenCL."
+        gfx.opengl_init(gfx.OpenGL_Context_Descriptor {
+            glfw_window = handle,
+            vsync = desc.vsync,
+            version = OPENGL_VERSION,
+        }, context.allocator)
+        if !gfx.opencl_init(context.allocator) do return false, "Could not initialize OpenCL."
 
         return true, ""
     }
@@ -49,7 +46,7 @@ windowcontext_init_with_gl :: proc() {
     }
 
     close_gl :: proc() {
-        glsm.free()
+        gfx.opengl_deinit()
         gfx.opencl_deinit()
     }
 

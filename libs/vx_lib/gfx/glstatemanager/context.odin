@@ -44,7 +44,7 @@ init :: proc() {
     CONTEXT_INSTANCE.polygon_modes = make(map[u32]u32)
 }
 
-free :: proc() {
+deinit :: proc() {
     delete(CONTEXT_INSTANCE.enables)
     delete(CONTEXT_INSTANCE.polygon_modes)
 

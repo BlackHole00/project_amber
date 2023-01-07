@@ -1,10 +1,13 @@
 package vx_lib_gfx
 
 import "core:log"
+import "core:mem"
 import cl "shared:OpenCL"
 import core "shared:vx_core"
 
 OpenCL_Context :: struct {
+    cl_allocator: mem.Allocator,
+
     device: cl.device_id,
     cl_context: cl.cl_context,
     queue: cl.command_queue,
@@ -52,7 +55,7 @@ when ODIN_OS == .Darwin {
     }
 }
 
-opencl_init :: proc() -> bool {
+opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
     core.cell_init(&OPENCL_CONTEXT)
 
     err: i32
@@ -95,13 +98,16 @@ opencl_init :: proc() -> bool {
         log.info("test_opencl() succeded.")
     }
 
+    OPENCL_CONTEXT.cl_allocator = cl_allocator
+
     return true
 }
 
-opencl_deinit :: proc() {
+opencl_deinit :: proc(free_all_mem := false) {
     cl.ReleaseCommandQueue(OPENCL_CONTEXT.queue)
     cl.ReleaseContext(OPENCL_CONTEXT.cl_context)
 
+    if free_all_mem do mem.free_all(OPENCL_CONTEXT.cl_allocator)
     core.cell_free(&OPENCL_CONTEXT)
 }
 
