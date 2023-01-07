@@ -21,13 +21,16 @@ Compute_Buffer_Descriptor :: struct {
     size: uint,
 }
 
-Compute_Buffer :: struct {
+Compute_Buffer_Impl :: struct {
     cl_mem: cl.mem,
     size: uint,
     is_opengl: bool,
 }
+Compute_Buffer :: ^Compute_Buffer_Impl
 
-computebuffer_init_empty :: proc(buffer: ^Compute_Buffer, desc: Compute_Buffer_Descriptor) {
+computebuffer_new_empty :: proc(desc: Compute_Buffer_Descriptor) -> Compute_Buffer {
+    buffer := new(Compute_Buffer_Impl, OPENCL_CONTEXT.cl_allocator)
+
     buffer.size = desc.size
     buffer.is_opengl = false
 
@@ -41,10 +44,14 @@ computebuffer_init_empty :: proc(buffer: ^Compute_Buffer, desc: Compute_Buffer_D
     if buffer.cl_mem = cl.CreateBuffer(OPENCL_CONTEXT.cl_context, flags, desc.size, nil, nil); buffer.cl_mem == nil {
         panic("Could not create an opencl buffer")
     }
+
+    return buffer
 }
 
-computebuffer_init_with_data :: proc(buffer: ^Compute_Buffer, desc: Compute_Buffer_Descriptor, data: []$T, mode: Data_Handling_Mode) {
+computebuffer_new_with_data :: proc(desc: Compute_Buffer_Descriptor, data: []$T, mode: Data_Handling_Mode) -> Compute_Buffer {
     if (uint)(size_of(T) * len(data)) < desc.size do panic("The size of data must be greater or equal than the size of the buffer.")
+
+    buffer := new(Compute_Buffer_Impl, OPENCL_CONTEXT.cl_allocator)
 
     buffer.size = desc.size
     buffer.is_opengl = false
@@ -66,13 +73,17 @@ computebuffer_init_with_data :: proc(buffer: ^Compute_Buffer, desc: Compute_Buff
     if buffer.cl_mem = cl.CreateBuffer(OPENCL_CONTEXT.cl_context, flags, desc.size, raw_data(data), nil); buffer.cl_mem == nil {
         panic("Could not create an opencl buffer")
     }
+
+    return buffer
 }
 
-computebuffer_init_from_abstractbuffer :: proc(buffer: ^Compute_Buffer, desc: Compute_Buffer_Descriptor, abstract_buffer: Abstract_Buffer, mode: Data_Handling_Mode) {
-    computebuffer_init_with_data(buffer, desc, abstract_buffer.data, mode)
+computebuffer_new_from_abstractbuffer :: proc(desc: Compute_Buffer_Descriptor, abstract_buffer: Abstract_Buffer, mode: Data_Handling_Mode) -> Compute_Buffer {
+    return computebuffer_new_with_data(desc, abstract_buffer.data, mode)
 }
 
-computebuffer_init_from_buffer :: proc(buffer: ^Compute_Buffer, desc: Compute_Buffer_Descriptor, gfx_buffer: Buffer) {
+computebuffer_new_from_buffer :: proc(desc: Compute_Buffer_Descriptor, gfx_buffer: Buffer) -> Compute_Buffer {
+    buffer := new(Compute_Buffer_Impl, OPENCL_CONTEXT.cl_allocator)
+
     buffer.size = desc.size
     buffer.is_opengl = true
 
@@ -86,9 +97,13 @@ computebuffer_init_from_buffer :: proc(buffer: ^Compute_Buffer, desc: Compute_Bu
     if buffer.cl_mem = cl.CreateFromGlBuffer(OPENCL_CONTEXT.cl_context, flags, gfx_buffer.buffer_handle, nil); buffer.cl_mem == nil {
         panic("Could not create an opencl buffer")
     }
+
+    return buffer
 }
 
-computebuffer_init_from_texture :: proc(buffer: ^Compute_Buffer, desc: Compute_Buffer_Descriptor, texture: Texture) {
+computebuffer_new_from_texture :: proc(desc: Compute_Buffer_Descriptor, texture: Texture) -> Compute_Buffer {
+    buffer := new(Compute_Buffer_Impl, OPENCL_CONTEXT.cl_allocator)
+
     buffer.size = desc.size
     buffer.is_opengl = true
 
@@ -119,15 +134,17 @@ computebuffer_init_from_texture :: proc(buffer: ^Compute_Buffer, desc: Compute_B
 
         panic("Could not create an opencl buffer")
     }
+
+    return buffer
 }
 
-computebuffer_init :: proc { computebuffer_init_empty, computebuffer_init_with_data, computebuffer_init_from_buffer, computebuffer_init_from_texture }
+computebuffer_new :: proc { computebuffer_new_empty, computebuffer_new_with_data, computebuffer_new_from_buffer, computebuffer_new_from_texture }
 
 computebuffer_free :: proc(buffer: Compute_Buffer) {
     cl.ReleaseMemObject(buffer.cl_mem)
 }
 
-computebuffer_set_data :: proc(buffer: ^Compute_Buffer, input: []$T) {
+computebuffer_set_data :: proc(buffer: Compute_Buffer, input: []$T) {
     if (uint)(size_of(T) * len(input)) > buffer.size do panic("The size of the input is greater than the size of the buffer.")
 
     computebuffer_glacquire(buffer)
@@ -137,7 +154,7 @@ computebuffer_set_data :: proc(buffer: ^Compute_Buffer, input: []$T) {
     cl.EnqueueWriteBuffer(OPENCL_CONTEXT.queue, buffer.cl_mem, true, 0, size_of(T) * len(input), raw_data(input), 0, nil, nil)
 }
 
-computebuffer_get_data :: proc(buffer: ^Compute_Buffer, output: []$T) {
+computebuffer_get_data :: proc(buffer: Compute_Buffer, output: []$T) {
     if (uint)(size_of(T) * len(output)) > buffer.size do panic("The size of the input is lesser than the size of the buffer.")
 
     computebuffer_glacquire(buffer)
@@ -150,7 +167,7 @@ computebuffer_get_data :: proc(buffer: ^Compute_Buffer, output: []$T) {
 ///////////////////////////////////////////////////////////////////////////////
 
 @(private)
-computebuffer_glacquire :: proc(buffer: ^Compute_Buffer) {
+computebuffer_glacquire :: proc(buffer: Compute_Buffer) {
     if buffer.is_opengl {
         event: cl.event
         if cl.EnqueueAcquireGLObjects(OPENCL_CONTEXT.queue, 1, &buffer.cl_mem, 0, nil, &event) != cl.SUCCESS do panic("Could not acquire gl objects.")
@@ -159,7 +176,7 @@ computebuffer_glacquire :: proc(buffer: ^Compute_Buffer) {
 }
 
 @(private)
-computebuffer_glrelease :: proc(buffer: ^Compute_Buffer) {
+computebuffer_glrelease :: proc(buffer: Compute_Buffer) {
     if buffer.is_opengl {
         event: cl.event
         if cl.EnqueueReleaseGLObjects(OPENCL_CONTEXT.queue, 1, &buffer.cl_mem, 0, nil, &event) != cl.SUCCESS do panic("Could not release gl objects.")

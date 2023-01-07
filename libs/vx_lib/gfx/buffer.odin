@@ -24,16 +24,20 @@ Buffer_Descriptor :: struct {
     index_type: Index_Type,
 }
 
-// An abstraction over a plain OpenGL VBO or EBO. Like a OpenGl buffer, its 
-// memory management is automatic, so it doesn't have a fixed size.
-Buffer :: struct {
+Buffer_Impl :: struct {
     buffer_handle: u32,
     type: Buffer_Type,
     usage: Buffer_Usage,
     index_type: Maybe(Index_Type),
 }
 
-buffer_init_empty :: proc(buffer: ^Buffer, desc: Buffer_Descriptor) {
+// An abstraction over a plain OpenGL VBO or EBO. Like a OpenGl buffer, its 
+// memory management is automatic, so it doesn't have a fixed size.
+Buffer :: ^Buffer_Impl
+
+buffer_new_empty :: proc(desc: Buffer_Descriptor) -> Buffer {
+    buffer := new(Buffer_Impl, OPENGL_CONTEXT.gl_allocator)
+
     buffer.type = desc.type
     buffer.usage = desc.usage
     buffer.index_type = desc.index_type
@@ -45,21 +49,25 @@ buffer_init_empty :: proc(buffer: ^Buffer, desc: Buffer_Descriptor) {
     else {
         gl.GenBuffers(1, &buffer.buffer_handle)
     }
+
+    return buffer
 }
 
-buffer_init_with_data :: proc(buffer: ^Buffer, desc: Buffer_Descriptor, data: []$T) {
-    buffer_init_empty(buffer, desc)
+buffer_new_with_data :: proc(desc: Buffer_Descriptor, data: []$T) -> Buffer {
+    buffer := buffer_new_empty(desc)
+    buffer_set_data(buffer, data)
 
-    buffer_set_data(buffer^, data)
+    return buffer
 }
 
-buffer_init_from_abstractbuffer :: proc(buffer: ^Buffer, desc: Buffer_Descriptor, abstractbuffer: Abstract_Buffer) {
-    buffer_init_empty(buffer, desc)
+buffer_new_from_abstractbuffer :: proc(desc: Buffer_Descriptor, abstractbuffer: Abstract_Buffer) -> Buffer {
+    buffer := buffer_new_empty(desc)
+    buffer_set_data(buffer, abstractbuffer.data)
 
-    buffer_set_data(buffer^, abstractbuffer.data)
+    return buffer
 }
 
-buffer_init :: proc { buffer_init_empty, buffer_init_with_data }
+buffer_new :: proc { buffer_new_empty, buffer_new_with_data }
 
 buffer_set_data :: proc(buffer: Buffer, data: []$T) {
     tmp := len(data) * size_of(T)
@@ -72,10 +80,10 @@ buffer_set_data :: proc(buffer: Buffer, data: []$T) {
     }
 }
 
-buffer_free :: proc(buffer: ^Buffer) {
+buffer_free :: proc(buffer: Buffer) {
     gl.DeleteBuffers(1, &buffer.buffer_handle)
 
-    buffer.buffer_handle = INVALID_HANDLE
+    free(buffer, OPENGL_CONTEXT.gl_allocator)
 }
 
 @(private)

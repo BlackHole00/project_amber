@@ -11,7 +11,7 @@ Texture_Binding :: struct {
 // something.  
 // Note that bindings should not be recreated every frame, only 
 // This struct can be copied.
-Bindings :: struct {
+Bindings_Impl :: struct {
     // vertex_count: uint,
     // vertex_buffers: [16]Buffer,
     // index_buffer: Maybe(Buffer),
@@ -25,6 +25,8 @@ Bindings :: struct {
     textures: []Texture_Binding,
 }
 
+Bindings :: ^Bindings_Impl
+
 // Initializes the bindings.  
 // Arguments: 
 // - vertex_buffers: contains the buffers that will be used relative to the 
@@ -33,25 +35,23 @@ Bindings :: struct {
 // - index_buffer should be nil if draw_arrays will be used.  
 // - textures: A list of textures and corrisponding uniform name that needs to be 
 // applied.
-bindings_init :: proc(bindings: ^Bindings, vertex_buffers: []Buffer, index_buffer: Maybe(Buffer), textures: []Texture_Binding) {
+bindings_new :: proc(vertex_buffers: []Buffer, index_buffer: Maybe(Buffer), textures: []Texture_Binding) -> Bindings {
     when ODIN_DEBUG do if index_buffer != nil do if index_buffer.?.type != .Index_Buffer do panic("The index buffer in the bindings should be a valid index buffer.")
 
-    // bindings.vertex_count = len(vertex_buffers)
-    // if bindings.vertex_count != 0 do mem.copy(&bindings.vertex_buffers[0], &vertex_buffers[0], len(vertex_buffers) * size_of(Buffer))
+    bindings := new(Bindings_Impl, OPENGL_CONTEXT.gl_allocator)
 
-    // bindings.index_buffer = index_buffer
-
-    // bindings.texture_count = len(textures)
-    // if bindings.texture_count != 0 do mem.copy(&bindings.textures[0], &textures[0], len(textures) * size_of(Texture_Binding))
-
-    bindings.vertex_buffers = slice.clone(vertex_buffers)
-    bindings.textures = slice.clone(textures)
+    bindings.vertex_buffers = slice.clone(vertex_buffers, OPENGL_CONTEXT.gl_allocator)
+    bindings.textures = slice.clone(textures, OPENGL_CONTEXT.gl_allocator)
     bindings.index_buffer = index_buffer
+
+    return bindings
 }
 
 bindings_free :: proc(bindings: Bindings) {
-    delete(bindings.vertex_buffers)
-    delete(bindings.textures)
+    delete(bindings.vertex_buffers, OPENGL_CONTEXT.allocator)
+    delete(bindings.textures, OPENGL_CONTEXT.allocator)
+
+    free(bindings, OPENGL_CONTEXT.allocator)
 }
 
 /**************************************************************************************************
@@ -59,7 +59,7 @@ bindings_free :: proc(bindings: Bindings) {
 **************************************************************************************************/
 
 @(private)
-bindings_apply :: proc(pipeline: ^Pipeline, bindings: ^Bindings) {
+bindings_apply :: proc(pipeline: Pipeline, bindings: Bindings) {
     // if bindings.index_buffer == nil do pipeline_layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count])
     // else do pipeline_layout_apply(pipeline^, bindings.vertex_buffers[:bindings.vertex_count], bindings.index_buffer.(Buffer))
 
@@ -68,8 +68,8 @@ bindings_apply :: proc(pipeline: ^Pipeline, bindings: ^Bindings) {
     //     pipeline_texture_apply(pipeline, (u32)(i), bindings.textures[i].uniform_name)
     // }
 
-    if bindings.index_buffer == nil do pipeline_layout_apply(pipeline^, bindings.vertex_buffers)
-    else do pipeline_layout_apply(pipeline^, bindings.vertex_buffers, bindings.index_buffer.?)
+    if bindings.index_buffer == nil do pipeline_layout_apply(pipeline, bindings.vertex_buffers)
+    else do pipeline_layout_apply(pipeline, bindings.vertex_buffers, bindings.index_buffer.?)
 
     for binding, i in bindings.textures do pipeline_texture_apply(pipeline, binding.texture, (u32)(i), binding.uniform_name)
 }

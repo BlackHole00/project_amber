@@ -6,6 +6,8 @@ Instanced_Mesh_Descriptor :: struct {
     index_buffer_type: gfx.Index_Type,
     usage: gfx.Buffer_Usage,
     draw_type: gfx.Primitive,
+
+    textures: []gfx.Texture_Binding,
 }
 
 Instanced_Mesh_Component :: struct {
@@ -21,10 +23,12 @@ instancedmeshcomponent_init_empty :: proc(mesh: ^Instanced_Mesh_Component, desc:
             desc.index_buffer_type,
             desc.usage,
             desc.draw_type,
+
+            desc.textures,
         },
     )
 
-    gfx.buffer_init(&mesh.instance_buffer, gfx.Buffer_Descriptor {
+    mesh.instance_buffer = gfx.buffer_new(gfx.Buffer_Descriptor {
         type = .Vertex_Buffer,
         usage = .Dynamic_Draw,
     })
@@ -41,7 +45,7 @@ instancedmeshcomponent_init_with_data :: proc(mesh: ^Instanced_Mesh_Component, d
 instancedmeshcomponent_init :: proc { instancedmeshcomponent_init_empty, instancedmeshcomponent_init_with_data }
 
 instancedmeshcomponent_free :: proc(mesh: ^Instanced_Mesh_Component) {
-    gfx.buffer_free(&mesh.instance_buffer)
+    gfx.buffer_free(mesh.instance_buffer)
     meshcomponent_free(mesh)
 }
 
@@ -53,23 +57,16 @@ instancedmeshcomponent_set_instanced_data :: proc(mesh: ^Instanced_Mesh_Componen
     gfx.buffer_set_data(mesh.instance_buffer, instance_data)
 }
 
-instancedmeshcomponent_get_bindings :: proc(bindings: ^gfx.Bindings, mesh: Instanced_Mesh_Component, textures: []gfx.Texture_Binding = {}) {
-    gfx.bindings_init(bindings, 
-        []gfx.Buffer {
-            mesh.vertex_buffer,
-            mesh.instance_buffer,
-        }, mesh.index_buffer,
-        textures,
-    )
+instancedmeshcomponent_get_bindings :: proc(mesh: Instanced_Mesh_Component) -> gfx.Bindings {
+    return mesh._base.bindings
 }
 
-instancedmeshcomponent_draw :: proc(mesh: Instanced_Mesh_Component, pipeline: ^gfx.Pipeline, textures: []gfx.Texture_Binding = {}) {
-    bindings: gfx.Bindings = ---
-    instancedmeshcomponent_get_bindings(&bindings, mesh, textures)
+instancedmeshcomponent_draw :: proc(mesh: Instanced_Mesh_Component, pipeline: gfx.Pipeline) {
+    bindings := instancedmeshcomponent_get_bindings(mesh)
 
     gfx.pipeline_draw_elements_instanced(
         pipeline,
-        &bindings,
+        bindings,
         mesh.draw_type,
         mesh.index_count,
         mesh.instance_count,

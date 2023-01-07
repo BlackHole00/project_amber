@@ -16,8 +16,7 @@ Framebuffer_Descriptor :: struct {
     framebuffer_size: [2]uint,
 }
 
-// An abstraction over an OpenGl FBO 
-Framebuffer :: struct {
+Framebuffer_Impl :: struct {
     color_attachment: Texture,
 
     // We could need the depth as texture in future, so a render_buffer is not 
@@ -31,15 +30,20 @@ Framebuffer :: struct {
     use_depth_stencil_attachment: bool,
 }
 
-framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor) {
+// An abstraction over an OpenGl FBO 
+Framebuffer :: ^Framebuffer_Impl
+
+framebuffer_new :: proc(desc: Framebuffer_Descriptor) -> Framebuffer {
+    framebuffer := new(Framebuffer_Impl, OPENGL_CONTEXT.gl_allocator)
+
     when MODERN_OPENGL do gl.CreateFramebuffers(1, &framebuffer.framebuffer_handle)
     else {
-        gl.GenFramebuffers(1, &framebuffer.framebuffer_handle)
-        framebuffer_bind(framebuffer^)
+        gl.GenFramebuffers(1, &framebuffer.framebuffer_handle )
+        framebuffer_bind(framebuffer)
     }
 
     if desc.use_depth_stencil_attachment {
-        texture_init(&framebuffer.depth_stencil_attachment, Texture_Descriptor {
+        framebuffer.depth_stencil_attachment = texture_new(Texture_Descriptor {
             type = .Texture_2D,
             internal_texture_format = .D24S8,
             format = .D24S8,
@@ -56,7 +60,7 @@ framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor
     } 
 
     if desc.use_color_attachment {
-        texture_init(&framebuffer.color_attachment, Texture_Descriptor {
+        framebuffer.color_attachment = texture_new(Texture_Descriptor {
             type = .Texture_2D,
             internal_texture_format = desc.internal_texture_format,
             format = .R8G8B8A8,
@@ -76,15 +80,17 @@ framebuffer_init :: proc(framebuffer: ^Framebuffer, desc: Framebuffer_Descriptor
     framebuffer.use_color_attachment = desc.use_color_attachment
     framebuffer.use_depth_stencil_attachment = desc.use_depth_stencil_attachment
 
-    when ODIN_DEBUG do bind_to_default_framebuffer()
+    return framebuffer
 }
 
 // Initializes the framebuffer using existing textures.
-framebuffer_init_from_textures :: proc(framebuffer: ^Framebuffer, framebuffer_size: [2]uint, color_attachment: Maybe(Texture), depth_attachment: Maybe(Texture)) {
+framebuffer_new_from_textures :: proc(framebuffer_size: [2]uint, color_attachment: Maybe(Texture), depth_attachment: Maybe(Texture)) -> Framebuffer {
+    framebuffer := new(Framebuffer_Impl, OPENGL_CONTEXT.gl_allocator)
+
     when MODERN_OPENGL do gl.CreateFramebuffers(1, &framebuffer.framebuffer_handle)
     else {
         gl.GenFramebuffers(1, &framebuffer.framebuffer_handle)
-        framebuffer_bind(framebuffer^)
+        framebuffer_bind(framebuffer)
     }
 
     if color_attachment != nil {
@@ -105,12 +111,14 @@ framebuffer_init_from_textures :: proc(framebuffer: ^Framebuffer, framebuffer_si
     framebuffer.use_depth_stencil_attachment = depth_attachment != nil
 
     when !MODERN_OPENGL do bind_to_default_framebuffer()
+
+    return framebuffer
 }
 
-framebuffer_free :: proc(framebuffer: ^Framebuffer) {
+framebuffer_free :: proc(framebuffer: Framebuffer) {
     gl.DeleteFramebuffers(1, &framebuffer.framebuffer_handle)
 
-    framebuffer.framebuffer_handle = INVALID_HANDLE
+    free(framebuffer, OPENGL_CONTEXT.allocator)
 }
 
 framebuffer_get_color_texture_bindings :: proc(framebuffer: Framebuffer, color_texture_uniform: string) -> Texture_Binding {

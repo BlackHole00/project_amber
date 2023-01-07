@@ -58,6 +58,8 @@ when ODIN_OS == .Darwin {
 opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
     core.cell_init(&OPENCL_CONTEXT)
 
+    OPENCL_CONTEXT.cl_allocator = cl_allocator
+
     err: i32
 
     platform: cl.platform_id
@@ -98,8 +100,6 @@ opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
         log.info("test_opencl() succeded.")
     }
 
-    OPENCL_CONTEXT.cl_allocator = cl_allocator
-
     return true
 }
 
@@ -114,7 +114,7 @@ opencl_deinit :: proc(free_all_mem := false) {
 print_opencl_deviceinfo :: proc(device: cl.device_id) {
     device_name_size: uint = ---
     cl.GetDeviceInfo(device, cl.DEVICE_NAME, 0, nil, &device_name_size)
-    name := make([]u8, device_name_size)
+    name := make([]u8, device_name_size, OPENCL_CONTEXT.allocator)
     defer delete(name)
     cl.GetDeviceInfo(device, cl.DEVICE_NAME, device_name_size, raw_data(name), nil)
 
@@ -134,7 +134,7 @@ select_opencldevice :: proc(platform: cl.platform_id) -> Maybe(cl.device_id) {
         panic("Could not get device ids.")
     }
 
-    devices := make([]cl.device_id, device_count)
+    devices := make([]cl.device_id, device_count, OPENCL_CONTEXT.allocator)
     defer delete(devices)
     cl.GetDeviceIDs(platform, cl.DEVICE_TYPE_ALL, device_count, raw_data(devices), nil)
 
@@ -180,29 +180,26 @@ test_opencl :: proc() -> bool {
         }
     `
 
-    input_values := make([]f32, COUNT)
+    input_values := make([]f32, COUNT, OPENCL_CONTEXT.allocator)
     defer delete(input_values)
     for value, i in &input_values do value = (f32)(i)
 
-    output_values := make([]f32, COUNT)
+    output_values := make([]f32, COUNT, OPENCL_CONTEXT.allocator)
     defer delete(output_values)
 
-    input: Compute_Buffer
-    computebuffer_init_with_data(&input, Compute_Buffer_Descriptor {
+    input := computebuffer_new_with_data(Compute_Buffer_Descriptor {
         type = .Read_Only,
         size = (uint)(size_of(f32) * COUNT),
     }, input_values, .GPU_Memory)
     defer computebuffer_free(input)
 
-    output: Compute_Buffer
-    computebuffer_init_empty(&output, Compute_Buffer_Descriptor {
+    output := computebuffer_new_empty(Compute_Buffer_Descriptor {
         type = .Write_Only,
         size = (uint)(size_of(f32) * COUNT), 
     })
     defer computebuffer_free(output)
 
-    pipeline: Compute_Pipeline
-    computepipeline_init(&pipeline, Compute_Pipeline_Descriptor {
+    pipeline := computepipeline_new(Compute_Pipeline_Descriptor {
         source = test_program,
         entry_point = "square",
         dimensions = 1,
@@ -211,8 +208,7 @@ test_opencl :: proc() -> bool {
     })
     defer computepipeline_free(pipeline)
 
-    bindings: Compute_Bindings
-    computebindings_init(&bindings, []Compute_Bindings_Element {
+    bindings := computebindings_new([]Compute_Bindings_Element {
         Compute_Bindings_Buffer_Element {
             buffer = input,
         },
@@ -223,10 +219,10 @@ test_opencl :: proc() -> bool {
             value = COUNT,
         },
     })
-    
-    computepipeline_compute(&pipeline, &bindings)
 
-    computebuffer_get_data(&output, output_values)
+    computepipeline_compute(pipeline, bindings)
+
+    computebuffer_get_data(output, output_values)
 
     for output, i in output_values do if output != (f32)(i * i) do return false
 

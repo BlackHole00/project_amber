@@ -14,15 +14,18 @@ Compute_Pipeline_Descriptor :: struct {
     local_work_sizes: []uint,
 }
 
-Compute_Pipeline :: struct {
+Compute_Pipeline_Impl :: struct {
     kernel: cl.kernel,
 
     dimensions: uint,
     global_work_sizes: []uint,
     local_work_sizes: []uint,
 }
+Compute_Pipeline :: ^Compute_Pipeline_Impl
 
-computepipeline_init :: proc(pipeline: ^Compute_Pipeline, desc: Compute_Pipeline_Descriptor) {
+computepipeline_new :: proc(desc: Compute_Pipeline_Descriptor) -> Compute_Pipeline {
+    pipeline := new(Compute_Pipeline_Impl, OPENCL_CONTEXT.cl_allocator)
+
     if len(desc.global_work_sizes) != (int)(desc.dimensions) do panic("The length of work sizes must be the same as the dimensions.")
     if len(desc.local_work_sizes)  != (int)(desc.dimensions) do panic("The length of work sizes must be the same as the dimensions.")
 
@@ -41,6 +44,8 @@ computepipeline_init :: proc(pipeline: ^Compute_Pipeline, desc: Compute_Pipeline
     pipeline.global_work_sizes = slice.clone(desc.global_work_sizes)
     pipeline.local_work_sizes = slice.clone(desc.local_work_sizes)
     pipeline.dimensions = desc.dimensions
+
+    return pipeline
 }
 
 computepipeline_free :: proc(pipeline: Compute_Pipeline) {
@@ -50,12 +55,12 @@ computepipeline_free :: proc(pipeline: Compute_Pipeline) {
     delete(pipeline.local_work_sizes)
 }
 
-computepipeline_compute :: proc(pipeline: ^Compute_Pipeline, bindings: ^Compute_Bindings) {
-    for i in 0..<bindings.used_elements {
-        switch v in &bindings.elements[i] {
+computepipeline_compute :: proc(pipeline: Compute_Pipeline, bindings: Compute_Bindings) {
+    for element, i in &bindings.elements {
+        switch v in &element {
             case Compute_Bindings_Raw_Element: cl.SetKernelArg(pipeline.kernel, (u32)(i), v.size, v.data)
             case Compute_Bindings_Buffer_Element: {
-                computebuffer_glacquire(&v.buffer)
+                computebuffer_glacquire(v.buffer)
                 if cl.SetKernelArg(pipeline.kernel, (u32)(i), size_of(cl.mem), &v.buffer.cl_mem) != cl.SUCCESS do panic("Could not set kernel argument.")
             }
             case Compute_Bindings_U32_Element: cl.SetKernelArg(pipeline.kernel, (u32)(i), size_of(u32), &v.value)
@@ -78,7 +83,7 @@ computepipeline_compute :: proc(pipeline: ^Compute_Pipeline, bindings: ^Compute_
 
     for element in &bindings.elements {
         #partial switch v in &element {
-            case Compute_Bindings_Buffer_Element: computebuffer_glrelease(&v.buffer)
+            case Compute_Bindings_Buffer_Element: computebuffer_glrelease(v.buffer)
         }
     }
 }

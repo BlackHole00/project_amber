@@ -5,7 +5,7 @@
 - [X] Layout_Element's gl_type should be an enum
 - [X] gfx.pipeline_draw_*'s Index_Type should be stored in Bindings.
 - [ ] gfx.pipeline_draw_elements*'s indices should not be a rawptr
-- [ ] OpenGL handles should be a pointer so something instead, so if a texture is resized, a valid handle will be used
+- [X] OpenGL handles should be a pointer so something instead, so if a texture is resized, a valid handle will be used
 - [ ] texture_copy_1/2d should not take a Z offset
 - [ ] verify that the copy functions are ok when using offsets and non DSA opengl. (I already know that it is not the same)
 - [ ] texture_copy only works on DSA opengl apparently.
@@ -22,4 +22,4 @@
 - [ ] support multisampled textures.
 - [ ] make framebuffer resizable
 - [ ] virtualize all gfx functions in a NICE WAY (Only public API calls)
-- [ ] gfx objects that allocate memory should contain an allocator
+- [X] gfx objects that allocate memory should contain an allocator

@@ -33,7 +33,7 @@ init :: proc() {
 	core.cell_init(&STATE)
 
 	{
-		gfx.framebuffer_init(&STATE.framebuffer, gfx.Framebuffer_Descriptor {
+		STATE.framebuffer = gfx.framebuffer_new(gfx.Framebuffer_Descriptor {
 			use_color_attachment = true,
     		use_depth_stencil_attachment = true,
 
@@ -52,7 +52,7 @@ init :: proc() {
 		fragment_source, _ := os.read_entire_file("res/vx_lib/shaders/test.fs")
 		defer delete(fragment_source)
 
-		gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
+		STATE.pipeline = gfx.pipeline_new(gfx.Pipeline_Descriptor {
 			cull_enabled = false,
 			depth_enabled = false,
 			blend_enabled = false,
@@ -89,7 +89,7 @@ init :: proc() {
 			clear_color = true,
 		}, STATE.framebuffer)
 
-		gfx.buffer_init(&STATE.v_buffer, gfx.Buffer_Descriptor {
+		STATE.v_buffer = gfx.buffer_new(gfx.Buffer_Descriptor {
 			type = .Vertex_Buffer,
 			usage = .Static_Draw,
 		}, []f32 {
@@ -98,7 +98,7 @@ init :: proc() {
 			0.5,  0.5, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0,
 			0.5, -0.5, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0,
 		})
-		gfx.buffer_init(&STATE.i_buffer, gfx.Buffer_Descriptor {
+		STATE.i_buffer = gfx.buffer_new(gfx.Buffer_Descriptor {
 			type = .Index_Buffer,
 			usage = .Static_Draw,
 			index_type = .U32,
@@ -107,7 +107,7 @@ init :: proc() {
 			2, 3, 0,
 		})
 
-		gfx.texture_init(&STATE.texture, gfx.Texture_Descriptor {
+		STATE.texture = gfx.texture_new(gfx.Texture_Descriptor {
 			type = .Texture_2D,
 			internal_texture_format = .R8G8B8A8,
 			format = .R8G8B8A8,
@@ -118,9 +118,9 @@ init :: proc() {
 			mag_filter = .Linear,
 			gen_mipmaps = true,
 		}, "res/vx_lib/textures/test.png")
-		gfx.texture_resize_2d(&STATE.texture, { 1000, 1000 })
+		gfx.texture_resize_2d(STATE.texture, { 1000, 1000 })
 
-		gfx.bindings_init(&STATE.bindings, []gfx.Buffer { STATE.v_buffer }, STATE.i_buffer, []gfx.Texture_Binding { {
+		STATE.bindings = gfx.bindings_new([]gfx.Buffer { STATE.v_buffer }, STATE.i_buffer, []gfx.Texture_Binding { {
 				texture = STATE.texture,
 				uniform_name = "u_texture",
 			},
@@ -144,7 +144,7 @@ init :: proc() {
 		fragment_source, _ := os.read_entire_file("res/vx_lib/shaders/texture.fs")
 		defer delete(fragment_source)
 
-		gfx.pipeline_init(&STATE.basic_pipeline, gfx.Pipeline_Descriptor {
+		STATE.basic_pipeline = gfx.pipeline_new(gfx.Pipeline_Descriptor {
 			cull_enabled = false,
 			depth_enabled = false,
 			blend_enabled = false,
@@ -175,7 +175,7 @@ init :: proc() {
 			clear_color = true,
 		})
 
-		gfx.buffer_init(&STATE.basic_v_buffer, gfx.Buffer_Descriptor {
+		STATE.basic_v_buffer = gfx.buffer_new(gfx.Buffer_Descriptor {
 			type = .Vertex_Buffer,
 			usage = .Static_Draw,
 		}, []f32 {
@@ -184,7 +184,7 @@ init :: proc() {
 			 1.0,  1.0, 1.0, 0.0, 1.0,
 			 1.0, -1.0, 1.0, 0.0, 0.0,
 		})
-		gfx.buffer_init(&STATE.basic_i_buffer, gfx.Buffer_Descriptor {
+		STATE.basic_i_buffer = gfx.buffer_new(gfx.Buffer_Descriptor {
 			type = .Index_Buffer,
 			usage = .Static_Draw,
 			index_type = .U32,
@@ -198,8 +198,7 @@ init :: proc() {
 		compute_source, _ := os.read_entire_file("res/vx_lib/shaders/test.cl")
 		defer delete(compute_source)
 
-		compute_pipeline: gfx.Compute_Pipeline
-		gfx.computepipeline_init(&compute_pipeline, gfx.Compute_Pipeline_Descriptor {
+		compute_pipeline := gfx.computepipeline_new(gfx.Compute_Pipeline_Descriptor {
 			source = string(compute_source),
     		entry_point = "colorify",
 
@@ -209,7 +208,7 @@ init :: proc() {
 		})
 		defer gfx.computepipeline_free(compute_pipeline)
 
-		gfx.texture_init(&STATE.ctexture, gfx.Texture_Descriptor {
+		STATE.ctexture = gfx.texture_new(gfx.Texture_Descriptor {
 			type = .Texture_2D,
 			internal_texture_format = .R8G8B8A8,
 			format = .R8G8B8A8,
@@ -221,15 +220,13 @@ init :: proc() {
 			gen_mipmaps = false,
 		}, [2]uint{ 256, 256 })
 
-		output: gfx.Compute_Buffer
-		gfx.computebuffer_init_from_texture(&output, gfx.Compute_Buffer_Descriptor {
+		output := gfx.computebuffer_new_from_texture(gfx.Compute_Buffer_Descriptor {
 			type = .Write_Only,
 			size = 256 * 256 * 4,
 		}, STATE.ctexture)
 		defer gfx.computebuffer_free(output)
 
-		bindings: gfx.Compute_Bindings
-		gfx.computebindings_init(&bindings, []gfx.Compute_Bindings_Element {
+		bindings := gfx.computebindings_new([]gfx.Compute_Bindings_Element {
 			gfx.Compute_Bindings_Buffer_Element {
 				buffer = output,
 			},
@@ -241,10 +238,10 @@ init :: proc() {
 			},
 		})
 
-		gfx.computepipeline_compute(&compute_pipeline, &bindings)
+		gfx.computepipeline_compute(compute_pipeline, bindings)
 	}
 
-	gfx.bindings_init(&STATE.basic_bindings, []gfx.Buffer { STATE.basic_v_buffer }, STATE.basic_i_buffer, []gfx.Texture_Binding {
+	STATE.basic_bindings = gfx.bindings_new([]gfx.Buffer { STATE.basic_v_buffer }, STATE.basic_i_buffer, []gfx.Texture_Binding {
 		gfx.framebuffer_get_color_texture_bindings(STATE.framebuffer, "u_texture1"),
 		{
 			uniform_name = "u_texture2",
@@ -260,35 +257,36 @@ tick :: proc() {
 draw :: proc() {
 	gfx.pipeline_clear(STATE.pipeline)
 
-	gfx.pipeline_uniform_1f(&STATE.pipeline, "u_time", (f32)(platform.windowhelper_get_time()))
-	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, &STATE.pipeline)
+	gfx.pipeline_uniform_1f(STATE.pipeline, "u_time", (f32)(platform.windowhelper_get_time()))
+	logic.camera_apply(STATE.camera, STATE.camera.position, STATE.camera.rotation, STATE.pipeline)
 
-	gfx.pipeline_draw_elements(&STATE.pipeline, &STATE.bindings, .Triangles, 6)
+	gfx.pipeline_draw_elements(STATE.pipeline, STATE.bindings, .Triangles, 6)
+	//log.info(STATE.bindings.textures)
 
 	gfx.pipeline_clear(STATE.basic_pipeline)
-	gfx.pipeline_draw_elements(&STATE.basic_pipeline, &STATE.basic_bindings, .Triangles, 6)
+	gfx.pipeline_draw_elements(STATE.basic_pipeline, STATE.basic_bindings, .Triangles, 6)
 
 }
 
 close :: proc() {
-	gfx.pipeline_free(&STATE.pipeline)
-	gfx.buffer_free(&STATE.v_buffer)
-	gfx.buffer_free(&STATE.i_buffer)
-	gfx.texture_free(&STATE.texture)
+	gfx.pipeline_free(STATE.pipeline)
+	gfx.buffer_free(STATE.v_buffer)
+	gfx.buffer_free(STATE.i_buffer)
+	gfx.texture_free(STATE.texture)
 	gfx.bindings_free(STATE.bindings)
 
-	gfx.framebuffer_free(&STATE.framebuffer)
+	gfx.framebuffer_free(STATE.framebuffer)
 
-	gfx.pipeline_free(&STATE.basic_pipeline)
-	gfx.buffer_free(&STATE.basic_v_buffer)
-	gfx.buffer_free(&STATE.basic_i_buffer)
+	gfx.pipeline_free(STATE.basic_pipeline)
+	gfx.buffer_free(STATE.basic_v_buffer)
+	gfx.buffer_free(STATE.basic_i_buffer)
 	gfx.bindings_free(STATE.basic_bindings)
 
 	core.cell_free(&STATE)
 }
 
 resize :: proc() {
-	gfx.pipeline_resize(&STATE.basic_pipeline, platform.windowhelper_get_window_size())
+	gfx.pipeline_resize(STATE.basic_pipeline, platform.windowhelper_get_window_size())
 }
 
 main :: proc() {

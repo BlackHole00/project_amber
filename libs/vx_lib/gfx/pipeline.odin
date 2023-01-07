@@ -2,6 +2,7 @@ package vx_lib_gfx
 
 import glsm "glstatemanager"
 import gl "vendor:OpenGL"
+import "core:mem"
 import "core:log"
 import "core:strings"
 import "core:math/linalg/glsl"
@@ -120,7 +121,7 @@ Primitive :: enum {
 
 Pipeline_Layout :: []Layout_Element
 
-Pipeline :: struct {
+Pipeline_Impl :: struct {
     shader_handle: u32,
     uniform_locations: map[string]i32,
 
@@ -132,8 +133,13 @@ Pipeline :: struct {
     states: Pipeline_States,
     render_target: Maybe(Framebuffer),
 }
+Pipeline :: ^Pipeline_Impl
 
-pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer) = nil) {
+pipeline_new :: proc(desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer) = nil) -> Pipeline {
+    pipeline := new(Pipeline_Impl, OPENGL_CONTEXT.gl_allocator)
+
+    pipeline.uniform_locations = make(map[string]i32, mem.DEFAULT_RESERVE_CAPACITY, OPENGL_CONTEXT.gl_allocator)
+
     when MODERN_OPENGL do gl.CreateVertexArrays(1, &pipeline.layout_handle)
     else do gl.GenVertexArrays(1, &pipeline.layout_handle)
     pipeline_layout_resolve(pipeline, desc.layout)
@@ -159,9 +165,11 @@ pipeline_init :: proc(pipeline: ^Pipeline, desc: Pipeline_Descriptor, render_tar
     pipeline.states.clear_depth = desc.clear_depth
 
     pipeline.render_target = render_target
+
+    return pipeline
 }
 
-pipeline_free :: proc(pipeline: ^Pipeline) {
+pipeline_free :: proc(pipeline: Pipeline) {
     gl.DeleteProgram(pipeline.shader_handle)
     pipeline.shader_handle = INVALID_HANDLE
 
@@ -172,9 +180,11 @@ pipeline_free :: proc(pipeline: ^Pipeline) {
     delete(pipeline.layout_offsets)
     delete(pipeline.layout_elements)
     delete(pipeline.uniform_locations)
+
+    free(pipeline, OPENGL_CONTEXT.gl_allocator)
 }
 
-pipeline_resize :: proc(pipeline: ^Pipeline, new_size: [2]uint) {
+pipeline_resize :: proc(pipeline: Pipeline, new_size: [2]uint) {
     pipeline.states.viewport_size = new_size
 }
 
@@ -202,13 +212,13 @@ pipeline_clear :: proc(pipeline: Pipeline) {
     gl.Clear(clear_bits)
 }
 
-pipeline_set_wireframe :: proc(pipeline: ^Pipeline, wireframe: bool) {
+pipeline_set_wireframe :: proc(pipeline: Pipeline, wireframe: bool) {
     pipeline.states.wireframe = wireframe
 }
 
-pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int) {
-    pipeline_apply(pipeline^)
-    pipeline_bind(pipeline^)
+pipeline_draw_arrays :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, first: int, count: int) {
+    pipeline_apply(pipeline)
+    pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
 
     gl.DrawArrays(primitive_to_glenum(primitive), (i32)(first), (i32)(count))
@@ -216,11 +226,11 @@ pipeline_draw_arrays :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive
     when !MODERN_OPENGL do pipeline_layout_unbind()
 }
 
-pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, count: int) {
+pipeline_draw_elements :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, count: int) {
     when ODIN_DEBUG do if bindings.index_buffer == nil do panic("Draw elements should have a valid index buffer in the bindings.")
 
-    pipeline_apply(pipeline^)
-    pipeline_bind(pipeline^)
+    pipeline_apply(pipeline)
+    pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
 
     gl.DrawElements(primitive_to_glenum(primitive), (i32)(count), indextype_to_glenum(bindings.index_buffer.?.index_type.?), nil)
@@ -228,9 +238,9 @@ pipeline_draw_elements :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primiti
     when !MODERN_OPENGL do pipeline_layout_unbind()
 }
 
-pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
-    pipeline_apply(pipeline^)
-    pipeline_bind(pipeline^)
+pipeline_draw_arrays_instanced :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
+    pipeline_apply(pipeline)
+    pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
 
     gl.DrawArraysInstanced(primitive_to_glenum(primitive), (i32)(first), (i32)(count), (i32)(instance_count))
@@ -238,11 +248,11 @@ pipeline_draw_arrays_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings,
     when !MODERN_OPENGL do pipeline_layout_unbind()
 }
 
-pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Bindings, primitive: Primitive, count: int, instance_count: int) {
+pipeline_draw_elements_instanced :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, count: int, instance_count: int) {
     when ODIN_DEBUG do if bindings.index_buffer == nil do panic("Draw elements should have a valid index buffer in the bindings.")
 
-    pipeline_apply(pipeline^)
-    pipeline_bind(pipeline^)
+    pipeline_apply(pipeline)
+    pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
 
     gl.DrawElementsInstanced(primitive_to_glenum(primitive), (i32)(count), indextype_to_glenum(bindings.index_buffer.?.index_type.?), nil, (i32)(instance_count))
@@ -250,7 +260,7 @@ pipeline_draw_elements_instanced :: proc(pipeline: ^Pipeline, bindings: ^Binding
     when !MODERN_OPENGL do pipeline_layout_unbind()
 }
 
-pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_name: string, value: f32) {
+pipeline_uniform_1f :: proc(pipeline: Pipeline, uniform_name: string, value: f32) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -262,7 +272,7 @@ pipeline_uniform_1f :: proc(pipeline: ^Pipeline, uniform_name: string, value: f3
     }
 }
 
-pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec2) {
+pipeline_uniform_2f :: proc(pipeline: Pipeline, uniform_name: string, value: glsl.vec2) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -274,7 +284,7 @@ pipeline_uniform_2f :: proc(pipeline: ^Pipeline, uniform_name: string, value: gl
     }
 }
 
-pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec3) {
+pipeline_uniform_3f :: proc(pipeline: Pipeline, uniform_name: string, value: glsl.vec3) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -286,7 +296,7 @@ pipeline_uniform_3f :: proc(pipeline: ^Pipeline, uniform_name: string, value: gl
     }
 }
 
-pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: glsl.vec4) {
+pipeline_uniform_4f :: proc(pipeline: Pipeline, uniform_name: string, value: glsl.vec4) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -298,7 +308,7 @@ pipeline_uniform_4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: gl
     }
 }
 
-pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_name: string, value: ^glsl.mat4) {
+pipeline_uniform_mat4f :: proc(pipeline: Pipeline, uniform_name: string, value: ^glsl.mat4) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -310,7 +320,7 @@ pipeline_uniform_mat4f :: proc(pipeline: ^Pipeline, uniform_name: string, value:
     }
 }
 
-pipeline_uniform_1i :: proc(pipeline: ^Pipeline, uniform_name: string, value: i32) {
+pipeline_uniform_1i :: proc(pipeline: Pipeline, uniform_name: string, value: i32) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -371,17 +381,17 @@ pipeline_bind_rendertarget :: proc(pipeline: Pipeline) {
 }
 
 @(private)
-pipeline_layout_resolve :: proc(pipeline: ^Pipeline, elements: []Layout_Element) {
+pipeline_layout_resolve :: proc(pipeline: Pipeline, elements: []Layout_Element) {
     buffer_count := pipeline_layout_find_buffer_count(elements)
 
-    pipeline.layout_strides = make([]i32, len(elements))
-    pipeline.layout_elements = make([]Layout_Element, len(elements))
-    pipeline.layout_offsets = make([]u32, len(elements))
+    pipeline.layout_strides = make([]i32, len(elements), OPENGL_CONTEXT.gl_allocator)
+    pipeline.layout_elements = make([]Layout_Element, len(elements), OPENGL_CONTEXT.gl_allocator)
+    pipeline.layout_offsets = make([]u32, len(elements), OPENGL_CONTEXT.gl_allocator)
 
-    strides := make([]uint, buffer_count)
+    strides := make([]uint, buffer_count, OPENGL_CONTEXT.gl_allocator)
     defer delete(strides)
 
-    offsets := make([]uint, buffer_count)
+    offsets := make([]uint, buffer_count, OPENGL_CONTEXT.gl_allocator)
     defer delete(offsets)
 
     for elem in elements do strides[elem.buffer_idx] += size_of_gl_type(elementtype_to_gltype(elem.type)) * elem.count
@@ -469,13 +479,13 @@ pipeline_shader_bind :: proc(pipeline: Pipeline) {
 }
 
 @(private)
-pipeline_texture_apply:: proc(pipeline: ^Pipeline, texture: Texture, texture_unit: u32, uniform_name: string) {
+pipeline_texture_apply:: proc(pipeline: Pipeline, texture: Texture, texture_unit: u32, uniform_name: string) {
     texture_full_bind(texture, (u32)(texture_unit))
     pipeline_uniform_1i(pipeline, uniform_name, (i32)(texture_unit))
 }
 
 @(private)
-pipeline_find_uniform_location :: proc(pipeline: ^Pipeline, uniform_name: string) -> (i32, bool) {
+pipeline_find_uniform_location :: proc(pipeline: Pipeline, uniform_name: string) -> (i32, bool) {
     if uniform_name in pipeline.uniform_locations do return pipeline.uniform_locations[uniform_name], true
 
     c_uniform_name := strings.clone_to_cstring(uniform_name)

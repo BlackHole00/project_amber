@@ -1,6 +1,6 @@
 package vx_lib_gfx
 
-import "core:mem"
+import "core:slice"
 
 Compute_Bindings_Raw_Element :: struct {
     size: uint,
@@ -26,15 +26,22 @@ Compute_Bindings_Element :: union #no_nil {
     Compute_Bindings_I32_Element,
 }
 
-Compute_Bindings :: struct {
-    elements: [16]Compute_Bindings_Element,
-    used_elements: u8,
+Compute_Bindings_Impl :: struct {
+    elements: []Compute_Bindings_Element,
 }
+Compute_Bindings :: ^Compute_Bindings_Impl
 
-computebindings_init :: proc(bindings: ^Compute_Bindings, layout: []Compute_Bindings_Element) {
+computebindings_new :: proc(layout: []Compute_Bindings_Element) -> Compute_Bindings {
     if len(layout) > 16 do panic("Only 16 arguments allowed!")
 
-    mem.copy(&bindings.elements[0], &layout[0], size_of(Compute_Bindings_Element) * len(layout))
+    bindings := new(Compute_Bindings_Impl, OPENCL_CONTEXT.cl_allocator)
+    bindings.elements = slice.clone(layout, OPENCL_CONTEXT.cl_allocator)
 
-    bindings.used_elements = (u8)(len(layout))
+    return bindings
+}
+
+computebindings_free :: proc(bindings: Compute_Bindings) {
+    delete(bindings.elements)
+
+    free(bindings, OPENCL_CONTEXT.cl_allocator)
 }

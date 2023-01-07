@@ -56,116 +56,133 @@ Texture_Descriptor :: struct {
     gen_mipmaps: bool,
 }
 
-Texture :: struct {
+Texture_Impl :: struct {
     texture_handle: u32,
 
     texture_size: [3]uint,
 
     using texture_desc: Texture_Descriptor,
 }
+Texture :: ^Texture_Impl
 
-texture_init_with_size_1d :: proc(texture: ^Texture, desc: Texture_Descriptor, size: uint) {
-    when ODIN_DEBUG do if desc.type != .Texture_1D do panic("texture_init_with_size_1d works only with 1D textures")
+texture_new_with_size_1d :: proc(desc: Texture_Descriptor, size: uint) -> Texture {
+    when ODIN_DEBUG do if desc.type != .Texture_1D do panic("texture_new_with_size_1d works only with 1D textures")
 
-    texture_init_raw(texture, desc)
+    texture := texture_allocate_and_init_raw(desc)
     texture_set_size_1d(texture, size)
+
+    return texture
 }
 
-texture_init_with_size_2d :: proc(texture: ^Texture, desc: Texture_Descriptor, dimension: [2]uint) {
-    when ODIN_DEBUG do if desc.type != .Texture_2D do panic("texture_init_with_size_2d works only with 2D textures")
+texture_new_with_size_2d :: proc(desc: Texture_Descriptor, dimension: [2]uint) -> Texture {
+    when ODIN_DEBUG do if desc.type != .Texture_2D do panic("texture_new_with_size_2d works only with 2D textures")
 
-    texture_init_raw(texture, desc)
+    texture := texture_allocate_and_init_raw(desc)
     texture_set_size_2d(texture, dimension)
+
+    return texture
 }
 
-texture_init_with_size_3d :: proc(texture: ^Texture, desc: Texture_Descriptor, dimension: [3]uint) {
-    when ODIN_DEBUG do if desc.type != .Texture_3D do panic("texture_init_with_size_3d works only with 3D textures")
+texture_new_with_size_3d :: proc(desc: Texture_Descriptor, dimension: [3]uint) -> Texture {
+    when ODIN_DEBUG do if desc.type != .Texture_3D do panic("texture_new_with_size_3d works only with 3D textures")
     
-    texture_init_raw(texture, desc)
+    texture := texture_allocate_and_init_raw(desc)
     texture_set_size_3d(texture, dimension)
+
+    return texture
 }
 
-texture_init_with_data_1d :: proc(texture: ^Texture, desc: Texture_Descriptor, data: []$T) {
-    when ODIN_DEBUG do if desc.type != .Texture_1D do panic("texture_init_with_data_1d works only with 1D textures")
+texture_new_with_data_1d :: proc(desc: Texture_Descriptor, data: []$T) -> Texture {
+    when ODIN_DEBUG do if desc.type != .Texture_1D do panic("texture_new_with_data_1d works only with 1D textures")
 
-    texture_init_raw(texture, desc)
+    texture := texture_allocate_and_init_raw(desc)
     texture_set_size_1d(texture, len(data))
-    texture_set_data_1d(texture^, data)
+    texture_set_data_1d(texture, data)
+
+    return texture
 }
 
-texture_init_with_data_2d :: proc(texture: ^Texture, desc: Texture_Descriptor, data: []$T, dimension: [2]uint) {
-    when ODIN_DEBUG do if desc.type != .Texture_2D do panic("texture_init_with_data_2d works only with 2D textures")
+texture_new_with_data_2d :: proc(desc: Texture_Descriptor, data: []$T, dimension: [2]uint) -> Texture {
+    when ODIN_DEBUG do if desc.type != .Texture_2D do panic("texture_new_with_data_2d works only with 2D textures")
 
-    texture_init_raw(texture, desc)
+    texture := texture_allocate_and_init_raw(desc)
     texture_set_size_2d(texture, dimension)
-    texture_set_data_2d(texture^, data, dimension)
+    texture_set_data_2d(texture, data, dimension)
+
+    return texture
 }
 
-texture_init_with_data_3d :: proc(texture: ^Texture, desc: Texture_Descriptor, data: []$T, dimension: [3]uint) {
-    when ODIN_DEBUG do if desc.type != .Texture_3D do panic("texture_init_with_data_3d works only with 3D textures")
+texture_new_with_data_3d :: proc(desc: Texture_Descriptor, data: []$T, dimension: [3]uint) -> Texture {
+    when ODIN_DEBUG do if desc.type != .Texture_3D do panic("texture_new_with_data_3d works only with 3D textures")
 
-    texture_init_raw(texture, desc)
+    texture := texture_allocate_and_init_raw(desc)
     texture_set_size_3d(texture, dimension)
-    texture_set_data_3d(texture^, data, dimension)
+    texture_set_data_3d(texture, data, dimension)
+
+    return texture
 }
 
-texture_init_from_file :: proc(texture: ^Texture, desc: Texture_Descriptor, file_path: string) {
-    when ODIN_DEBUG do if desc.type != .Texture_2D do panic("texture_init_from_file works only with .Texture_2D textures!")
+texture_new_from_file :: proc(desc: Texture_Descriptor, file_path: string) -> Texture {
+    when ODIN_DEBUG do if desc.type != .Texture_2D do panic("texture_new_from_file works only with .Texture_2D textures!")
 
     data, x, y, ch_num, texture_format := get_texture_content_from_file(file_path)
     defer image.image_free(data)
 
+    slice := mem.byte_slice(data, x * y * ch_num)
+    texture := texture_new_with_data_2d(desc, slice, { (uint)(x), (uint)(y) })
+
     if desc.format != texture_format {
-        log.warn("Specified format is different from image file format. Overriding! (", texture.format, "!=", texture_format, ")")
+        log.warn("Specified format is different from image file format. Overriding! (", desc.format, "!=", texture_format, ")")
         texture.format = texture_format
     }
 
-    slice := mem.byte_slice(data, x * y * ch_num)
-    texture_init_with_data_2d(texture, desc, slice, { (uint)(x), (uint)(y) })
+    return texture
 }
 
-texture_init_cubemap_from_file :: proc(texture: ^Texture, desc: Texture_Descriptor, right_path, left_path, top_path, bottom_path, front_path, back_path: string) {
-    when ODIN_DEBUG do if desc.type != .Texture_CubeMap do panic("texture_init_cubemap_from_file works only with .Texture_CubeMap textures!")
+texture_new_cubemap_from_file :: proc(desc: Texture_Descriptor, right_path, left_path, top_path, bottom_path, front_path, back_path: string) -> Texture {
+    when ODIN_DEBUG do if desc.type != .Texture_CubeMap do panic("texture_new_cubemap_from_file works only with .Texture_CubeMap textures!")
 
-    texture_init_raw(texture, desc)
+    texture := texture_allocate_and_init_raw(desc)
 
     data, x, y, ch_num, real_texture_format := get_texture_content_from_file(right_path)
     slice := mem.byte_slice(data, x * y * ch_num)
-    texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 0)
+    texture_set_data_cubemap_face(texture, slice, real_texture_format, { (uint)(x), (uint)(y) }, 0)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(left_path)
     slice = mem.byte_slice(data, x * y * ch_num)
-    texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 1)
+    texture_set_data_cubemap_face(texture, slice, real_texture_format, { (uint)(x), (uint)(y) }, 1)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(top_path)
     slice = mem.byte_slice(data, x * y * ch_num)
-    texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 2)
+    texture_set_data_cubemap_face(texture, slice, real_texture_format, { (uint)(x), (uint)(y) }, 2)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(bottom_path)
     slice = mem.byte_slice(data, x * y * ch_num)
-    texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 3)
+    texture_set_data_cubemap_face(texture, slice, real_texture_format, { (uint)(x), (uint)(y) }, 3)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(back_path)
     slice = mem.byte_slice(data, x * y * ch_num)
-    texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 4)
+    texture_set_data_cubemap_face(texture, slice, real_texture_format, { (uint)(x), (uint)(y) }, 4)
     image.image_free(data)
 
     data, x, y, ch_num, real_texture_format = get_texture_content_from_file(front_path)
     slice = mem.byte_slice(data, x * y * ch_num)
-    texture_set_data_cubemap_face(texture^, slice, real_texture_format, { (uint)(x), (uint)(y) }, 5)
+    texture_set_data_cubemap_face(texture, slice, real_texture_format, { (uint)(x), (uint)(y) }, 5)
     image.image_free(data)
+
+    return texture
 }
 
-texture_init :: proc { texture_init_raw, texture_init_with_data_1d, texture_init_with_data_2d, texture_init_with_data_3d, texture_init_from_file, texture_init_cubemap_from_file, texture_init_with_size_1d, texture_init_with_size_2d, texture_init_with_size_3d }
+texture_new :: proc { texture_allocate_and_init_raw, texture_new_with_data_1d, texture_new_with_data_2d, texture_new_with_data_3d, texture_new_from_file, texture_new_cubemap_from_file, texture_new_with_size_1d, texture_new_with_size_2d, texture_new_with_size_3d }
 
-texture_free :: proc(texture: ^Texture) {
+texture_free :: proc(texture: Texture) {
     gl.DeleteTextures(1, &texture.texture_handle)
 
-    texture.texture_handle = INVALID_HANDLE
+    free(texture, OPENGL_CONTEXT.gl_allocator)
 }
 
 texture_set_data_1d :: proc(texture: Texture, data: []$T, offset := 0) {
@@ -266,43 +283,40 @@ texture_gen_mipmaps :: proc(texture: Texture) {
     } 
 }
 
-texture_resize_1d :: proc(texture: ^Texture, new_len: uint) {
-    when ODIN_DEBUG do if texture.type != .Texture_1D do panic("texture_resize_1d works only with 1D textures")
+texture_resize_1d :: proc(texture: Texture, new_len: uint) {
+    when ODIN_DEBUG do if texture^.type != .Texture_1D do panic("texture_resize_1d works only with 1D textures")
 
-    new_texture: Texture = ---
+    old_texture := texture^
 
-    texture_init(&new_texture, texture.texture_desc, new_len)
+    texture_init_raw(texture, texture.texture_desc)
+    texture_set_size_1d(texture, new_len)
+    texture_copy_1d(&old_texture, texture)
 
-    texture_copy_1d(texture^, new_texture)
-
-    texture_free(texture)
-    texture^ = new_texture
+    gl.DeleteTextures(1, &old_texture.texture_handle)
 }
 
-texture_resize_2d :: proc(texture: ^Texture, new_size: [2]uint) {
+texture_resize_2d :: proc(texture: Texture, new_size: [2]uint) {
     when ODIN_DEBUG do if texture.type != .Texture_2D do panic("texture_resize_2d works only with 2D textures")
 
-    new_texture: Texture = ---
+    old_texture := texture^
 
-    texture_init(&new_texture, texture.texture_desc, new_size)
+    texture_init_raw(texture, texture.texture_desc)
+    texture_set_size_2d(texture, new_size)
+    texture_copy_2d(&old_texture, texture)
 
-    texture_copy_2d(texture^, new_texture)
-
-    texture_free(texture)
-    texture^ = new_texture
+    gl.DeleteTextures(1, &old_texture.texture_handle)
 }
 
-texture_resize_3d :: proc(texture: ^Texture, new_size: [3]uint) {
-    when ODIN_DEBUG do if texture.type != .Texture_3D do panic("texture_resize_3d works only with 3D textures")
+texture_resize_3d :: proc(texture: Texture, new_size: [3]uint) {
+    when ODIN_DEBUG do if texture^.type != .Texture_3D do panic("texture_resize_3d works only with 3D textures")
 
-    new_texture: Texture = ---
+    old_texture := texture^
 
-    texture_init(&new_texture, texture.texture_desc, new_size)
+    texture_init_raw(texture, texture.texture_desc)
+    texture_set_size_3d(texture, new_size)
+    texture_copy_3d(&old_texture, texture)
 
-    texture_copy_3d(texture^, new_texture)
-
-    texture_free(texture)
-    texture^ = new_texture
+    gl.DeleteTextures(1, &old_texture.texture_handle)
 }
 
 texture_copy_1d :: proc(src: Texture, dest: Texture, src_offset: [3]i32 = { 0, 0, 0 }, dest_offset: [3]i32 = { 0, 0, 0 }) {
@@ -316,9 +330,8 @@ texture_copy_1d :: proc(src: Texture, dest: Texture, src_offset: [3]i32 = { 0, 0
         real_src_offset := -src_offset
         real_dest_offset := -dest_offset
 
-        framebuffer: Framebuffer = ---
-        framebuffer_init_from_textures(&framebuffer, size, src, nil)
-        defer framebuffer_free(&framebuffer)
+        framebuffer := framebuffer_new_from_textures(size, src, nil)
+        defer framebuffer_free(framebuffer)
 
         framebuffer_bind_color_attachment_to_readbuffer(framebuffer)
 
@@ -341,9 +354,8 @@ texture_copy_2d :: proc(src: Texture, dest: Texture, src_offset: [3]i32 = { 0, 0
         real_src_offset := -src_offset
         real_dest_offset := -dest_offset
 
-        framebuffer: Framebuffer = ---
-        framebuffer_init_from_textures(&framebuffer, size, src, nil)
-        defer framebuffer_free(&framebuffer)
+        framebuffer := framebuffer_new_from_textures(size, src, nil)
+        defer framebuffer_free(framebuffer)
 
         framebuffer_bind_color_attachment_to_readbuffer(framebuffer)
 
@@ -367,9 +379,8 @@ texture_copy_3d :: proc(src: Texture, dest: Texture, src_offset: [3]i32 = { 0, 0
         real_src_offset := -src_offset
         real_dest_offset := -dest_offset
 
-        framebuffer: Framebuffer = ---
-        framebuffer_init_from_textures(&framebuffer, size.xy, src, nil)
-        defer framebuffer_free(&framebuffer)
+        framebuffer := framebuffer_new_from_textures(size.xy, src, nil)
+        defer framebuffer_free(framebuffer)
 
         framebuffer_bind_color_attachment_to_readbuffer(framebuffer)
 
@@ -429,52 +440,60 @@ get_texture_content_from_file :: proc(file_path: string) -> (
 }
 
 @(private)
-texture_set_size_1d :: proc(texture: ^Texture, size: uint) {
+texture_set_size_1d :: proc(texture: Texture, size: uint) {
     when MODERN_OPENGL do gl.TextureStorage1D(texture.texture_handle, 1, (u32)(textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(size))
     else {
-        texture_non_dsa_bind(texture^)
+        texture_non_dsa_bind(texture)
         gl.TexImage2D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(size), 0, 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), nil)
         texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
     }
 
-    texture_gen_mipmaps(texture^)
+    texture_gen_mipmaps(texture)
 
 
     texture.texture_size = { size, 0, 0 }
 }
 
 @(private)
-texture_set_size_2d :: proc(texture: ^Texture, dimension: [2]uint) {
+texture_set_size_2d :: proc(texture: Texture, dimension: [2]uint) {
     when MODERN_OPENGL do gl.TextureStorage2D(texture.texture_handle, 1, (u32)(textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(dimension.x), (i32)(dimension.y))
     else {
-        texture_non_dsa_bind(texture^)
+        texture_non_dsa_bind(texture)
         gl.TexImage2D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(dimension.x), (i32)(dimension.y), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), nil)
         texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
     }
     
-    texture_gen_mipmaps(texture^)
+    texture_gen_mipmaps(texture)
 
     texture.texture_size = { dimension.x, dimension.y, 0 }
 }
 
 @(private)
-texture_set_size_3d :: proc(texture: ^Texture, dimension: [3]uint) {
+texture_set_size_3d :: proc(texture: Texture, dimension: [3]uint) {
     when MODERN_OPENGL do gl.TextureStorage3D(texture.texture_handle, 1, (u32)(textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z))
     else {
-        texture_non_dsa_bind(texture^)
+        texture_non_dsa_bind(texture)
         gl.TexImage3D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), nil)
         texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
     }
 
-    texture_gen_mipmaps(texture^)
+    texture_gen_mipmaps(texture)
 
     texture.texture_size = dimension
 }
 
 @(private)
-texture_init_raw :: proc(texture: ^Texture, desc: Texture_Descriptor) {
+texture_allocate_and_init_raw :: proc(desc: Texture_Descriptor) -> Texture {
+    texture := new(Texture_Impl, OPENGL_CONTEXT.gl_allocator)
     texture.texture_desc = desc
 
+    texture_init_raw(texture, desc)
+
+    return texture
+}
+
+@(private)
+texture_init_raw :: proc(texture: Texture, desc: Texture_Descriptor) {
     when MODERN_OPENGL {
         gl.CreateTextures(texturetype_to_glenum(texture.type), 1, &texture.texture_handle)
 
@@ -485,7 +504,7 @@ texture_init_raw :: proc(texture: ^Texture, desc: Texture_Descriptor) {
     } else {
         gl.GenTextures(1, &texture.texture_handle)
 
-        texture_non_dsa_bind(texture^)
+        texture_non_dsa_bind(texture)
 
         gl.TexParameteri(texturetype_to_glenum(texture.type), gl.TEXTURE_WRAP_S,     texturewarp_to_glenum(desc.warp_s))
         gl.TexParameteri(texturetype_to_glenum(texture.type), gl.TEXTURE_WRAP_T,     texturewarp_to_glenum(desc.warp_t))
