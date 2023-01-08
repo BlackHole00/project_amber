@@ -2,7 +2,10 @@ package OpenCL
 
 import "core:c"
 
-when ODIN_OS == .Windows do foreign import OpenCL { "OpenCL.lib" }
+when ODIN_OS == .Windows { 
+    when ODIN_ARCH == .amd64 do foreign import OpenCL "OpenCL64.lib"
+    when ODIN_ARCH == .i386 do foreign import OpenCL "OpenCL32.lib"
+}
 else when ODIN_OS == .Darwin do foreign import OpenCL "system:OpenCL.framework"
 else do foreign import OpenCL "system:OpenCL"
 

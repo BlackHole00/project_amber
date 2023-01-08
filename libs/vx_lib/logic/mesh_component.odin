@@ -41,6 +41,7 @@ meshcomponent_init_empty :: proc(mesh: ^Mesh_Component, desc: Mesh_Descriptor) {
         }, 
         mesh.index_buffer,
         desc.textures,
+        {},
     )
 }
 

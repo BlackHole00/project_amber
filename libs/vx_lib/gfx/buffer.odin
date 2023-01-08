@@ -5,6 +5,7 @@ import gl "vendor:OpenGL"
 Buffer_Type :: enum {
     Vertex_Buffer,
     Index_Buffer,
+    Uniform_Buffer,
 }
 
 Buffer_Usage :: enum {
@@ -28,7 +29,12 @@ Buffer_Impl :: struct {
     buffer_handle: u32,
     type: Buffer_Type,
     usage: Buffer_Usage,
-    index_type: Maybe(Index_Type),
+
+    // Used only if is an index buffer.
+    index_type: Index_Type,
+
+    // Used only if it is an uniform buffer.
+    uniform_bindings_point: uint,
 }
 
 // An abstraction over a plain OpenGL VBO or EBO. Like a OpenGl buffer, its 
@@ -42,13 +48,10 @@ buffer_new_empty :: proc(desc: Buffer_Descriptor) -> Buffer {
     buffer.usage = desc.usage
     buffer.index_type = desc.index_type
 
-    when ODIN_DEBUG do if desc.index_type != nil && desc.type != .Index_Buffer do panic("desc.indext_type should be used only when using an index buffer")
-    when ODIN_DEBUG do if desc.index_type == nil && desc.type == .Index_Buffer do panic("When creating an index buffer a index type should be used.")
-
     when MODERN_OPENGL do gl.CreateBuffers(1, &buffer.buffer_handle)
-    else {
-        gl.GenBuffers(1, &buffer.buffer_handle)
-    }
+    else do gl.GenBuffers(1, &buffer.buffer_handle)
+
+    if buffer.type == .Uniform_Buffer do buffer.uniform_bindings_point = glcontext_get_available_ubo_bind_point()
 
     return buffer
 }
@@ -78,6 +81,12 @@ buffer_set_data :: proc(buffer: Buffer, data: []$T) {
         gl.BufferData(buffertype_to_glenum(buffer.type), tmp, raw_data(data), bufferusage_to_glenum(buffer.usage))
         buffer_non_dsa_unbind(buffer.type)
     }
+
+    if buffer.type == .Uniform_Buffer {
+        buffer_non_dsa_bind(buffer)
+        gl.BindBufferBase(buffertype_to_glenum(buffer.type), (u32)(buffer.uniform_bindings_point), buffer.buffer_handle)
+        when ODIN_DEBUG do buffer_non_dsa_unbind(buffer.type)
+    }
 }
 
 buffer_free :: proc(buffer: Buffer) {
@@ -101,6 +110,7 @@ buffertype_to_glenum :: proc(type: Buffer_Type) -> u32 {
     switch type {
         case .Index_Buffer: return gl.ELEMENT_ARRAY_BUFFER
         case .Vertex_Buffer: return gl.ARRAY_BUFFER
+        case .Uniform_Buffer: return gl.UNIFORM_BUFFER,
     }
 
     return 0

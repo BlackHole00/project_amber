@@ -1,7 +1,7 @@
 package main
 
-// import "core:os"
-import "vendor:glfw"
+import "core:os"
+import "shared:glfw"
 import "shared:vx_lib/gfx"
 import "shared:vx_lib/platform"
 // import "shared:vx_lib/logic"
@@ -11,6 +11,13 @@ import core "shared:vx_core"
 
 State :: struct {
     clear_pipeline: gfx.Pipeline,
+
+    pipeline: gfx.Pipeline,
+
+    v_buffer: gfx.Buffer,
+    u_buffer: gfx.Buffer,
+
+    bindings: gfx.Bindings,
 }
 STATE: core.Cell(State)
 
@@ -20,9 +27,66 @@ init :: proc() {
     STATE.clear_pipeline = gfx.pipeline_new(gfx.Pipeline_Descriptor {
         viewport_size = platform.windowhelper_get_window_size(),
         clearing_color = gfx.TESTING_ORANGE,
-        clear_depth = true,
+        clear_depth = false,
         clear_color = true,
     })
+
+    v_source, _ := os.read_entire_file("res/vx_lib/shaders/ubo_test.vs")
+    defer delete(v_source)
+    f_source, _ := os.read_entire_file("res/vx_lib/shaders/ubo_test.fs")
+    defer delete(f_source)
+    STATE.pipeline = gfx.pipeline_new(gfx.Pipeline_Descriptor {
+        cull_enabled = false,
+        depth_enabled = false,
+        blend_enabled = false,
+        wireframe = false,
+    
+        vertex_source = string(v_source),
+        fragment_source = string(f_source),
+    
+        layout = []gfx.Layout_Element {
+            {
+                type = .F32,
+                count = 3,
+                normalized = false,
+                buffer_idx = 0,
+                divisor = 0,
+            },
+        },
+
+        viewport_size = platform.windowhelper_get_window_size(),
+
+        clear_depth = false,
+        clear_color = false,
+    })
+
+    STATE.v_buffer = gfx.buffer_new(gfx.Buffer_Descriptor {
+        type = .Vertex_Buffer,
+        usage = .Static_Draw,
+    }, []f32 {
+        -0.5, -0.5, 1.0,
+         0.0,  0.5, 1.0,
+         0.5, -0.5, 1.0,
+    })
+
+    STATE.u_buffer = gfx.buffer_new(gfx.Buffer_Descriptor {
+        type = .Uniform_Buffer,
+        usage = .Static_Draw,
+    }, []f32 {
+        0.0, 0.25, 0.5, 1.0,
+    })
+
+    STATE.bindings = gfx.bindings_new(
+        []gfx.Buffer { STATE.v_buffer },
+        nil,
+        []gfx.Texture_Binding {},
+        []gfx.Uniform_Buffer_Binding { 
+            {
+                uniform_name = "u_block",
+                buffer = STATE.u_buffer, 
+            },
+        },
+    )
 }
 
 tick :: proc() {
@@ -31,10 +95,15 @@ tick :: proc() {
 
 draw :: proc() {
     gfx.pipeline_clear(STATE.clear_pipeline)
+    gfx.pipeline_draw_arrays(STATE.pipeline, STATE.bindings, .Triangles, 0, 3)
 }
 
 close :: proc() {
+    gfx.buffer_free(STATE.v_buffer)
+    gfx.buffer_free(STATE.u_buffer)
+    gfx.bindings_free(STATE.bindings)
     gfx.pipeline_free(STATE.clear_pipeline)
+    gfx.pipeline_free(STATE.pipeline)
 
 	core.cell_free(&STATE)
 }

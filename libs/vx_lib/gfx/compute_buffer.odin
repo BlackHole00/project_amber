@@ -142,6 +142,8 @@ computebuffer_new :: proc { computebuffer_new_empty, computebuffer_new_with_data
 
 computebuffer_free :: proc(buffer: Compute_Buffer) {
     cl.ReleaseMemObject(buffer.cl_mem)
+
+    free(buffer, OPENCL_CONTEXT.cl_allocator)
 }
 
 computebuffer_set_data :: proc(buffer: Compute_Buffer, input: []$T) {

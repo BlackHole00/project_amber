@@ -244,7 +244,7 @@ pipeline_draw_elements :: proc(pipeline: Pipeline, bindings: Bindings, primitive
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
 
-    gl.DrawElements(primitive_to_glenum(primitive), (i32)(count), indextype_to_glenum(bindings.index_buffer.?.index_type.?), nil)
+    gl.DrawElements(primitive_to_glenum(primitive), (i32)(count), indextype_to_glenum(bindings.index_buffer.?.index_type), nil)
 
     when !MODERN_OPENGL do pipeline_layout_unbind()
 }
@@ -269,7 +269,7 @@ pipeline_draw_elements_instanced :: proc(pipeline: Pipeline, bindings: Bindings,
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
 
-    gl.DrawElementsInstanced(primitive_to_glenum(primitive), (i32)(count), indextype_to_glenum(bindings.index_buffer.?.index_type.?), nil, (i32)(instance_count))
+    gl.DrawElementsInstanced(primitive_to_glenum(primitive), (i32)(count), indextype_to_glenum(bindings.index_buffer.?.index_type), nil, (i32)(instance_count))
 
     when !MODERN_OPENGL do pipeline_layout_unbind()
 }
@@ -509,9 +509,17 @@ pipeline_shader_bind :: proc(pipeline: Pipeline) {
 }
 
 @(private)
-pipeline_texture_apply:: proc(pipeline: Pipeline, texture: Texture, texture_unit: u32, uniform_name: string) {
+pipeline_texture_apply :: proc(pipeline: Pipeline, texture: Texture, texture_unit: u32, uniform_name: string) {
     texture_full_bind(texture, (u32)(texture_unit))
     pipeline_uniform_1i(pipeline, uniform_name, (i32)(texture_unit))
+}
+
+@(private)
+pipeline_uniformbuffer_apply :: proc(pipeline: Pipeline, location_idx: u32, uniform_name: string) {
+    c_uniform_name := strings.clone_to_cstring(uniform_name, OPENGL_CONTEXT.gl_allocator)
+    defer delete(c_uniform_name)
+    loc := gl.GetUniformBlockIndex(pipeline.shader_handle, c_uniform_name)
+    gl.UniformBlockBinding(pipeline.shader_handle, (u32)(loc), location_idx)
 }
 
 @(private)

@@ -1,6 +1,6 @@
 package vx_lib_common
 
-import "vendor:glfw"
+import "shared:glfw"
 import "shared:vx_lib/platform"
 
 @(private)

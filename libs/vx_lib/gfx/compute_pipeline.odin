@@ -1,6 +1,5 @@
 package vx_lib_gfx
 
-import "core:log"
 import "core:strings"
 import "core:slice"
 import cl "shared:OpenCL"
@@ -53,6 +52,8 @@ computepipeline_free :: proc(pipeline: Compute_Pipeline) {
 
     delete(pipeline.global_work_sizes)
     delete(pipeline.local_work_sizes)
+
+    free(pipeline, OPENCL_CONTEXT.cl_allocator)
 }
 
 computepipeline_compute :: proc(pipeline: Compute_Pipeline, bindings: Compute_Bindings) {
@@ -71,8 +72,6 @@ computepipeline_compute :: proc(pipeline: Compute_Pipeline, bindings: Compute_Bi
     local_size: uint
     cl.GetKernelWorkGroupInfo(pipeline.kernel, OPENCL_CONTEXT.device, cl.KERNEL_WORK_GROUP_SIZE, size_of(uint), &local_size, nil)
     for size in &pipeline.local_work_sizes do if local_size < size do size = local_size
-
-    log.info(pipeline.global_work_sizes, pipeline.local_work_sizes)
 
     if err := cl.EnqueueNDRangeKernel(OPENCL_CONTEXT.queue, pipeline.kernel, (u32)(pipeline.dimensions), nil, raw_data(pipeline.global_work_sizes), raw_data(pipeline.local_work_sizes), 0, nil, nil); err != cl.SUCCESS {
         panic("Could not enqueue a compute operation.")

@@ -3,7 +3,7 @@ package vx_lib_platform
 import "core:fmt"
 import "core:strings"
 import "core:c"
-import "vendor:glfw"
+import "shared:glfw"
 import core "shared:vx_core"
 
 Window_Helper_Mouse_Data :: struct {

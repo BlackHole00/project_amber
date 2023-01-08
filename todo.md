@@ -26,3 +26,5 @@
 - [X] gfx objects that allocate memory should contain an allocator
 - [ ] Study OpenGL Sync Objects and implement them.
 - [ ] Make a renderer (in vx_lib/utils ?) with render lists (akin to render passes).
+- [ ] Check all allocations in gfx.
+- [ ] Cache uniformblock names in gfx.Pipeline

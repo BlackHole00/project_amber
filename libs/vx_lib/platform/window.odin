@@ -6,7 +6,7 @@ import "core:time"
 import "core:runtime"
 import "core:log"
 import "core:mem"
-import "vendor:glfw"
+import "shared:glfw"
 import core "shared:vx_core"
 
 // SINGLETON - A simple glfw window representation.

@@ -1,6 +1,6 @@
 package vx_lib_platform
 
-import "vendor:glfw"
+import "shared:glfw"
 import core "shared:vx_core"
 
 // SINGLETON - Provides the user a way to initialize the graphics backend 

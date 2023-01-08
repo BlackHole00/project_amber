@@ -14,20 +14,8 @@ OpenCL_Context :: struct {
 }
 OPENCL_CONTEXT: core.Cell(OpenCL_Context)
 
-when ODIN_OS == .Windows {
-    import win "core:sys/windows"
-
-    foreign import Gl_Ctx "system:Opengl32.lib"
-
-    @(default_calling_convention="c", link_prefix="wgl")
-    foreign Gl_Ctx {
-        @(private)
-        GetCurrentContext :: proc() -> win.HGLRC ---
-        @(private)
-        GetCurrentDC :: proc() -> win.HDC ---
-    }
-} else 
-when ODIN_OS == .Darwin {
+when ODIN_OS == .Windows do import win "core:sys/windows" 
+else when ODIN_OS == .Darwin {
     CGLContextObj :: distinct rawptr
     CGLShareGroupObj :: distinct rawptr
 
@@ -71,8 +59,8 @@ opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
 
     when ODIN_OS == .Windows {
         properties := []cl.context_properties {
-            cl.GL_CONTEXT_KHR, transmute(cl.context_properties)(GetCurrentContext()),
-            cl.WGL_HDC_KHR, transmute(cl.context_properties)(GetCurrentDC()),
+            cl.GL_CONTEXT_KHR, transmute(cl.context_properties)(win.wglGetCurrentContext()),
+            cl.WGL_HDC_KHR, transmute(cl.context_properties)(win.wglGetCurrentDC()),
             cl.CONTEXT_PLATFORM, transmute(cl.context_properties)(platform),
             0,
         }
@@ -93,11 +81,13 @@ opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
     if OPENCL_CONTEXT.cl_context = cl.CreateContext(raw_data(properties), 1, &OPENCL_CONTEXT.device, nil, nil, &err); err != cl.SUCCESS do return false
     if OPENCL_CONTEXT.queue = cl.CreateCommandQueue(OPENCL_CONTEXT.cl_context, OPENCL_CONTEXT.device, 0, &err); err != cl.SUCCESS do return false
 
-    if !test_opencl() {
-        log.error("test_opencl() failed.")
-        return false
-    } else {
-        log.info("test_opencl() succeded.")
+    when ODIN_DEBUG {
+        if !test_opencl() {
+            log.error("test_opencl() failed.")
+            return false
+        } else {
+            log.info("test_opencl() succeded.")
+        }
     }
 
     return true
@@ -219,6 +209,7 @@ test_opencl :: proc() -> bool {
             value = COUNT,
         },
     })
+    defer computebindings_free(bindings)
 
     computepipeline_compute(pipeline, bindings)
 
