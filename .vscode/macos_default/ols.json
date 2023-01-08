@@ -10,7 +10,7 @@
         },
         {
             "name": "shared",
-            "path": "libs"
+            "path": "shared"
         }
     ],
     "enable_document_symbols": true,
