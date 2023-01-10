@@ -115,4 +115,11 @@ foreign OpenCL {
         bufobj: u32,
         errcode_ret: ^i32,
     ) -> mem ---
+    GetEventInfo :: proc(
+        event: event,
+        param_name: event_info,
+        param_value_size: c.size_t,
+        param_value: rawptr,
+        param_value_size_ret: ^c.size_t,
+    ) -> i32 ---
 }

@@ -146,24 +146,30 @@ computebuffer_free :: proc(buffer: Compute_Buffer) {
     free(buffer, OPENCL_CONTEXT.cl_allocator)
 }
 
-computebuffer_set_data :: proc(buffer: Compute_Buffer, input: []$T) {
+computebuffer_set_data :: proc(buffer: Compute_Buffer, input: []$T, blocking := false) -> Sync {
     if (uint)(size_of(T) * len(input)) > buffer.size do panic("The size of the input is greater than the size of the buffer.")
 
     computebuffer_glacquire(buffer)
     defer computebuffer_glrelease(buffer)
 
-    // Blocking, for now...
-    cl.EnqueueWriteBuffer(OPENCL_CONTEXT.queue, buffer.cl_mem, true, 0, size_of(T) * len(input), raw_data(input), 0, nil, nil)
+    event: cl.event
+    cl.EnqueueWriteBuffer(OPENCL_CONTEXT.queue, buffer.cl_mem, blocking, 0, size_of(T) * len(input), raw_data(input), 0, nil, &event)
+
+    if !blocking do return cleventsync_new(event, .Compute_Buffer_Upload)
+    else do return nil
 }
 
-computebuffer_get_data :: proc(buffer: Compute_Buffer, output: []$T) {
+computebuffer_get_data :: proc(buffer: Compute_Buffer, output: []$T, blocking := false) -> Sync {
     if (uint)(size_of(T) * len(output)) > buffer.size do panic("The size of the input is lesser than the size of the buffer.")
 
     computebuffer_glacquire(buffer)
     defer computebuffer_glrelease(buffer)
 
-    // Blocking, for now...
-    cl.EnqueueReadBuffer(OPENCL_CONTEXT.queue, buffer.cl_mem, true, 0, size_of(T) * len(output), raw_data(output), 0, nil, nil)
+    event: cl.event
+    cl.EnqueueReadBuffer(OPENCL_CONTEXT.queue, buffer.cl_mem, blocking, 0, size_of(T) * len(output), raw_data(output), 0, nil, &event)
+
+    if !blocking do return cleventsync_new(event, .Compute_Buffer_Upload)
+    else do return nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////

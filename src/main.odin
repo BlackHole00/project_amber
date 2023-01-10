@@ -32,6 +32,54 @@ STATE: core.Cell(State)
 init :: proc() {
 	core.cell_init(&STATE)
 
+	// Computing
+	compute_source, _ := os.read_entire_file("res/vx_lib/shaders/test.cl")
+	defer delete(compute_source)
+
+	compute_pipeline := gfx.computepipeline_new(gfx.Compute_Pipeline_Descriptor {
+		source = string(compute_source),
+    	entry_point = "colorify",
+
+    	dimensions = 2,
+    	global_work_sizes = { 256, 256 },
+		local_work_sizes  = { 16, 16 },
+	})
+	defer gfx.computepipeline_free(compute_pipeline)
+
+	STATE.ctexture = gfx.texture_new(gfx.Texture_Descriptor {
+		type = .Texture_2D,
+		internal_texture_format = .R8G8B8A8,
+		format = .R8G8B8A8,
+		pixel_type = .UByte,
+		warp_s = .Clamp_To_Border,
+		warp_t = .Clamp_To_Border,
+		min_filter = .Linear,
+		mag_filter = .Linear,
+		gen_mipmaps = false,
+	}, [2]uint{ 256, 256 })
+
+	output := gfx.computebuffer_new_from_texture(gfx.Compute_Buffer_Descriptor {
+		type = .Write_Only,
+		size = 256 * 256 * 4,
+	}, STATE.ctexture)
+	defer gfx.computebuffer_free(output)
+
+	bindings := gfx.computebindings_new([]gfx.Compute_Bindings_Element {
+		gfx.Compute_Bindings_Buffer_Element {
+			buffer = output,
+		},
+		gfx.Compute_Bindings_I32_Element {
+			value = 256,
+		},
+		gfx.Compute_Bindings_I32_Element {
+			value = 256,
+		},
+	})
+	defer gfx.computebindings_free(bindings)
+
+	compute_sync := gfx.computepipeline_compute(compute_pipeline, bindings)
+
+	// Offscreen rendering setup.
 	{
 		STATE.framebuffer = gfx.framebuffer_new(gfx.Framebuffer_Descriptor {
 			use_color_attachment = true,
@@ -134,6 +182,7 @@ init :: proc() {
 		STATE.camera.rotation = { 0.0, 0.0,  0.0 }
 	}
 
+	// Basic window rendering setup.
 	{
 		vertex_source, _ := os.read_entire_file("res/vx_lib/shaders/texture.vs")
 		defer delete(vertex_source)
@@ -189,54 +238,6 @@ init :: proc() {
 		})
 	}
 
-	{
-		compute_source, _ := os.read_entire_file("res/vx_lib/shaders/test.cl")
-		defer delete(compute_source)
-
-		compute_pipeline := gfx.computepipeline_new(gfx.Compute_Pipeline_Descriptor {
-			source = string(compute_source),
-    		entry_point = "colorify",
-
-    		dimensions = 2,
-    		global_work_sizes = { 256, 256 },
-			local_work_sizes  = { 16, 16 },
-		})
-		defer gfx.computepipeline_free(compute_pipeline)
-
-		STATE.ctexture = gfx.texture_new(gfx.Texture_Descriptor {
-			type = .Texture_2D,
-			internal_texture_format = .R8G8B8A8,
-			format = .R8G8B8A8,
-			pixel_type = .UByte,
-			warp_s = .Clamp_To_Border,
-			warp_t = .Clamp_To_Border,
-			min_filter = .Linear,
-			mag_filter = .Linear,
-			gen_mipmaps = false,
-		}, [2]uint{ 256, 256 })
-
-		output := gfx.computebuffer_new_from_texture(gfx.Compute_Buffer_Descriptor {
-			type = .Write_Only,
-			size = 256 * 256 * 4,
-		}, STATE.ctexture)
-		defer gfx.computebuffer_free(output)
-
-		bindings := gfx.computebindings_new([]gfx.Compute_Bindings_Element {
-			gfx.Compute_Bindings_Buffer_Element {
-				buffer = output,
-			},
-			gfx.Compute_Bindings_I32_Element {
-				value = 256,
-			},
-			gfx.Compute_Bindings_I32_Element {
-				value = 256,
-			},
-		})
-		defer gfx.computebindings_free(bindings)
-
-		gfx.computepipeline_compute(compute_pipeline, bindings)
-	}
-
 	STATE.basic_bindings = gfx.bindings_new([]gfx.Buffer { STATE.basic_v_buffer }, STATE.basic_i_buffer, []gfx.Texture_Binding {
 		gfx.framebuffer_get_color_texture_bindings(STATE.framebuffer, "u_texture1"),
 		{
@@ -244,6 +245,8 @@ init :: proc() {
 			texture = STATE.ctexture,
 		},
 	}, {})
+
+	gfx.sync_await(compute_sync)
 }
 
 tick :: proc() {

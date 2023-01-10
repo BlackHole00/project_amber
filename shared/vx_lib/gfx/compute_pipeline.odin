@@ -56,7 +56,7 @@ computepipeline_free :: proc(pipeline: Compute_Pipeline) {
     free(pipeline, OPENCL_CONTEXT.cl_allocator)
 }
 
-computepipeline_compute :: proc(pipeline: Compute_Pipeline, bindings: Compute_Bindings) {
+computepipeline_compute :: proc(pipeline: Compute_Pipeline, bindings: Compute_Bindings) -> Sync {
     for element, i in &bindings.elements {
         switch v in &element {
             case Compute_Bindings_Raw_Element: cl.SetKernelArg(pipeline.kernel, (u32)(i), v.size, v.data)
@@ -73,16 +73,18 @@ computepipeline_compute :: proc(pipeline: Compute_Pipeline, bindings: Compute_Bi
     cl.GetKernelWorkGroupInfo(pipeline.kernel, OPENCL_CONTEXT.device, cl.KERNEL_WORK_GROUP_SIZE, size_of(uint), &local_size, nil)
     for size in &pipeline.local_work_sizes do if local_size < size do size = local_size
 
-    if err := cl.EnqueueNDRangeKernel(OPENCL_CONTEXT.queue, pipeline.kernel, (u32)(pipeline.dimensions), nil, raw_data(pipeline.global_work_sizes), raw_data(pipeline.local_work_sizes), 0, nil, nil); err != cl.SUCCESS {
+    event: cl.event = ---
+    if err := cl.EnqueueNDRangeKernel(OPENCL_CONTEXT.queue, pipeline.kernel, (u32)(pipeline.dimensions), nil, raw_data(pipeline.global_work_sizes), raw_data(pipeline.local_work_sizes), 0, nil, &event); err != cl.SUCCESS {
         panic("Could not enqueue a compute operation.")
     }
 
-    // Blocking, for now...
-    cl.Flush(OPENCL_CONTEXT.queue)
-
-    for element in &bindings.elements {
-        #partial switch v in &element {
-            case Compute_Bindings_Buffer_Element: computebuffer_glrelease(v.buffer)
-        }
-    }
+    // In Sync: Using the buffers used for computation before the end of the computing is an error.
+    // cl.WaitForEvents(1, &event)
+    // cl.Flush(OPENCL_CONTEXT.queue)
+    // for element in &bindings.elements {
+    //     #partial switch v in &element {
+    //         case Compute_Bindings_Buffer_Element: computebuffer_glrelease(v.buffer)
+    //     }
+    // }
+    return cldispatchsync_new(event, bindings)
 }

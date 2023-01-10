@@ -212,9 +212,9 @@ test_opencl :: proc() -> bool {
     })
     defer computebindings_free(bindings)
 
-    computepipeline_compute(pipeline, bindings)
+    sync_await(computepipeline_compute(pipeline, bindings))
 
-    computebuffer_get_data(output, output_values)
+    computebuffer_get_data(output, output_values, true)
 
     for output, i in output_values do if output != (f32)(i * i) do return false
 

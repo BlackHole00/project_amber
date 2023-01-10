@@ -152,3 +152,17 @@ CGL_SHAREGROUP_KHR                          :: 0x200C
 CONTEXT_PLATFORM                            :: 0x1084
 CONTEXT_INTEROP_USER_SYNC                   :: 0x1085
 CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE   :: 0x10000000
+
+// cl_event_info
+EVENT_COMMAND_QUEUE                         :: 0x11D0
+EVENT_COMMAND_TYPE                          :: 0x11D1
+EVENT_REFERENCE_COUNT                       :: 0x11D2
+EVENT_COMMAND_EXECUTION_STATUS              :: 0x11D3
+EVENT_CONTEXT                               :: 0x11D4
+
+// command execution status
+COMPLETE                                    :: 0x0
+RUNNING                                     :: 0x1
+SUBMITTED                                   :: 0x2
+QUEUED                                      :: 0x3
+
