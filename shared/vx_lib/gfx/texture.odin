@@ -283,38 +283,38 @@ texture_gen_mipmaps :: proc(texture: Texture) {
     } 
 }
 
-texture_resize_1d :: proc(texture: Texture, new_len: uint) {
+texture_resize_1d :: proc(texture: Texture, new_len: uint, copy_content := true) {
     when ODIN_DEBUG do if texture^.type != .Texture_1D do panic("texture_resize_1d works only with 1D textures")
 
     old_texture := texture^
 
     texture_init_raw(texture, texture.texture_desc)
     texture_set_size_1d(texture, new_len)
-    texture_copy_1d(&old_texture, texture)
+    if copy_content do texture_copy_1d(&old_texture, texture)
 
     gl.DeleteTextures(1, &old_texture.texture_handle)
 }
 
-texture_resize_2d :: proc(texture: Texture, new_size: [2]uint) {
+texture_resize_2d :: proc(texture: Texture, new_size: [2]uint, copy_content := true) {
     when ODIN_DEBUG do if texture.type != .Texture_2D do panic("texture_resize_2d works only with 2D textures")
 
     old_texture := texture^
 
     texture_init_raw(texture, texture.texture_desc)
     texture_set_size_2d(texture, new_size)
-    texture_copy_2d(&old_texture, texture)
+    if copy_content do texture_copy_2d(&old_texture, texture)
 
     gl.DeleteTextures(1, &old_texture.texture_handle)
 }
 
-texture_resize_3d :: proc(texture: Texture, new_size: [3]uint) {
+texture_resize_3d :: proc(texture: Texture, new_size: [3]uint, copy_content := true) {
     when ODIN_DEBUG do if texture^.type != .Texture_3D do panic("texture_resize_3d works only with 3D textures")
 
     old_texture := texture^
 
     texture_init_raw(texture, texture.texture_desc)
     texture_set_size_3d(texture, new_size)
-    texture_copy_3d(&old_texture, texture)
+    if copy_content do texture_copy_3d(&old_texture, texture)
 
     gl.DeleteTextures(1, &old_texture.texture_handle)
 }

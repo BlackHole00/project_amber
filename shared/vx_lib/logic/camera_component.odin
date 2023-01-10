@@ -118,8 +118,12 @@ camera_set_othographic_data :: proc(camera: ^Camera_Component, data: Orthographi
 }
 
 camera_resize_view_port :: proc(camera: ^Camera_Component, viewport_size: [2]uint) {
-    if camera.mode != .Perspective do panic("Not perspective camera")
     camera.perspective_data.viewport_size = viewport_size
+
+    camera.orthographic_data.bottom = -1.0
+    camera.orthographic_data.top = 1.0
+    camera.orthographic_data.left = -((f32)(viewport_size.x) / (f32)(viewport_size.y))
+    camera.orthographic_data.right = ((f32)(viewport_size.x) / (f32)(viewport_size.y))
 }
 
 camera_set_fov :: proc(camera: ^Camera_Component, fov: f32) {

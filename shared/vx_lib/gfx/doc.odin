@@ -1,4 +1,4 @@
-//+ ignore
+//+build ignore
 
 // This package provides a bindless OpenGL abstraction layer. It can use OpenGL
 // 4.6 with DSA or OpenGL 3.3 (see common.MODERN_OPENGL for more info).  

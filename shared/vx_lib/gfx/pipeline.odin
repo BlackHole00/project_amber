@@ -2,7 +2,6 @@ package vx_lib_gfx
 
 import glsm "glstatemanager"
 import gl "vendor:OpenGL"
-import "core:mem"
 import "core:log"
 import "core:strings"
 import "core:math/linalg/glsl"
@@ -149,7 +148,7 @@ pipeline_new :: proc(desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer
             panic("Could not compile shaders")
         } else do pipeline.shader_handle = program
 
-        pipeline.uniform_locations = make(map[string]i32, mem.DEFAULT_RESERVE_CAPACITY, OPENGL_CONTEXT.gl_allocator)
+        pipeline.uniform_locations = make(map[string]i32, 16, OPENGL_CONTEXT.gl_allocator)
 
         pipeline.is_draw_pipeline = true
     } else do pipeline.is_draw_pipeline = false

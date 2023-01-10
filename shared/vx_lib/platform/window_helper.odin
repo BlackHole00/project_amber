@@ -211,12 +211,13 @@ windowhelper_set_fullscreen :: proc(fullscreen: bool) {
 
     if !fullscreen {
         pos := windowhelper_get_window_pos()
+        _ = pos
 
         // The +30 is for windows shenanigans. 30 is the height of the windows
         // title bar. If it is not considered the window reappear in the wrong 
-        // height.
-        when ODIN_OS == .Windows do windowhelper_set_window_pos({ pos.x, pos.y + 30 })
-        else do windowhelper_set_window_pos({ pos.x, pos.y })
+        // place, with the bar outside of the screen.
+        when ODIN_OS == .Windows do if pos.y == 0 do windowhelper_set_window_pos({ pos.x, pos.y + 30 })
+        else do windowhelper_set_window_pos(pos)
     }
 }
 

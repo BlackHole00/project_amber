@@ -1,4 +1,4 @@
-//+ ignore
+//+build ignore
 
 // This package provides interfaces for the platform (that is the operating 
 // system and libraries).  
