@@ -580,6 +580,18 @@ texturefilter_to_glenum :: proc(filter: Texture_Filter) -> i32 {
     return 0
 }
 
+textureformat_size_pixel :: proc(format: Texture_Format) -> uint {
+    switch format {
+        case .D24S8: return 4
+        case .R8: return 1
+        case .R8G8: return 2
+        case .R8G8B8: return 3
+        case .R8G8B8A8: return 4
+    }
+
+    return 0
+}
+
 @(private)
 pixeltype_to_glenum :: proc(type: Pixel_type) -> i32 {
     switch type {

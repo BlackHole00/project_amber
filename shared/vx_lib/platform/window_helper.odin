@@ -241,11 +241,12 @@ windowhelper_update_timing_info :: proc(delta: f64, frames_offset: u64 = 1) {
     WINDOWHELPER_INSTANCE.state._delta_counter += delta
     WINDOWHELPER_INSTANCE.state._frame_count   += frames_offset
 
+    WINDOWHELPER_INSTANCE.state.ms = delta
+
     // If a second or more has been passed...
     if WINDOWHELPER_INSTANCE.state._delta_counter > 1000.0 {
         // Update the fps and the ms.
         WINDOWHELPER_INSTANCE.state.fps = WINDOWHELPER_INSTANCE.state._frame_count
-        WINDOWHELPER_INSTANCE.state.ms = WINDOWHELPER_INSTANCE.state._delta_counter / (f64)(WINDOWHELPER_INSTANCE.state._frame_count)
 
         // Reset the counters.
         WINDOWHELPER_INSTANCE.state._frame_count = 0

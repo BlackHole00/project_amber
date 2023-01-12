@@ -1,6 +1,6 @@
 package vx_lib_gfx
 
-import "core:log"
+//import "core:log"
 import cl "shared:OpenCL"
 
 Compute_Buffer_Type :: enum {
@@ -23,6 +23,7 @@ Compute_Buffer_Descriptor :: struct {
 
 Compute_Buffer_Impl :: struct {
     cl_mem: cl.mem,
+    flags: cl.mem_flags,
     size: uint,
     is_opengl: bool,
 }
@@ -33,15 +34,13 @@ computebuffer_new_empty :: proc(desc: Compute_Buffer_Descriptor) -> Compute_Buff
 
     buffer.size = desc.size
     buffer.is_opengl = false
-
-    flags: cl.mem_flags
     switch desc.type {
-        case .Read_Only:    flags |= cl.MEM_READ_ONLY
-        case .Write_Only:   flags |= cl.MEM_WRITE_ONLY
-        case .Read_Write:   flags |= cl.MEM_READ_WRITE
+        case .Read_Only:    buffer.flags |= cl.MEM_READ_ONLY
+        case .Write_Only:   buffer.flags |= cl.MEM_WRITE_ONLY
+        case .Read_Write:   buffer.flags |= cl.MEM_READ_WRITE
     }
 
-    if buffer.cl_mem = cl.CreateBuffer(OPENCL_CONTEXT.cl_context, flags, desc.size, nil, nil); buffer.cl_mem == nil {
+    if buffer.cl_mem = cl.CreateBuffer(OPENCL_CONTEXT.cl_context, buffer.flags, desc.size, nil, nil); buffer.cl_mem == nil {
         panic("Could not create an opencl buffer")
     }
 
@@ -56,21 +55,20 @@ computebuffer_new_with_data :: proc(desc: Compute_Buffer_Descriptor, data: []$T,
     buffer.size = desc.size
     buffer.is_opengl = false
 
-    flags: cl.mem_flags
     switch desc.type {
-        case .Read_Only:     flags |= cl.MEM_READ_ONLY
-        case .Write_Only:    flags |= cl.MEM_WRITE_ONLY
-        case .Read_Write:    flags |= cl.MEM_READ_WRITE
+        case .Read_Only:     buffer.flags |= cl.MEM_READ_ONLY
+        case .Write_Only:    buffer.flags |= cl.MEM_WRITE_ONLY
+        case .Read_Write:    buffer.flags |= cl.MEM_READ_WRITE
     }
     switch mode {
-        case .Host_Memory:   flags |= cl.MEM_COPY_HOST_PTR
+        case .Host_Memory:   buffer.flags |= cl.MEM_COPY_HOST_PTR
         case .GPU_Memory: {
-            flags |= cl.MEM_ALLOC_HOST_PTR
-            flags |= cl.MEM_COPY_HOST_PTR
+            buffer.flags |= cl.MEM_ALLOC_HOST_PTR
+            buffer.flags |= cl.MEM_COPY_HOST_PTR
         }
     }
 
-    if buffer.cl_mem = cl.CreateBuffer(OPENCL_CONTEXT.cl_context, flags, desc.size, raw_data(data), nil); buffer.cl_mem == nil {
+    if buffer.cl_mem = cl.CreateBuffer(OPENCL_CONTEXT.cl_context, buffer.flags, desc.size, raw_data(data), nil); buffer.cl_mem == nil {
         panic("Could not create an opencl buffer")
     }
 
@@ -83,18 +81,15 @@ computebuffer_new_from_abstractbuffer :: proc(desc: Compute_Buffer_Descriptor, a
 
 computebuffer_new_from_buffer :: proc(desc: Compute_Buffer_Descriptor, gfx_buffer: Buffer) -> Compute_Buffer {
     buffer := new(Compute_Buffer_Impl, OPENCL_CONTEXT.cl_allocator)
-
-    buffer.size = desc.size
     buffer.is_opengl = true
 
-    flags: cl.mem_flags
     switch desc.type {
-        case .Read_Only:     flags |= cl.MEM_READ_ONLY
-        case .Write_Only:    flags |= cl.MEM_WRITE_ONLY
-        case .Read_Write:    flags |= cl.MEM_READ_WRITE
+        case .Read_Only:     buffer.flags |= cl.MEM_READ_ONLY
+        case .Write_Only:    buffer.flags |= cl.MEM_WRITE_ONLY
+        case .Read_Write:    buffer.flags |= cl.MEM_READ_WRITE
     }
 
-    if buffer.cl_mem = cl.CreateFromGlBuffer(OPENCL_CONTEXT.cl_context, flags, gfx_buffer.buffer_handle, nil); buffer.cl_mem == nil {
+    if buffer.cl_mem = cl.CreateFromGlBuffer(OPENCL_CONTEXT.cl_context, buffer.flags, gfx_buffer.buffer_handle, nil); buffer.cl_mem == nil {
         panic("Could not create an opencl buffer")
     }
 
@@ -103,37 +98,22 @@ computebuffer_new_from_buffer :: proc(desc: Compute_Buffer_Descriptor, gfx_buffe
 
 computebuffer_new_from_texture :: proc(desc: Compute_Buffer_Descriptor, texture: Texture) -> Compute_Buffer {
     buffer := new(Compute_Buffer_Impl, OPENCL_CONTEXT.cl_allocator)
-
-    buffer.size = desc.size
     buffer.is_opengl = true
 
-    flags: cl.mem_flags
     switch desc.type {
-        case .Read_Only:     flags |= cl.MEM_READ_ONLY
-        case .Write_Only:    flags |= cl.MEM_WRITE_ONLY
-        case .Read_Write:    flags |= cl.MEM_READ_WRITE
+        case .Read_Only:     buffer.flags |= cl.MEM_READ_ONLY
+        case .Write_Only:    buffer.flags |= cl.MEM_WRITE_ONLY
+        case .Read_Write:    buffer.flags |= cl.MEM_READ_WRITE
     }
 
-    err: i32
     if buffer.cl_mem = cl.CreateFromGLTexture(
         OPENCL_CONTEXT.cl_context, 
-        flags, 
+        buffer.flags, 
         texturetype_to_glenum(texture.type), 
         0, 
         texture.texture_handle, 
-        &err,
-    ); buffer.cl_mem == nil {
-        switch err {
-            case cl.INVALID_VALUE: log.error("INVALID_VALUE")
-            case cl.INVALID_MIP_LEVEL: log.error("INVALID_MIP_LEVEL")
-            case cl.INVALID_GL_OBJECT: log.error("INVALID_GL_OBJECT")
-            case cl.INVALID_IMAGE_FORMAT_DESCRIPTOR: log.error("INVALID_IMAGE_FORMAT_DESCRIPTOR")
-            case cl.INVALID_OPERATION: log.error("INVALID_OPERATION")
-            case cl.OUT_OF_RESOURCES: log.error("OUT_OF_RESOURCES")
-        }
-
-        panic("Could not create an opencl buffer")
-    }
+        nil,
+    ); buffer.cl_mem == nil do panic("Could not create an opencl buffer")
 
     return buffer
 }
@@ -144,6 +124,31 @@ computebuffer_free :: proc(buffer: Compute_Buffer) {
     cl.ReleaseMemObject(buffer.cl_mem)
 
     free(buffer, OPENCL_CONTEXT.cl_allocator)
+}
+
+computebuffer_update_bound_texture :: proc(buffer: Compute_Buffer, texture: Texture) {
+    when ODIN_DEBUG do if !buffer.is_opengl do panic("Only works with compute opengl buffers.")
+
+    cl.ReleaseMemObject(buffer.cl_mem)
+
+    if buffer.cl_mem = cl.CreateFromGLTexture(
+        OPENCL_CONTEXT.cl_context, 
+        buffer.flags, 
+        texturetype_to_glenum(texture.type), 
+        0, 
+        texture.texture_handle, 
+        nil,
+    ); buffer.cl_mem == nil do panic("Could not create an opencl buffer")
+}
+
+computebuffer_update_bound_buffer :: proc(buffer: Compute_Buffer, gfx_buffer: Buffer) {
+    when ODIN_DEBUG do if !buffer.is_opengl do panic("Only works with compute opengl buffers.")
+
+    cl.ReleaseMemObject(buffer.cl_mem)
+
+    if buffer.cl_mem = cl.CreateFromGlBuffer(OPENCL_CONTEXT.cl_context, buffer.flags, gfx_buffer.buffer_handle, nil); buffer.cl_mem == nil {
+        panic("Could not create an opencl buffer")
+    }
 }
 
 computebuffer_set_data :: proc(buffer: Compute_Buffer, input: []$T, blocking := false) -> Sync {
@@ -184,10 +189,14 @@ computebuffer_glacquire :: proc(buffer: Compute_Buffer) {
 }
 
 @(private)
-computebuffer_glrelease :: proc(buffer: Compute_Buffer) {
+computebuffer_glrelease :: proc(buffer: Compute_Buffer, events_to_wait: []cl.event = {}) {
     if buffer.is_opengl {
         event: cl.event
-        if cl.EnqueueReleaseGLObjects(OPENCL_CONTEXT.queue, 1, &buffer.cl_mem, 0, nil, &event) != cl.SUCCESS do panic("Could not release gl objects.")
+        if cl.EnqueueReleaseGLObjects(OPENCL_CONTEXT.queue, 1, &buffer.cl_mem, (u32)(len(events_to_wait)), raw_data(events_to_wait), &event) != cl.SUCCESS do panic("Could not release gl objects.")
+        // if res := cl.EnqueueReleaseGLObjects(OPENCL_CONTEXT.queue, 1, &buffer.cl_mem, 0, nil, &event); res != cl.SUCCESS {
+        //     log.fatal(res)
+        //     panic("Could not release gl objects.")
+        // }
         if cl.WaitForEvents(1, &event) != cl.SUCCESS do panic("Could not wait for events.")
     }
 }

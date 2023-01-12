@@ -60,7 +60,7 @@ init :: proc() {
 
 	output := gfx.computebuffer_new_from_texture(gfx.Compute_Buffer_Descriptor {
 		type = .Write_Only,
-		size = 256 * 256 * 4,
+		//size = 256 * 256 * 4,
 	}, STATE.ctexture)
 	defer gfx.computebuffer_free(output)
 
@@ -304,8 +304,7 @@ main :: proc() {
 
 	desc: platform.Window_Descriptor
 	desc.title = "Window"
-	//desc.size = { 640, 480 }
-	desc.size = { 300, 200 }
+	desc.size = { 640, 480 }
 	desc.decorated = true
 	desc.show_fps_in_title = true
 	desc.init_proc = init

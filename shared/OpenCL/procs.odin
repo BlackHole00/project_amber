@@ -122,4 +122,12 @@ foreign OpenCL {
         param_value: rawptr,
         param_value_size_ret: ^c.size_t,
     ) -> i32 ---
+    GetProgramBuildInfo :: proc(
+            program: program,
+            device: device_id,
+            param_name: program_build_info,
+            param_value_size: c.size_t,
+            param_value: rawptr,
+            param_value_size_ret: ^c.size_t,
+    ) -> i32 ---
 }

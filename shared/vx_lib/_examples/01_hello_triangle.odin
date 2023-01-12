@@ -48,12 +48,12 @@ STATE: core.Cell(State)
 init :: proc() {
 	core.cell_init(&STATE)
 
-	gfx.buffer_init(&STATE.vertex_buffer, gfx.Buffer_Descriptor {
+	STATE.vertex_buffer = gfx.buffer_new(gfx.Buffer_Descriptor {
 		type = .Vertex_Buffer,
 		usage = .Static_Draw,
 	}, VERTEX_DATA)
 
-	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
+	STATE.pipeline = gfx.pipeline_new(gfx.Pipeline_Descriptor {
 		cull_enabled = false,
 		depth_enabled = false,
 		blend_enabled = false,
@@ -85,19 +85,20 @@ init :: proc() {
 		clear_color = true,
 	})
 
-	gfx.bindings_init(&STATE.bindings, []gfx.Buffer {
+	STATE.bindings = gfx.bindings_new([]gfx.Buffer {
 		STATE.vertex_buffer,
-	}, nil, {})
+	}, nil, {}, {})
 }
 
 draw :: proc() {
 	gfx.pipeline_clear(STATE.pipeline)
-	gfx.pipeline_draw_arrays(&STATE.pipeline, &STATE.bindings, .Triangles, 0, 3)
+	gfx.pipeline_draw_arrays(STATE.pipeline, STATE.bindings, .Triangles, 0, 3)
 }
 
 close :: proc() {
-	gfx.buffer_free(&STATE.vertex_buffer)
-	gfx.pipeline_free(&STATE.pipeline)
+	gfx.buffer_free(STATE.vertex_buffer)
+	gfx.pipeline_free(STATE.pipeline)
+	gfx.bindings_free(STATE.bindings)
 
 	core.cell_free(&STATE)
 }

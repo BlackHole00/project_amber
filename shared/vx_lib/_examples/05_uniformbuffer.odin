@@ -1,11 +1,8 @@
 package main
 
-import "core:os"
 import "shared:glfw"
 import "shared:vx_lib/gfx"
 import "shared:vx_lib/platform"
-// import "shared:vx_lib/logic"
-// import "shared:vx_lib/logic/objects"
 import "shared:vx_lib/common"
 import core "shared:vx_core"
 
@@ -21,6 +18,34 @@ State :: struct {
 }
 STATE: core.Cell(State)
 
+vertex_source := `
+#version 330 core
+layout (location = 0) in vec3 a_pos;
+
+layout (std140) uniform u_block {
+    vec4 u_color;
+};
+out vec4 v_color;
+
+void main() {
+    gl_Position = vec4(a_pos, 1.0);
+
+    v_color = u_color;
+}
+`
+
+fragment_source := `
+#version 330 core
+
+in vec4 v_color;
+
+out vec4 o_color;
+
+void main() {
+    o_color = v_color;
+}
+`
+
 init :: proc() {
 	core.cell_init(&STATE)
 
@@ -31,19 +56,15 @@ init :: proc() {
         clear_color = true,
     })
 
-    v_source, _ := os.read_entire_file("res/vx_lib/shaders/ubo_test.vs")
-    defer delete(v_source)
-    f_source, _ := os.read_entire_file("res/vx_lib/shaders/ubo_test.fs")
-    defer delete(f_source)
     STATE.pipeline = gfx.pipeline_new(gfx.Pipeline_Descriptor {
         cull_enabled = false,
         depth_enabled = false,
         blend_enabled = false,
         wireframe = false,
-    
-        vertex_source = string(v_source),
-        fragment_source = string(f_source),
-    
+
+        vertex_source = vertex_source,
+        fragment_source = fragment_source,
+
         layout = []gfx.Layout_Element {
             {
                 type = .F32,

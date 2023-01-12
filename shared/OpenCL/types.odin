@@ -10,6 +10,8 @@ mem_flags                   :: distinct bitfield
 device_info                 :: distinct u32
 kernel_work_group_info      :: distinct u32
 event_info                  :: distinct u32
+build_status                :: distinct u32
+program_build_info          :: distinct u32
 context_properties          :: distinct c.intptr_t
 command_queue_properties    :: distinct bitfield
 

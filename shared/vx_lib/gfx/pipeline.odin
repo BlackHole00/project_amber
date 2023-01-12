@@ -144,10 +144,32 @@ pipeline_new :: proc(desc: Pipeline_Descriptor, render_target: Maybe(Framebuffer
         else do gl.GenVertexArrays(1, &pipeline.layout_handle)
         pipeline_layout_resolve(pipeline, desc.layout)
 
-        if program, ok := gl.load_shaders_source(desc.vertex_source.?, desc.fragment_source.?); !ok {
-            panic("Could not compile shaders")
-        } else do pipeline.shader_handle = program
+        //if program, ok := gl.load_shaders_source(desc.vertex_source.?, desc.fragment_source.?); !ok {
+        //    panic("Could not compile shaders")
+        //} else do pipeline.shader_handle = program
+        vertex_source := strings.clone_to_cstring(desc.vertex_source.?, OPENGL_CONTEXT.gl_allocator)
+        defer delete(vertex_source, OPENGL_CONTEXT.gl_allocator)
+        fragment_source := strings.clone_to_cstring(desc.fragment_source.?, OPENGL_CONTEXT.gl_allocator)
+        defer delete(fragment_source, OPENGL_CONTEXT.gl_allocator)
 
+        vertex_shader := gl.CreateShader(gl.VERTEX_SHADER)
+        defer gl.DeleteShader(vertex_shader)
+        gl.ShaderSource(vertex_shader, 1, &vertex_source, nil)
+        gl.CompileShader(vertex_shader)
+        glshader_check_errors(vertex_shader)        
+
+        fragment_shader := gl.CreateShader(gl.FRAGMENT_SHADER)
+        defer gl.DeleteShader(fragment_shader)
+        gl.ShaderSource(fragment_shader, 1, &fragment_source, nil)
+        gl.CompileShader(fragment_shader)
+        glshader_check_errors(fragment_shader)
+
+        pipeline.shader_handle = gl.CreateProgram()
+        gl.AttachShader(pipeline.shader_handle, vertex_shader)
+        gl.AttachShader(pipeline.shader_handle, fragment_shader)
+        gl.LinkProgram(pipeline.shader_handle)
+        if glprogram_check_errors(pipeline.shader_handle) do panic("Could not compile shaders.")
+        
         pipeline.uniform_locations = make(map[string]i32, 16, OPENGL_CONTEXT.gl_allocator)
 
         pipeline.is_draw_pipeline = true
@@ -532,6 +554,48 @@ pipeline_find_uniform_location :: proc(pipeline: Pipeline, uniform_name: string)
     pipeline.uniform_locations[uniform_name] = loc
 
     return loc, loc != -1
+}
+
+@(private)
+glshader_check_errors :: proc(shader: u32) -> bool {
+    success: i32 = ---
+    if gl.GetShaderiv(shader, gl.COMPILE_STATUS, &success); success == 0 {
+        log_size: i32 = ---
+        gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &log_size)
+
+        message := make([]u8, log_size + 1, OPENGL_CONTEXT.gl_allocator)
+
+        gl.GetShaderInfoLog(shader, log_size, nil, raw_data(message))
+        log.error("Vertex Shader Compilation failed:")
+        log.error("\t", string(message[:log_size]))
+
+        delete(message, OPENGL_CONTEXT.gl_allocator)
+
+        return true
+    }
+
+    return false
+}
+
+@(private)
+glprogram_check_errors :: proc(program: u32) -> bool {
+    success: i32 = ---
+    if gl.GetProgramiv(program, gl.LINK_STATUS, &success); success == 0 {
+        log_size: i32 = ---
+        gl.GetProgramiv(program, gl.INFO_LOG_LENGTH, &log_size)
+
+        message := make([]u8, log_size + 1, OPENGL_CONTEXT.gl_allocator)
+
+        gl.GetProgramInfoLog(program, log_size, nil, raw_data(message))
+        log.error("Shader Compilation failed:")
+        log.error("\t", string(message[:log_size]))
+
+        delete(message, OPENGL_CONTEXT.gl_allocator)
+
+        return true
+    }
+
+    return false
 }
 
 @(private)

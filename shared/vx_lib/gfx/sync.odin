@@ -22,7 +22,7 @@ Sync_Impl :: struct {
 // A sync object similar to glFence. Once it is done the data will be freed 
 // automatically by the implementation.
 // Calling sync_is_done will not free memory, only calling sync_await will
-// free memory.
+// free automatically the memory.
 // Memory can be freed manually by calling sync_discart.
 Sync :: ^Sync_Impl
 

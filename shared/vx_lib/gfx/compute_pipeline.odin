@@ -2,6 +2,7 @@ package vx_lib_gfx
 
 import "core:strings"
 import "core:slice"
+import "core:log"
 import cl "shared:OpenCL"
 
 Compute_Pipeline_Descriptor :: struct {
@@ -35,7 +36,22 @@ computepipeline_new :: proc(desc: Compute_Pipeline_Descriptor) -> Compute_Pipeli
 
     program: cl.program
     if program = cl.CreateProgramWithSource(OPENCL_CONTEXT.cl_context, 1, &csource, nil, nil); program == nil do panic("Could not create a compute program.")
-    if cl.BuildProgram(program, 1, &OPENCL_CONTEXT.device, nil, nil, nil) != cl.SUCCESS do panic("Could not build a compute program.")
+    if cl.BuildProgram(program, 1, &OPENCL_CONTEXT.device, nil, nil, nil) != cl.SUCCESS {
+        build_status: cl.build_status = ---
+        cl.GetProgramBuildInfo(program, OPENCL_CONTEXT.device, cl.PROGRAM_BUILD_STATUS, size_of(cl.build_status), &build_status, nil)
+
+        log_len: uint = ---
+        cl.GetProgramBuildInfo(program, OPENCL_CONTEXT.device, cl.PROGRAM_BUILD_LOG, 0, nil, &log_len)
+        info_log := make([]u8, log_len + 1, OPENCL_CONTEXT.cl_allocator)
+        cl.GetProgramBuildInfo(program, OPENCL_CONTEXT.device, cl.PROGRAM_BUILD_LOG, log_len, raw_data(info_log), nil)
+
+        log.error("Compute Shader Compilation Failed:")
+        log.error("\t", string(info_log))
+
+        delete(info_log, OPENCL_CONTEXT.cl_allocator)
+
+        panic("Could not compile shaders.")
+    }
     if pipeline.kernel = cl.CreateKernel(program, ckernel, nil); pipeline.kernel == nil do panic("Could not create a kernel.")
 
     cl.ReleaseProgram(program)
@@ -66,6 +82,8 @@ computepipeline_compute :: proc(pipeline: Compute_Pipeline, bindings: Compute_Bi
             }
             case Compute_Bindings_U32_Element: cl.SetKernelArg(pipeline.kernel, (u32)(i), size_of(u32), &v.value)
             case Compute_Bindings_I32_Element: cl.SetKernelArg(pipeline.kernel, (u32)(i), size_of(i32), &v.value)
+            case Compute_Bindings_F32_Element: cl.SetKernelArg(pipeline.kernel, (u32)(i), size_of(f32), &v.value)
+            case Compute_Bindings_2F32_Element: cl.SetKernelArg(pipeline.kernel, (u32)(i), size_of([2]f32), &v.value[0])
         }
     }
 
@@ -87,4 +105,21 @@ computepipeline_compute :: proc(pipeline: Compute_Pipeline, bindings: Compute_Bi
     //     }
     // }
     return cldispatchsync_new(event, bindings)
+}
+
+computepipeline_set_local_work_size :: proc(pipeline: Compute_Pipeline, size: []uint) {
+    for s, i in size {
+        pipeline.local_work_sizes[i] = s
+        pipeline.global_work_sizes[i] = get_optimal_global_size(pipeline.global_work_sizes[i], s)
+    }
+}
+
+computepipeline_set_global_work_size :: proc(pipeline: Compute_Pipeline, size: []uint) {
+    for s, i in size do pipeline.global_work_sizes[i] = get_optimal_global_size(s, pipeline.local_work_sizes[i])
+}
+
+@(private)
+get_optimal_global_size :: proc(desired_size: uint, logical_size: uint) -> (size: uint) {
+    for size < desired_size do size += logical_size
+    return
 }

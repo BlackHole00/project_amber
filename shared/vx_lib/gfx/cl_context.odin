@@ -95,6 +95,8 @@ opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
 }
 
 opencl_deinit :: proc(free_all_mem := false) {
+    cl.Flush(OPENCL_CONTEXT.queue)
+
     cl.ReleaseCommandQueue(OPENCL_CONTEXT.queue)
     cl.ReleaseContext(OPENCL_CONTEXT.cl_context)
 

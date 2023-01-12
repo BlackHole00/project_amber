@@ -64,17 +64,17 @@ STATE: core.Cell(State)
 init :: proc() {
 	core.cell_init(&STATE)
 
-	gfx.buffer_init(&STATE.vertex_buffer, gfx.Buffer_Descriptor {
+	STATE.vertex_buffer = gfx.buffer_new(gfx.Buffer_Descriptor {
 		type = .Vertex_Buffer,
 		usage = .Static_Draw,
 	}, VERTEX_DATA)
-	gfx.buffer_init(&STATE.index_buffer, gfx.Buffer_Descriptor {
+	STATE.index_buffer = gfx.buffer_new(gfx.Buffer_Descriptor {
 		type = .Index_Buffer,
 		usage = .Static_Draw,
 		index_type = .U32,
 	}, INDEX_DATA)
 
-	gfx.texture_init(&STATE.texture, gfx.Texture_Descriptor {
+	STATE.texture = gfx.texture_new(gfx.Texture_Descriptor {
 		type = .Texture_2D,
     	internal_texture_format = .R8G8B8,
     	format = .R8G8B8,
@@ -86,7 +86,7 @@ init :: proc() {
     	gen_mipmaps = true,
 	}, TEXTURE_DATA, [2]uint{ 3, 3 })
 
-	gfx.pipeline_init(&STATE.pipeline, gfx.Pipeline_Descriptor {
+	STATE.pipeline = gfx.pipeline_new(gfx.Pipeline_Descriptor {
 		cull_enabled = false,
 		depth_enabled = false,
 		blend_enabled = false,
@@ -118,25 +118,27 @@ init :: proc() {
 		clear_color = true,
 	})
 
-	gfx.bindings_init(&STATE.bindings, []gfx.Buffer {
+	STATE.bindings = gfx.bindings_new([]gfx.Buffer {
 		STATE.vertex_buffer,
 	}, STATE.index_buffer, []gfx.Texture_Binding {
 		{
 			uniform_name = "u_texture",
 			texture = STATE.texture,
 		},
-	})
+	}, {})
 }
 
 draw :: proc() {
 	gfx.pipeline_clear(STATE.pipeline)
-	gfx.pipeline_draw_elements(&STATE.pipeline, &STATE.bindings, .Triangles, 6)
+	gfx.pipeline_draw_elements(STATE.pipeline, STATE.bindings, .Triangles, 6)
 }
 
 close :: proc() {
-	gfx.buffer_free(&STATE.vertex_buffer)
-	gfx.pipeline_free(&STATE.pipeline)
-	gfx.texture_free(&STATE.texture)
+	gfx.buffer_free(STATE.vertex_buffer)
+    gfx.buffer_free(STATE.index_buffer)
+	gfx.pipeline_free(STATE.pipeline)
+	gfx.texture_free(STATE.texture)
+    gfx.bindings_free(STATE.bindings)
 
 	core.cell_free(&STATE)
 }

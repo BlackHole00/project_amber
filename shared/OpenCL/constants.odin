@@ -122,6 +122,12 @@ INVALID_COMPILER_OPTIONS                    :: -66
 INVALID_LINKER_OPTIONS                      :: -67
 INVALID_DEVICE_PARTITION_COUNT              :: -68
 
+// cl_build_status
+BUILD_SUCCESS                               :: 0
+BUILD_NONE                                  :: -1
+BUILD_ERROR                                 :: -2
+BUILD_IN_PROGRESS                           :: -3
+
 // cl_mem_flags - bitfield
 MEM_READ_WRITE                              :: (1 << 0)
 MEM_WRITE_ONLY                              :: (1 << 1)
@@ -165,4 +171,10 @@ COMPLETE                                    :: 0x0
 RUNNING                                     :: 0x1
 SUBMITTED                                   :: 0x2
 QUEUED                                      :: 0x3
+
+// cl_program_build_info
+PROGRAM_BUILD_STATUS                        :: 0x1181
+PROGRAM_BUILD_OPTIONS                       :: 0x1182
+PROGRAM_BUILD_LOG                           :: 0x1183
+PROGRAM_BINARY_TYPE                         :: 0x1184
 

@@ -1,6 +1,11 @@
 @echo off
 
 cd ..
+del  .\run.bat
+del  .\build.bat
+del  .\ols.json
+del  .\.vscode\launch.json
+del  .\.vscode\tasks.json
 copy .\.vscode\windows_default\launch.json .\.vscode\launch.json
 copy .\.vscode\windows_default\tasks.json .\.vscode\tasks.json
 copy .\.vscode\windows_default\ols.json .\ols.json
