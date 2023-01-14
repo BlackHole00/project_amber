@@ -2,6 +2,7 @@ package main
 
 import "core:os"
 import "shared:glfw"
+import "shared:fmod"
 import "shared:vx_lib/gfx"
 import "shared:vx_lib/platform"
 import "shared:vx_lib/logic"
@@ -26,6 +27,12 @@ State :: struct {
 	basic_i_buffer: gfx.Buffer,
 	basic_pipeline: gfx.Pipeline,
 	basic_bindings: gfx.Bindings,
+
+	system: fmod.SYSTEM,
+	channel: fmod.CHANNEL,
+	sound1: fmod.SOUND,
+	sound2: fmod.SOUND,
+	sound3: fmod.SOUND,
 }
 STATE: core.Cell(State)
 
@@ -246,11 +253,26 @@ init :: proc() {
 		},
 	}, {})
 
+	{
+		if fmod.System_Create(&STATE.system, fmod.VERSION) != .OK do panic("aaaaa")
+		if fmod.System_Init(STATE.system, 32, fmod.INIT_NORMAL, nil) != .OK do panic("bbbb")
+		if fmod.System_CreateSound(STATE.system, "res/vx_lib/sfx/drumloop.wav", fmod.DEFAULT, nil, &STATE.sound1) != .OK do panic("cccc")
+		fmod.Sound_SetMode(STATE.sound1, fmod.LOOP_OFF)
+		if fmod.System_CreateSound(STATE.system, "res/vx_lib/sfx/jaguar.wav",   fmod.DEFAULT, nil, &STATE.sound2) != .OK do panic("dddd")
+		if fmod.System_CreateSound(STATE.system, "res/vx_lib/sfx/swish.wav",    fmod.DEFAULT, nil, &STATE.sound3) != .OK do panic("eeee")
+	}
+
 	gfx.sync_await(compute_sync)
 }
 
 tick :: proc() {
 	input_common()
+
+	if platform.windowhelper_get_keyboard_keystate(glfw.KEY_1).just_pressed do if fmod.System_PlaySound(STATE.system, STATE.sound1, nil, false, &STATE.channel) != .OK do panic("aaaa")
+	if platform.windowhelper_get_keyboard_keystate(glfw.KEY_2).just_pressed do if fmod.System_PlaySound(STATE.system, STATE.sound2, nil, false, &STATE.channel) != .OK do panic("aaaa")
+	if platform.windowhelper_get_keyboard_keystate(glfw.KEY_3).just_pressed do if fmod.System_PlaySound(STATE.system, STATE.sound3, nil, false, &STATE.channel) != .OK do panic("aaaa")
+
+	fmod.System_Update(STATE.system)
 }
 
 draw :: proc() {
@@ -263,7 +285,6 @@ draw :: proc() {
 
 	gfx.pipeline_clear(STATE.basic_pipeline)
 	gfx.pipeline_draw_elements(STATE.basic_pipeline, STATE.basic_bindings, .Triangles, 6)
-
 }
 
 close :: proc() {
@@ -280,6 +301,12 @@ close :: proc() {
 	gfx.buffer_free(STATE.basic_v_buffer)
 	gfx.buffer_free(STATE.basic_i_buffer)
 	gfx.bindings_free(STATE.basic_bindings)
+
+	if fmod.Sound_Release(STATE.sound1) != .OK do panic("aaaa")
+	if fmod.Sound_Release(STATE.sound2) != .OK do panic("aaaa")
+	if fmod.Sound_Release(STATE.sound3) != .OK do panic("aaaa")
+	if fmod.System_Close(STATE.system) != .OK do panic("aaaa")
+	if fmod.System_Release(STATE.system) != .OK do panic("aaaa")
 
 	core.cell_free(&STATE)
 }

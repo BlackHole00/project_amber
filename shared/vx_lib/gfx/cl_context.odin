@@ -81,7 +81,7 @@ opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
     if OPENCL_CONTEXT.cl_context = cl.CreateContext(raw_data(properties), 1, &OPENCL_CONTEXT.device, nil, nil, &err); err != cl.SUCCESS do return false
     if OPENCL_CONTEXT.queue = cl.CreateCommandQueue(OPENCL_CONTEXT.cl_context, OPENCL_CONTEXT.device, 0, &err); err != cl.SUCCESS do return false
 
-    when ODIN_DEBUG {
+    when ODIN_DEBUG && #config(DEBUG_SKIP_OPENCL_TEST, false) {
         log.info("Testing OpenCL...")
         if !test_opencl() {
             log.error("test_opencl() failed.")

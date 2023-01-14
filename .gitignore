@@ -10,4 +10,7 @@ toold/build/
 /build.bat
 /run.sh
 /build.sh
-libs/vx_lib/_examples/build/
+shared/vx_lib/_examples/build/
+shared/fmod/*.lib
+build/fmo*.dll
+res/vx_lib/sfx/**
