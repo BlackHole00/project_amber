@@ -1,4 +1,4 @@
-package vx_lib_gfx
+package vx_lib_gfx_gl3
 
 import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"

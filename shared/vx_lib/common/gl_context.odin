@@ -3,6 +3,7 @@ package vx_lib_common
 import "shared:glfw"
 import "shared:vx_lib/platform"
 import "shared:vx_lib/gfx"
+import "shared:vx_lib/gfx/gl3"
 
 // MODERN_OPENGL defines what version of OpenGl should be used. If it is false
 // OpenGl 3.3 will be used, without DSA. This is usefull for older devices and
@@ -21,12 +22,18 @@ when #config(MODERN_OPENGL, false) {
 
 windowcontext_init_with_gl :: proc() {
     init_gl :: proc(handle: glfw.WindowHandle, desc: platform.Window_Descriptor) -> (bool, string) {
-        gfx.opengl_init(gfx.OpenGL_Context_Descriptor {
+        // gfx.opengl_init(gfx.CONTEXT_Descriptor {
+        //     glfw_window = handle,
+        //     vsync = desc.vsync,
+        //     version = OPENGL_VERSION,
+        // }, context.allocator)
+        // if !gfx.opencl_init(context.allocator) do return false, "Could not initialize OpenCL."
+        gfx.gfxprocs_init()
+        gl3.init(gl3.Context_Descriptor {
             glfw_window = handle,
             vsync = desc.vsync,
             version = OPENGL_VERSION,
         }, context.allocator)
-        if !gfx.opencl_init(context.allocator) do return false, "Could not initialize OpenCL."
 
         return true, ""
     }
@@ -46,8 +53,8 @@ windowcontext_init_with_gl :: proc() {
     }
 
     close_gl :: proc() {
-        gfx.opengl_deinit()
-        gfx.opencl_deinit()
+        gl3.deinit()
+        gfx.gfxprocs_deinit()
     }
 
     platform.windowcontext_init(platform.Window_Context_Descriptor {

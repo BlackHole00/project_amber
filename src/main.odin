@@ -84,7 +84,8 @@ init :: proc() {
 	})
 	defer gfx.computebindings_free(bindings)
 
-	compute_sync := gfx.computepipeline_compute(compute_pipeline, bindings)
+	compute_sync: gfx.Sync
+	gfx.computepipeline_compute(compute_pipeline, bindings, &compute_sync)
 
 	// Offscreen rendering setup.
 	{
@@ -253,26 +254,33 @@ init :: proc() {
 		},
 	}, {})
 
-	{
+	when #config(ENABLE_FMOD, false) {
 		if fmod.System_Create(&STATE.system, fmod.VERSION) != .OK do panic("aaaaa")
 		if fmod.System_Init(STATE.system, 32, fmod.INIT_NORMAL, nil) != .OK do panic("bbbb")
-		if fmod.System_CreateSound(STATE.system, "res/vx_lib/sfx/drumloop.wav", fmod.DEFAULT, nil, &STATE.sound1) != .OK do panic("cccc")
-		fmod.Sound_SetMode(STATE.sound1, fmod.LOOP_OFF)
-		if fmod.System_CreateSound(STATE.system, "res/vx_lib/sfx/jaguar.wav",   fmod.DEFAULT, nil, &STATE.sound2) != .OK do panic("dddd")
-		if fmod.System_CreateSound(STATE.system, "res/vx_lib/sfx/swish.wav",    fmod.DEFAULT, nil, &STATE.sound3) != .OK do panic("eeee")
-	}
+		fmod.System_Set3DSettings(STATE.system, 1.0, 1.0, 1.0)
 
+		if fmod.System_CreateSound(STATE.system, "res/vx_lib/sfx/drumloop.wav", fmod.FMOD_3D, nil, &STATE.sound1) != .OK do panic("cccc")
+		fmod.Sound_SetMode(STATE.sound1, fmod.LOOP_NORMAL)
+		fmod.Sound_Set3DMinMaxDistance(STATE.sound1, 0.01, 5000.0)
+
+		if fmod.System_CreateSound(STATE.system, "res/vx_lib/sfx/jaguar.wav",   fmod.FMOD_3D, nil, &STATE.sound2) != .OK do panic("dddd")
+		fmod.Sound_SetMode(STATE.sound2, fmod.LOOP_NORMAL)
+		fmod.Sound_Set3DMinMaxDistance(STATE.sound1, 0.01, 5000.0)
+
+		if fmod.System_CreateSound(STATE.system, "res/vx_lib/sfx/swish.wav",    fmod.FMOD_2D, nil, &STATE.sound3) != .OK do panic("eeee")
+	}
 	gfx.sync_await(compute_sync)
 }
 
 tick :: proc() {
 	input_common()
 
+	when #config(ENABLE_FMOD, false) {
 	if platform.windowhelper_get_keyboard_keystate(glfw.KEY_1).just_pressed do if fmod.System_PlaySound(STATE.system, STATE.sound1, nil, false, &STATE.channel) != .OK do panic("aaaa")
 	if platform.windowhelper_get_keyboard_keystate(glfw.KEY_2).just_pressed do if fmod.System_PlaySound(STATE.system, STATE.sound2, nil, false, &STATE.channel) != .OK do panic("aaaa")
 	if platform.windowhelper_get_keyboard_keystate(glfw.KEY_3).just_pressed do if fmod.System_PlaySound(STATE.system, STATE.sound3, nil, false, &STATE.channel) != .OK do panic("aaaa")
-
 	fmod.System_Update(STATE.system)
+	}
 }
 
 draw :: proc() {
@@ -302,11 +310,13 @@ close :: proc() {
 	gfx.buffer_free(STATE.basic_i_buffer)
 	gfx.bindings_free(STATE.basic_bindings)
 
-	if fmod.Sound_Release(STATE.sound1) != .OK do panic("aaaa")
-	if fmod.Sound_Release(STATE.sound2) != .OK do panic("aaaa")
-	if fmod.Sound_Release(STATE.sound3) != .OK do panic("aaaa")
-	if fmod.System_Close(STATE.system) != .OK do panic("aaaa")
-	if fmod.System_Release(STATE.system) != .OK do panic("aaaa")
+	when #config(ENABLE_FMOD, false) { 
+		if fmod.Sound_Release(STATE.sound1) != .OK do panic("aaaa")
+		if fmod.Sound_Release(STATE.sound2) != .OK do panic("aaaa")
+		if fmod.Sound_Release(STATE.sound3) != .OK do panic("aaaa")
+		if fmod.System_Close(STATE.system) != .OK do panic("aaaa")
+		if fmod.System_Release(STATE.system) != .OK do panic("aaaa")
+	}
 
 	core.cell_free(&STATE)
 }

@@ -1,18 +1,8 @@
-package vx_lib_gfx
+package vx_lib_gfx_gl3
 
 import "core:log"
-import "core:mem"
 import cl "shared:OpenCL"
-import core "shared:vx_core"
-
-OpenCL_Context :: struct {
-    cl_allocator: mem.Allocator,
-
-    device: cl.device_id,
-    cl_context: cl.cl_context,
-    queue: cl.command_queue,
-}
-OPENCL_CONTEXT: core.Cell(OpenCL_Context)
+import "shared:vx_lib/gfx"
 
 when ODIN_OS == .Windows do import win "core:sys/windows" 
 else when ODIN_OS == .Darwin {
@@ -43,11 +33,7 @@ else when ODIN_OS == .Darwin {
     }
 }
 
-opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
-    core.cell_init(&OPENCL_CONTEXT)
-
-    OPENCL_CONTEXT.cl_allocator = cl_allocator
-
+opencl_init :: proc() -> bool {
     err: i32
 
     platform: cl.platform_id
@@ -55,7 +41,7 @@ opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
 
     device := select_opencldevice(platform)
     if device == nil do return false
-    else do OPENCL_CONTEXT.device = device.?
+    else do CONTEXT.device = device.?
 
     when ODIN_OS == .Windows {
         properties := []cl.context_properties {
@@ -78,8 +64,8 @@ opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
         }
     }
 
-    if OPENCL_CONTEXT.cl_context = cl.CreateContext(raw_data(properties), 1, &OPENCL_CONTEXT.device, nil, nil, &err); err != cl.SUCCESS do return false
-    if OPENCL_CONTEXT.queue = cl.CreateCommandQueue(OPENCL_CONTEXT.cl_context, OPENCL_CONTEXT.device, 0, &err); err != cl.SUCCESS do return false
+    if CONTEXT.cl_context = cl.CreateContext(raw_data(properties), 1, &CONTEXT.device, nil, nil, &err); err != cl.SUCCESS do return false
+    if CONTEXT.queue = cl.CreateCommandQueue(CONTEXT.cl_context, CONTEXT.device, 0, &err); err != cl.SUCCESS do return false
 
     when ODIN_DEBUG && #config(DEBUG_SKIP_OPENCL_TEST, false) {
         log.info("Testing OpenCL...")
@@ -94,20 +80,17 @@ opencl_init :: proc(cl_allocator: mem.Allocator) -> bool {
     return true
 }
 
-opencl_deinit :: proc(free_all_mem := false) {
-    cl.Flush(OPENCL_CONTEXT.queue)
+opencl_deinit :: proc() {
+    cl.Flush(CONTEXT.queue)
 
-    cl.ReleaseCommandQueue(OPENCL_CONTEXT.queue)
-    cl.ReleaseContext(OPENCL_CONTEXT.cl_context)
-
-    if free_all_mem do mem.free_all(OPENCL_CONTEXT.cl_allocator)
-    core.cell_free(&OPENCL_CONTEXT)
+    cl.ReleaseCommandQueue(CONTEXT.queue)
+    cl.ReleaseContext(CONTEXT.cl_context)
 }
 
 print_opencl_deviceinfo :: proc(device: cl.device_id) {
     device_name_size: uint = ---
     cl.GetDeviceInfo(device, cl.DEVICE_NAME, 0, nil, &device_name_size)
-    name := make([]u8, device_name_size, OPENCL_CONTEXT.allocator)
+    name := make([]u8, device_name_size, CONTEXT.allocator)
     defer delete(name)
     cl.GetDeviceInfo(device, cl.DEVICE_NAME, device_name_size, raw_data(name), nil)
 
@@ -127,7 +110,7 @@ select_opencldevice :: proc(platform: cl.platform_id) -> Maybe(cl.device_id) {
         panic("Could not get device ids.")
     }
 
-    devices := make([]cl.device_id, device_count, OPENCL_CONTEXT.allocator)
+    devices := make([]cl.device_id, device_count, CONTEXT.allocator)
     defer delete(devices)
     cl.GetDeviceIDs(platform, cl.DEVICE_TYPE_ALL, device_count, raw_data(devices), nil)
 
@@ -173,50 +156,50 @@ test_opencl :: proc() -> bool {
         }
     `
 
-    input_values := make([]f32, COUNT, OPENCL_CONTEXT.allocator)
+    input_values := make([]f32, COUNT, CONTEXT.allocator)
     defer delete(input_values)
     for value, i in &input_values do value = (f32)(i)
 
-    output_values := make([]f32, COUNT, OPENCL_CONTEXT.allocator)
+    output_values := make([]f32, COUNT, CONTEXT.allocator)
     defer delete(output_values)
 
-    input := computebuffer_new_with_data(Compute_Buffer_Descriptor {
+    input := gfx.computebuffer_new_with_data(gfx.Compute_Buffer_Descriptor {
         type = .Read_Only,
         size = (uint)(size_of(f32) * COUNT),
     }, input_values, .GPU_Memory)
-    defer computebuffer_free(input)
+    defer gfx.computebuffer_free(input)
 
-    output := computebuffer_new_empty(Compute_Buffer_Descriptor {
+    output := gfx.computebuffer_new_empty(gfx.Compute_Buffer_Descriptor {
         type = .Write_Only,
         size = (uint)(size_of(f32) * COUNT), 
     })
-    defer computebuffer_free(output)
+    defer gfx.computebuffer_free(output)
 
-    pipeline := computepipeline_new(Compute_Pipeline_Descriptor {
+    pipeline := gfx.computepipeline_new(gfx.Compute_Pipeline_Descriptor {
         source = test_program,
         entry_point = "square",
         dimensions = 1,
         global_work_sizes = []uint{ 1024 },
         local_work_sizes = []uint{ 256 },
     })
-    defer computepipeline_free(pipeline)
+    defer gfx.computepipeline_free(pipeline)
 
-    bindings := computebindings_new([]Compute_Bindings_Element {
-        Compute_Bindings_Buffer_Element {
+    bindings := gfx.computebindings_new([]gfx.Compute_Bindings_Element {
+        gfx.Compute_Bindings_Buffer_Element {
             buffer = input,
         },
-        Compute_Bindings_Buffer_Element {
+        gfx.Compute_Bindings_Buffer_Element {
             buffer = output,
         },
-        Compute_Bindings_U32_Element {
+        gfx.Compute_Bindings_U32_Element {
             value = COUNT,
         },
     })
-    defer computebindings_free(bindings)
+    defer gfx.computebindings_free(bindings)
 
-    sync_await(computepipeline_compute(pipeline, bindings))
+    gfx.computepipeline_compute(pipeline, bindings)
 
-    computebuffer_get_data(output, output_values, true)
+    gfx.computebuffer_get_data(output, output_values, true)
 
     for output, i in output_values do if output != (f32)(i * i) do return false
 

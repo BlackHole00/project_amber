@@ -109,7 +109,7 @@ foreign OpenCL {
         texture: u32,
         errcode_ret: ^i32,
     ) -> mem ---
-    CreateFromGlBuffer :: proc(
+    CreateFromGLBuffer :: proc(
         cl_context: cl_context,
         flags: mem_flags,
         bufobj: u32,

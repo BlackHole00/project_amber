@@ -5,5 +5,5 @@ import "../../gfx"
 
 Skybox :: struct {
     using mesh: logic.Mesh_Component,
-    using texture: gfx.Texture,
+    texture: gfx.Texture,
 }

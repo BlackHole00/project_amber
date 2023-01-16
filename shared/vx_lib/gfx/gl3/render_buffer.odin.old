@@ -15,7 +15,7 @@ Renderbuffer_Impl :: struct {
 Renderbuffer :: ^Renderbuffer_Impl
 
 renderbuffer_new :: proc(desc: Renderbuffer_Descriptor) -> Renderbuffer {
-    buffer := new(Renderbuffer_Impl, OPENGL_CONTEXT.gl_allocator)
+    buffer := new(Renderbuffer_Impl, CONTEXT.gl_allocator)
 
     gl.GenRenderbuffers(1, &buffer.renderbuffer_handle)
     buffer.internal_format = desc.internal_format
@@ -35,7 +35,7 @@ renderbuffer_set_size :: proc(buffer: Renderbuffer, buffer_size: [2]uint) {
 renderbuffer_free :: proc(buffer: Renderbuffer) {
     gl.DeleteRenderbuffers(1, &buffer.renderbuffer_handle)
 
-    free(buffer, OPENGL_CONTEXT.gl_allocator)
+    free(buffer, CONTEXT.gl_allocator)
 }
 
 @(private)

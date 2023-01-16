@@ -8,41 +8,23 @@ CHANNELGROUP :: distinct rawptr
 DSP         :: distinct rawptr
 SOUNDGROUP  :: distinct rawptr
 
-//typedef FMOD_RESULT (F_CALL *FMOD_SOUND_PCMREAD_CALLBACK)   (FMOD_SOUND *sound, void *data, unsigned int datalen);
 SOUND_PCMREAD_CALLBACK :: #type proc(sound: SOUND, data: rawptr, datalen: u32) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_DEBUG_CALLBACK)           (FMOD_DEBUG_FLAGS flags, const char *file, int line, const char* func, const char* message);
 DEBUG_CALLBACK :: #type proc(flags: DEBUG_FLAGS, file: cstring, line: i32, fund: cstring, message: cstring) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_SYSTEM_CALLBACK)          (FMOD_SYSTEM *system, FMOD_SYSTEM_CALLBACK_TYPE type, void *commanddata1, void* commanddata2, void *userdata);
 SYSTEM_CALLBACK :: #type proc(system: SYSTEM, type: SYSTEM_CALLBACK_TYPE, commanddata1: rawptr, commanddata2: rawptr, user_data: rawptr) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_CHANNELCONTROL_CALLBACK)  (FMOD_CHANNELCONTROL *channelcontrol, FMOD_CHANNELCONTROL_TYPE controltype, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbacktype, void *commanddata1, void *commanddata2);
 CHANNELCONTROL_CALLBACK :: #type proc(channelcontrol: CHANNELCONTROL, controltype: CHANNELCONTROL_TYPE, callbacktype: CHANNELCONTROL_CALLBACK_TYPE, commanddata1: rawptr, commanddata2: rawptr) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_DSP_CALLBACK)             (FMOD_DSP *dsp, FMOD_DSP_CALLBACK_TYPE type, void *data);
 DSP_CALLBACK :: #type proc(sdp: DSP, type: DSP_CALLBACK_TYPE, data: rawptr) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_SOUND_NONBLOCK_CALLBACK)  (FMOD_SOUND *sound, FMOD_RESULT result);
 SOUND_NONBLOCK_CALLBACK :: #type proc(sound: SOUND, result: RESULT) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_SOUND_PCMSETPOS_CALLBACK) (FMOD_SOUND *sound, int subsound, unsigned int position, FMOD_TIMEUNIT postype);
 SOUND_PCMSETPOS_CALLBACK :: #type proc(sound: SOUND, subsound: i32, position: u32, postype: TIMEUNIT) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_FILE_OPEN_CALLBACK)       (const char *name, unsigned int *filesize, void **handle, void *userdata);
 FILE_OPEN_CALLBACK :: #type proc(name: cstring, filesize: ^u32, handle: ^rawptr, user_data: rawptr) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_FILE_CLOSE_CALLBACK)      (void *handle, void *userdata);
 FILE_CLOSE_CALLBACK :: #type proc(handle: rawptr, userdata: rawptr) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_FILE_READ_CALLBACK)       (void *handle, void *buffer, unsigned int sizebytes, unsigned int *bytesread, void *userdata);
 FILE_READ_CALLBACK :: #type proc(handle: rawptr, buffer: rawptr, sizebytes: u32, bytesread: ^u32, userdata: rawptr) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_FILE_SEEK_CALLBACK)       (void *handle, unsigned int pos, void *userdata);
 FILE_SEEK_CALLBACK :: #type proc(handle: rawptr, pos: u32, userdata: rawptr) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_FILE_ASYNCREAD_CALLBACK)  (FMOD_ASYNCREADINFO *info, void *userdata);
 FILE_ASYNCREAD_CALLBACK :: #type proc(info: ^ASYNCREADINFO, userdata: rawptr) -> RESULT
-// typedef FMOD_RESULT (F_CALL *FMOD_FILE_ASYNCCANCEL_CALLBACK)(FMOD_ASYNCREADINFO *info, void *userdata);
 FILE_ASYNCCANCEL_CALLBACK :: #type proc(info: ^ASYNCREADINFO, userdata: rawptr) -> RESULT
-// typedef void        (F_CALL *FMOD_FILE_ASYNCDONE_FUNC)      (FMOD_ASYNCREADINFO *info, FMOD_RESULT result);
 FILE_ASYNCDONE_FUNC :: #type proc(info: ^ASYNCREADINFO, result: RESULT)
-// typedef void*       (F_CALL *FMOD_MEMORY_ALLOC_CALLBACK)    (unsigned int size, FMOD_MEMORY_TYPE type, const char *sourcestr);
 MEMORY_ALLOC_CALLBACK :: #type proc(size: u32, type: MEMORY_TYPE, sourcestr: cstring) -> rawptr
-// typedef void*       (F_CALL *FMOD_MEMORY_REALLOC_CALLBACK)  (void *ptr, unsigned int size, FMOD_MEMORY_TYPE type, const char *sourcestr);
 MEMORY_REALLOC_CALLBACK :: #type proc(ptr: rawptr, size: u32, type: MEMORY_TYPE, sourcestr: cstring) -> rawptr
-// typedef void        (F_CALL *FMOD_MEMORY_FREE_CALLBACK)     (void *ptr, FMOD_MEMORY_TYPE type, const char *sourcestr);
 MEMORY_FREE_CALLBACK :: #type proc(ptr: rawptr, type: MEMORY_TYPE, sourcestr: cstring)
-// typedef float       (F_CALL *FMOD_3D_ROLLOFF_CALLBACK)      (FMOD_CHANNELCONTROL *channelcontrol, float distance);
 FMOD_3D_ROLLOFF_CALLBACK :: #type proc(channel_control: CHANNELCONTROL, distance: f32) -> f32
 
 INITFLAGS   :: u32
@@ -51,6 +33,8 @@ SYSTEM_CALLBACK_TYPE :: u32
 TIMEUNIT :: u32
 MEMORY_TYPE :: u32
 MODE :: u32
+
+VECTOR :: [3]f32
 
 
 RESULT      :: enum {

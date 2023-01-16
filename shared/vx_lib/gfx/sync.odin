@@ -46,14 +46,10 @@ sync_is_done :: proc(syncs: ..Sync) -> bool {
 
 sync_discart :: proc(sync: ..Sync) {
     for sync in sync do sync.free_proc(sync)
-} 
+}
 
-///////////////////////////////////////////////////////////////////////////////
-
-@(private)
 Sync_Descriptor :: Sync_Impl
 
-@(private)
 sync_new :: proc(desc: Sync_Descriptor, allocator: mem.Allocator) -> Sync {
     sync := new(Sync_Impl, allocator)
     sync^ = desc

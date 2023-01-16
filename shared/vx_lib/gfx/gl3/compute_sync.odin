@@ -1,42 +1,43 @@
-package vx_lib_gfx
+package vx_lib_gfx_gl3
 
 import cl "shared:OpenCL"
+import "shared:vx_lib/gfx"
 
 @(private)
-cleventsync_new :: proc(event: cl.event, info: Sync_Info_Type) -> Sync {
-    return sync_new(Sync_Descriptor {
+cleventsync_new :: proc(event: cl.event, info: gfx.Sync_Info_Type) -> gfx.Sync {
+    return gfx.sync_new(gfx.Sync_Descriptor {
         info = .Compute_Buffer_Upload,
         data = event,
-        is_done_proc = proc(sync: Sync) -> bool {
+        is_done_proc = proc(sync: gfx.Sync) -> bool {
             status: i32 = ---
             cl.GetEventInfo((cl.event)(sync.data), cl.EVENT_COMMAND_EXECUTION_STATUS, size_of(i32), &status, nil)
-        
+
             return status == cl.COMPLETE
         },
-        wait_proc = proc(sync: Sync) {
+        wait_proc = proc(sync: gfx.Sync) {
             event := (cl.event)(sync.data)
             cl.WaitForEvents(1, &event)
         },
-        free_proc = proc(sync: Sync) {
-            free(sync, OPENCL_CONTEXT.cl_allocator)
+        free_proc = proc(sync: gfx.Sync) {
+            free(sync, CONTEXT.gl_allocator)
         },
-    }, OPENCL_CONTEXT.cl_allocator)
+    }, CONTEXT.gl_allocator)
 }
 
-cldispatchsync_new :: proc(dispatch_event: cl.event, bindings: Compute_Bindings) -> Sync {
+cldispatchsync_new :: proc(dispatch_event: cl.event, bindings: Gl3Compute_Bindings) -> gfx.Sync {
     Cl_Dispatch_Sync_Data :: struct {
         event: cl.event,
-        bindings: Compute_Bindings,
+        bindings: Gl3Compute_Bindings,
     }
 
-    data := new(Cl_Dispatch_Sync_Data, OPENCL_CONTEXT.cl_allocator)
+    data := new(Cl_Dispatch_Sync_Data, CONTEXT.gl_allocator)
     data.event = dispatch_event
     data.bindings = bindings
 
-    return sync_new(Sync_Descriptor {
+    return gfx.sync_new(gfx.Sync_Descriptor {
         info = .Compute_Dispatch,
         data = data,
-        is_done_proc = proc(sync: Sync) -> bool {
+        is_done_proc = proc(sync: gfx.Sync) -> bool {
             data := (^Cl_Dispatch_Sync_Data)(sync.data)
 
             status: i32 = ---
@@ -44,21 +45,21 @@ cldispatchsync_new :: proc(dispatch_event: cl.event, bindings: Compute_Bindings)
         
             return status == cl.COMPLETE
         },
-        wait_proc = proc(sync: Sync) {
+        wait_proc = proc(sync: gfx.Sync) {
             data := (^Cl_Dispatch_Sync_Data)(sync.data)
             cl.WaitForEvents(1, &data.event)
         },
-        free_proc = proc(sync: Sync) {
+        free_proc = proc(sync: gfx.Sync) {
             data := (^Cl_Dispatch_Sync_Data)(sync.data)
 
             for element in data.bindings.elements {
                 #partial switch v in element {
-                    case Compute_Bindings_Buffer_Element: computebuffer_glrelease(v.buffer)
+                    case gfx.Compute_Bindings_Buffer_Element: computebuffer_glrelease((Gl3Compute_Buffer)(v.buffer))
                 }
             }
 
-            free(sync.data, OPENCL_CONTEXT.cl_allocator)
-            free(sync, OPENCL_CONTEXT.cl_allocator)
+            free(sync.data, CONTEXT.gl_allocator)
+            free(sync, CONTEXT.gl_allocator)
         },
-    }, OPENCL_CONTEXT.cl_allocator)
+    }, CONTEXT.gl_allocator)
 }
