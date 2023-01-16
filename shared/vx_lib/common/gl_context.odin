@@ -3,7 +3,6 @@ package vx_lib_common
 import "shared:glfw"
 import "shared:vx_lib/platform"
 import "shared:vx_lib/gfx"
-import "shared:vx_lib/gfx/gl3"
 
 // MODERN_OPENGL defines what version of OpenGl should be used. If it is false
 // OpenGl 3.3 will be used, without DSA. This is usefull for older devices and
@@ -15,21 +14,24 @@ when #config(MODERN_OPENGL, false) {
     MODERN_OPENGL :: true
 
     when ODIN_OS == .Darwin do #panic("The user is requesting to use Modern Opengl (DSA) on MacOs. This is not possible. Please build with -define:MODERN_OPENGL=false when targeting MacOs.")
+
+    import "shared:vx_lib/gfx/gl4"
 } else {
     OPENGL_VERSION: [2]int = { 3, 3 }
     MODERN_OPENGL :: false
+
+    import "shared:vx_lib/gfx/gl3"
 }
 
 windowcontext_init_with_gl :: proc() {
     init_gl :: proc(handle: glfw.WindowHandle, desc: platform.Window_Descriptor) -> (bool, string) {
-        // gfx.opengl_init(gfx.CONTEXT_Descriptor {
-        //     glfw_window = handle,
-        //     vsync = desc.vsync,
-        //     version = OPENGL_VERSION,
-        // }, context.allocator)
-        // if !gfx.opencl_init(context.allocator) do return false, "Could not initialize OpenCL."
         gfx.gfxprocs_init()
-        gl3.init(gl3.Context_Descriptor {
+        when MODERN_OPENGL do gl4.init(gl4.Context_Descriptor {
+            glfw_window = handle,
+            vsync = desc.vsync,
+            version = OPENGL_VERSION,
+        }, context.allocator)
+        else do gl3.init(gl3.Context_Descriptor {
             glfw_window = handle,
             vsync = desc.vsync,
             version = OPENGL_VERSION,
@@ -53,7 +55,8 @@ windowcontext_init_with_gl :: proc() {
     }
 
     close_gl :: proc() {
-        gl3.deinit()
+        when MODERN_OPENGL do gl4.deinit()
+        else do gl3.deinit()
         gfx.gfxprocs_deinit()
     }
 

@@ -1,4 +1,4 @@
-package vx_lib_gfx_gl3
+package vx_lib_gfx_gl4
 
 import "core:c"
 import "core:log"
@@ -14,9 +14,9 @@ Texture_Impl :: struct {
 
     using texture_desc: gfx.Texture_Descriptor,
 }
-Gl3Texture :: ^Texture_Impl
+gl4Texture :: ^Texture_Impl
 
-texture_new_with_size_1d :: proc(desc: gfx.Texture_Descriptor, size: uint) -> Gl3Texture {
+texture_new_with_size_1d :: proc(desc: gfx.Texture_Descriptor, size: uint) -> gl4Texture {
     when ODIN_DEBUG do if desc.type != .Texture_1D do panic("texture_new_with_size_1d works only with 1D textures")
 
     texture := _internal_texture_new_no_size(desc)
@@ -25,7 +25,7 @@ texture_new_with_size_1d :: proc(desc: gfx.Texture_Descriptor, size: uint) -> Gl
     return texture
 }
 
-texture_new_with_size_2d :: proc(desc: gfx.Texture_Descriptor, dimension: [2]uint) -> Gl3Texture {
+texture_new_with_size_2d :: proc(desc: gfx.Texture_Descriptor, dimension: [2]uint) -> gl4Texture {
     when ODIN_DEBUG do if desc.type != .Texture_2D do panic("texture_new_with_size_2d works only with 2D textures")
 
     texture := _internal_texture_new_no_size(desc)
@@ -34,7 +34,7 @@ texture_new_with_size_2d :: proc(desc: gfx.Texture_Descriptor, dimension: [2]uin
     return texture
 }
 
-texture_new_with_size_3d :: proc(desc: gfx.Texture_Descriptor, dimension: [3]uint) -> Gl3Texture {
+texture_new_with_size_3d :: proc(desc: gfx.Texture_Descriptor, dimension: [3]uint) -> gl4Texture {
     when ODIN_DEBUG do if desc.type != .Texture_3D do panic("texture_new_with_size_3d works only with 3D textures")
     
     texture := _internal_texture_new_no_size(desc)
@@ -43,7 +43,7 @@ texture_new_with_size_3d :: proc(desc: gfx.Texture_Descriptor, dimension: [3]uin
     return texture
 }
 
-texture_new_with_data_1d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, data_size: uint) -> Gl3Texture {
+texture_new_with_data_1d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, data_size: uint) -> gl4Texture {
     when ODIN_DEBUG do if desc.type != .Texture_1D do panic("texture_new_with_data_1d works only with 1D textures")
 
     texture := _internal_texture_new_no_size(desc)
@@ -53,7 +53,7 @@ texture_new_with_data_1d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, dat
     return texture
 }
 
-texture_new_with_data_2d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, data_size: uint, dimension: [2]uint) -> Gl3Texture {
+texture_new_with_data_2d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, data_size: uint, dimension: [2]uint) -> gl4Texture {
     when ODIN_DEBUG do if desc.type != .Texture_2D do panic("texture_new_with_data_2d works only with 2D textures")
 
     texture := _internal_texture_new_no_size(desc)
@@ -63,7 +63,7 @@ texture_new_with_data_2d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, dat
     return texture
 }
 
-texture_new_with_data_3d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, data_size: uint, dimension: [3]uint) -> Gl3Texture {
+texture_new_with_data_3d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, data_size: uint, dimension: [3]uint) -> gl4Texture {
     when ODIN_DEBUG do if desc.type != .Texture_3D do panic("texture_new_with_data_3d works only with 3D textures")
 
     texture := _internal_texture_new_no_size(desc)
@@ -73,61 +73,37 @@ texture_new_with_data_3d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, dat
     return texture
 }
 
-texture_free :: proc(texture: Gl3Texture) {
+texture_free :: proc(texture: gl4Texture) {
     gl.DeleteTextures(1, &texture.texture_handle)
 
     free(texture, CONTEXT.gl_allocator)
 }
 
-texture_set_data_1d :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, offset := 0) {
+texture_set_data_1d :: proc(texture: gl4Texture, data: rawptr, data_size: uint, offset := 0) {
     when ODIN_DEBUG do if texture.type != .Texture_1D do panic("texture_set_data_1d works only with 1D textures")
 
-    texture_non_dsa_bind(texture)
-
-    if offset == 0 do gl.TexImage1D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(data_size), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
-    else {
-        gl.TexImage1D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(data_size), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), nil)
-        gl.TexSubImage1D(texturetype_to_glenum(texture.type), 0, (i32)(offset), (i32)(data_size), (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
-    }
-
-    texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
+    gl.TextureSubImage1D(texture.texture_handle, 0, (i32)(offset), (i32)(data_size), (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
 
     texture_gen_mipmaps(texture)
 }
 
-texture_set_data_2d :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, dimension: [2]uint, offset := [2]uint{ 0, 0 }) {
+texture_set_data_2d :: proc(texture: gl4Texture, data: rawptr, data_size: uint, dimension: [2]uint, offset := [2]uint{ 0, 0 }) {
     when ODIN_DEBUG do if texture.type != .Texture_2D do panic("texture_set_data_2d works only with 2D textures")
 
-    texture_non_dsa_bind(texture)
-
-    if offset == { 0, 0 } do gl.TexImage2D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(dimension.x), (i32)(dimension.y), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
-    else {
-        gl.TexImage2D(texturetype_to_glenum(texture.type), 0, textureformat_to_glformat(texture.internal_texture_format), (i32)(dimension.x), (i32)(dimension.y), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), nil)
-        gl.TexSubImage2D(texturetype_to_glenum(texture.type), 0, (i32)(offset.x), (i32)(offset.y), (i32)(dimension.x), (i32)(dimension.y), (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
-    }
-
-    texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
+    gl.TextureSubImage2D(texture.texture_handle, 0, (i32)(offset.x), (i32)(offset.y), (i32)(dimension.x), (i32)(dimension.y), (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
 
     texture_gen_mipmaps(texture)
 }
 
-texture_set_data_3d :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, dimension: [3]uint, offset := [3]uint{ 0, 0, 0 }) {
+texture_set_data_3d :: proc(texture: gl4Texture, data: rawptr, data_size: uint, dimension: [3]uint, offset := [3]uint{ 0, 0, 0 }) {
     when ODIN_DEBUG do if texture.type != .Texture_3D do panic("texture_set_data_3d works only with 3D textures")
 
-    texture_non_dsa_bind(texture)
-
-    if offset == { 0, 0, 0} do gl.TexImage3D(texturetype_to_glenum(texture.type), 0, textureformat_to_glformat(texture.internal_texture_format), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
-    else {
-        gl.TexImage3D(texturetype_to_glenum(texture.type), 0, textureformat_to_glformat(texture.internal_texture_format), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), nil)
-        gl.TexSubImage3D(texturetype_to_glenum(texture.type), 0, (i32)(offset.x), (i32)(offset.y), (i32)(offset.z), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
-    }
-
-    texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
+    gl.TextureSubImage3D(texture.texture_handle, 0, (i32)(offset.x), (i32)(offset.y), (i32)(offset.z), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
 
     texture_gen_mipmaps(texture)
 }
 
-texture_set_data_cubemap_face :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, dimension: [2]uint, face: gfx.Cubemap_Face) {
+texture_set_data_cubemap_face :: proc(texture: gl4Texture, data: rawptr, data_size: uint, dimension: [2]uint, face: gfx.Cubemap_Face) {
     when ODIN_DEBUG do if texture.type != .Texture_CubeMap do panic("texture_set_data_cubemap_face works only with .Texture_CubeMap textures!")
 
     when true {
@@ -157,7 +133,7 @@ texture_set_data_cubemap_face :: proc(texture: Gl3Texture, data: rawptr, data_si
 
 texture_set_data :: proc { texture_set_data_1d, texture_set_data_2d, texture_set_data_3d }
 
-texture_resize_1d :: proc(texture: Gl3Texture, new_len: uint, copy_content := true) {
+texture_resize_1d :: proc(texture: gl4Texture, new_len: uint, copy_content := true) {
     when ODIN_DEBUG do if texture^.type != .Texture_1D do panic("texture_resize_1d works only with 1D textures")
 
     old_texture := texture^
@@ -169,7 +145,7 @@ texture_resize_1d :: proc(texture: Gl3Texture, new_len: uint, copy_content := tr
     gl.DeleteTextures(1, &old_texture.texture_handle)
 }
 
-texture_resize_2d :: proc(texture: Gl3Texture, new_size: [2]uint, copy_content := true) {
+texture_resize_2d :: proc(texture: gl4Texture, new_size: [2]uint, copy_content := true) {
     when ODIN_DEBUG do if texture.type != .Texture_2D do panic("texture_resize_2d works only with 2D textures")
 
     old_texture := texture^
@@ -181,7 +157,7 @@ texture_resize_2d :: proc(texture: Gl3Texture, new_size: [2]uint, copy_content :
     gl.DeleteTextures(1, &old_texture.texture_handle)
 }
 
-texture_resize_3d :: proc(texture: Gl3Texture, new_size: [3]uint, copy_content := true) {
+texture_resize_3d :: proc(texture: gl4Texture, new_size: [3]uint, copy_content := true) {
     when ODIN_DEBUG do if texture^.type != .Texture_3D do panic("texture_resize_3d works only with 3D textures")
 
     old_texture := texture^
@@ -193,48 +169,26 @@ texture_resize_3d :: proc(texture: Gl3Texture, new_size: [3]uint, copy_content :
     gl.DeleteTextures(1, &old_texture.texture_handle)
 }
 
-texture_copy_1d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: int = 0, dest_offset: int = 0) {
+texture_copy_1d :: proc(src: gl4Texture, dest: gl4Texture, src_offset: int = 0, dest_offset: int = 0) {
     when ODIN_DEBUG do if src.type != .Texture_1D || dest.type != .Texture_1D do panic("texture_copy_1d works only with 1D textures")
 
     size := min(src.texture_size.x, dest.texture_size.y)
     _ = size
 
-    real_src_offset := -src_offset
-    real_dest_offset := -dest_offset
-
-    framebuffer := framebuffer_new_from_textures(size, src, nil)
-    defer framebuffer_free(framebuffer)
-
-    framebuffer_bind_color_attachment_to_readbuffer(framebuffer)
-
-    texture_non_dsa_bind(dest)
-    gl.CopyTexSubImage1D(texturetype_to_glenum(dest.type), 0, (i32)(real_dest_offset), (i32)(real_src_offset), 0, (i32)(size))
-
-    texture_non_dsa_unbind(texturetype_to_glenum(dest.type))
+    gl.CopyImageSubData(src.texture_handle, texturetype_to_glenum(src.type), 0, (i32)(src_offset), 0, 0, dest.texture_handle, texturetype_to_glenum(dest.type), 0, (i32)(dest_offset), 0, 0, (i32)(size), 1, 1)
 }
 
-texture_copy_2d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: [2]int = { 0, 0 }, dest_offset: [2]int = { 0, 0 }) {
+texture_copy_2d :: proc(src: gl4Texture, dest: gl4Texture, src_offset: [2]int = { 0, 0 }, dest_offset: [2]int = { 0, 0 }) {
     when ODIN_DEBUG do if src.type != .Texture_2D || dest.type != .Texture_2D do panic("texture_copy_2d works only with 2D textures")
 
     size: [2]uint = ---
     size.x = min(src.texture_size.x, dest.texture_size.y)
     size.y = min(src.texture_size.y, dest.texture_size.y)
 
-    real_src_offset := -src_offset
-    real_dest_offset := -dest_offset
-
-    framebuffer := framebuffer_new_from_textures(size, src, nil)
-    defer framebuffer_free(framebuffer)
-
-    framebuffer_bind_color_attachment_to_readbuffer(framebuffer)
-
-    texture_non_dsa_bind(dest)
-    gl.CopyTexSubImage2D(texturetype_to_glenum(dest.type), 0, (i32)(real_src_offset.x), (i32)(real_src_offset.y), (i32)(real_dest_offset.x), (i32)(real_dest_offset.y), (i32)(size.x), (i32)(size.y))
-
-    texture_non_dsa_unbind(texturetype_to_glenum(dest.type))
+    gl.CopyImageSubData(src.texture_handle, texturetype_to_glenum(src.type), 0, (i32)(src_offset.x), (i32)(src_offset.y), 0, dest.texture_handle, texturetype_to_glenum(dest.type), 0, (i32)(dest_offset.x), (i32)(dest_offset.y), 0, (i32)(size.x), (i32)(size.y), 1)
 }
 
-texture_copy_3d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: [3]int = { 0, 0, 0 }, dest_offset: [3]int = { 0, 0, 0 }) {
+texture_copy_3d :: proc(src: gl4Texture, dest: gl4Texture, src_offset: [3]int = { 0, 0, 0 }, dest_offset: [3]int = { 0, 0, 0 }) {
     when ODIN_DEBUG do if src.type != .Texture_3D || dest.type != .Texture_3D do panic("texture_copy_3d works only with 3D textures")
 
     size: [3]uint = ---
@@ -242,17 +196,8 @@ texture_copy_3d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: [3]int = 
     size.y = min(src.texture_size.y, dest.texture_size.y)
     size.z = min(src.texture_size.z, dest.texture_size.z)
 
-    real_src_offset := -src_offset
-    real_dest_offset := -dest_offset
+    gl.CopyImageSubData(src.texture_handle, texturetype_to_glenum(src.type), 0, (i32)(src_offset.x), (i32)(src_offset.y), (i32)(src_offset.z), dest.texture_handle, texturetype_to_glenum(dest.type), 0, (i32)(dest_offset.x), (i32)(dest_offset.y), (i32)(dest_offset.z), (i32)(size.x), (i32)(size.y), (i32)(size.z))
 
-    framebuffer := framebuffer_new_from_textures(size.xy, src, nil)
-    defer framebuffer_free(framebuffer)
-
-    framebuffer_bind_color_attachment_to_readbuffer(framebuffer)
-
-    texture_non_dsa_bind(dest)
-    for i in 0..<size.z do gl.CopyTexSubImage3D(texturetype_to_glenum(dest.type), 0, (i32)(real_src_offset.x), (i32)(real_src_offset.y), (i32)(real_src_offset.z) + (i32)(i), (i32)(real_dest_offset.x), (i32)(real_dest_offset.y), (i32)(size.x), (i32)(size.y))
-    texture_non_dsa_unbind(texturetype_to_glenum(dest.type))
 }
 
 /**************************************************************************************************
@@ -260,7 +205,7 @@ texture_copy_3d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: [3]int = 
 **************************************************************************************************/
 
 @(private)
-texture_non_dsa_bind :: proc(texture: Gl3Texture) {
+texture_non_dsa_bind :: proc(texture: gl4Texture) {
     gl.BindTexture(texturetype_to_glenum(texture.type), texture.texture_handle)
 }
 
@@ -270,9 +215,8 @@ texture_non_dsa_unbind :: proc(target: u32) {
 }
 
 @(private)
-texture_full_bind :: proc(texture: Gl3Texture, texture_unit: u32) {
-    gl.ActiveTexture(gl.TEXTURE0 + texture_unit)
-    texture_non_dsa_bind(texture)
+texture_full_bind :: proc(texture: gl4Texture, texture_unit: u32) {
+    gl.BindTextureUnit(texture_unit, texture.texture_handle)
 }
 
 @(private)
@@ -302,10 +246,8 @@ get_texture_content_from_file :: proc(file_path: string) -> (
 }
 
 @(private)
-texture_set_size_1d :: proc(texture: Gl3Texture, size: uint) {
-    texture_non_dsa_bind(texture)
-    gl.TexImage2D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(size), 0, 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), nil)
-    texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
+texture_set_size_1d :: proc(texture: gl4Texture, size: uint) {
+    gl.TextureStorage1D(texture.texture_handle, 1, (u32)(textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(size))
 
     texture_gen_mipmaps(texture)
 
@@ -314,10 +256,8 @@ texture_set_size_1d :: proc(texture: Gl3Texture, size: uint) {
 }
 
 @(private)
-texture_set_size_2d :: proc(texture: Gl3Texture, dimension: [2]uint) {
-    texture_non_dsa_bind(texture)
-    gl.TexImage2D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(dimension.x), (i32)(dimension.y), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), nil)
-    texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
+texture_set_size_2d :: proc(texture: gl4Texture, dimension: [2]uint) {
+    gl.TextureStorage2D(texture.texture_handle, 1, (u32)(textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(dimension.x), (i32)(dimension.y))
     
     texture_gen_mipmaps(texture)
 
@@ -325,11 +265,8 @@ texture_set_size_2d :: proc(texture: Gl3Texture, dimension: [2]uint) {
 }
 
 @(private)
-texture_set_size_3d :: proc(texture: Gl3Texture, dimension: [3]uint) {
-    texture_non_dsa_bind(texture)
-    gl.TexImage3D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), nil)
-    texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
-
+texture_set_size_3d :: proc(texture: gl4Texture, dimension: [3]uint) {
+    gl.TextureStorage3D(texture.texture_handle, 1, (u32)(textureformat_to_glinternalformat(texture.internal_texture_format)), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z))
 
     texture_gen_mipmaps(texture)
 
@@ -337,7 +274,7 @@ texture_set_size_3d :: proc(texture: Gl3Texture, dimension: [3]uint) {
 }
 
 @(private)
-_internal_texture_new_no_size :: proc(desc: gfx.Texture_Descriptor) -> Gl3Texture {
+_internal_texture_new_no_size :: proc(desc: gfx.Texture_Descriptor) -> gl4Texture {
     texture := new(Texture_Impl, CONTEXT.gl_allocator)
     texture.texture_desc = desc
 
@@ -347,27 +284,17 @@ _internal_texture_new_no_size :: proc(desc: gfx.Texture_Descriptor) -> Gl3Textur
 }
 
 @(private)
-texture_init_raw :: proc(texture: Gl3Texture, desc: gfx.Texture_Descriptor) {
-    gl.GenTextures(1, &texture.texture_handle)
+texture_init_raw :: proc(texture: gl4Texture, desc: gfx.Texture_Descriptor) {
+    gl.CreateTextures(texturetype_to_glenum(texture.type), 1, &texture.texture_handle)
 
-    texture_non_dsa_bind(texture)
-
-    gl.TexParameteri(texturetype_to_glenum(texture.type), gl.TEXTURE_WRAP_S,     texturewarp_to_glenum(desc.warp_s))
-    gl.TexParameteri(texturetype_to_glenum(texture.type), gl.TEXTURE_WRAP_T,     texturewarp_to_glenum(desc.warp_t))
-    gl.TexParameteri(texturetype_to_glenum(texture.type), gl.TEXTURE_MIN_FILTER, texturefilter_to_glenum(desc.min_filter))
-    gl.TexParameteri(texturetype_to_glenum(texture.type), gl.TEXTURE_MAG_FILTER, texturefilter_to_glenum(desc.mag_filter))
-
-    texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
-
+    gl.TextureParameteri(texture.texture_handle, gl.TEXTURE_WRAP_S,     texturewarp_to_glenum(desc.warp_s))
+    gl.TextureParameteri(texture.texture_handle, gl.TEXTURE_WRAP_T,     texturewarp_to_glenum(desc.warp_t))
+    gl.TextureParameteri(texture.texture_handle, gl.TEXTURE_MIN_FILTER, texturefilter_to_glenum(desc.min_filter))
 }
 
 @(private)
-texture_gen_mipmaps :: proc(texture: Gl3Texture) {
-    if texture.gen_mipmaps {
-        texture_non_dsa_bind(texture)
-        gl.GenerateMipmap(texturetype_to_glenum(texture.type))
-        texture_non_dsa_unbind(texturetype_to_glenum(texture.type))
-    } 
+texture_gen_mipmaps :: proc(texture: gl4Texture) {
+    if texture.gen_mipmaps do gl.GenerateTextureMipmap(texture.texture_handle)
 }
 
 @(private)
