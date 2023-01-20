@@ -1,4 +1,4 @@
-package vx_lib_gfx_gl4
+package vx_lib_gfx_GL4
 
 import "core:mem"
 import cl "shared:OpenCL"
@@ -33,7 +33,7 @@ Context :: struct {
 CONTEXT: core.Cell(Context)
 
 init :: proc(desc: Context_Descriptor, allocator: mem.Allocator) {
-    when ODIN_DEBUG do if !core.cell_is_valid(gfx.GFXPROCS_INSTANCE) do panic("vx_lib/gfx/gl4.init must be called only after vx_lib/gfx/gfxprocs_init.")
+    when ODIN_DEBUG do if !core.cell_is_valid(gfx.GFXPROCS_INSTANCE) do panic("vx_lib/gfx/GL4.init must be called only after vx_lib/gfx/gfxprocs_init.")
 
     core.cell_init(&CONTEXT, allocator)
 
@@ -57,8 +57,14 @@ init_gfx_procs :: proc() {
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.buffer_new_with_data, buffer_new_with_data)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.buffer_free, buffer_free)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.buffer_set_data, buffer_set_data)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.buffer_get_buffertype, buffer_get_buffertype)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.buffer_get_bufferusage, buffer_get_bufferusage)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.buffer_get_indextype, buffer_get_indextype)
+
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.bindings_new, bindings_new)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.bindings_free, bindings_free)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.bindings_has_index_buffer, bindings_has_index_buffer)
+
     core.assign_proc(&gfx.GFXPROCS_INSTANCE._internal_texture_new_no_size, _internal_texture_new_no_size)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_new_with_size_1d, texture_new_with_size_1d)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_new_with_size_2d, texture_new_with_size_2d)
@@ -77,6 +83,14 @@ init_gfx_procs :: proc() {
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_copy_1d, texture_copy_1d)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_copy_2d, texture_copy_2d)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_copy_3d, texture_copy_3d)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_get_texturetype, texture_get_texturetype)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_get_internalformat, texture_get_internalformat)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_get_format, texture_get_format)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_get_warp, texture_get_warp)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_get_filter, texture_get_filter)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_does_gen_mipmaps, texture_does_gen_mipmaps)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.texture_get_size, texture_get_size)
+
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.pipeline_new, pipeline_new)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.pipeline_free, pipeline_free)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.pipeline_resize, pipeline_resize)
@@ -92,12 +106,21 @@ init_gfx_procs :: proc() {
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.pipeline_uniform_4f, pipeline_uniform_4f)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.pipeline_uniform_mat4f, pipeline_uniform_mat4f)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.pipeline_uniform_1i, pipeline_uniform_1i)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.pipeline_get_size, pipeline_get_size)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.pipeline_is_draw_pipeline, pipeline_is_draw_pipeline)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.pipeline_is_wireframe, pipeline_is_wireframe)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.pipeline_does_uniform_exist, pipeline_does_uniform_exist)
+
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.framebuffer_new, framebuffer_new)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.framebuffer_new_from_textures, framebuffer_new_from_textures)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.framebuffer_free, framebuffer_free)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.framebuffer_resize, framebuffer_resize)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.framebuffer_get_color_texture_bindings, framebuffer_get_color_texture_bindings)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.framebuffer_get_depth_stencil_texture_bindings, framebuffer_get_depth_stencil_texture_bindings)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.framebuffer_has_color_attachment, framebuffer_has_color_attachment)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.framebuffer_has_depthstencil_attachment, framebuffer_has_depthstencil_attachment)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.framebuffer_uses_external_textures, framebuffer_uses_external_textures)
+
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebuffer_new_empty, computebuffer_new_empty)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebuffer_new_with_data, computebuffer_new_with_data)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebuffer_new_from_buffer, computebuffer_new_from_buffer)
@@ -107,11 +130,19 @@ init_gfx_procs :: proc() {
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebuffer_update_bound_buffer, computebuffer_update_bound_buffer)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebuffer_set_data, computebuffer_set_data)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebuffer_get_data, computebuffer_get_data)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebuffer_get_buffertype, computebuffer_get_buffertype)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebuffer_is_gfx, computebuffer_is_gfx)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebuffer_get_size, computebuffer_get_size)
+
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computepipeline_new, computepipeline_new)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computepipeline_free, computepipeline_free)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computepipeline_set_local_work_size, computepipeline_set_local_work_size)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computepipeline_set_global_work_size, computepipeline_set_global_work_size)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computepipeline_compute, computepipeline_compute)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.computepipeline_get_dimensions, computepipeline_get_dimensions)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.computepipeline_get_global_work_sizes, computepipeline_get_global_work_sizes)
+    core.assign_proc(&gfx.GFXPROCS_INSTANCE.computepipeline_get_local_work_sizes, computepipeline_get_local_work_sizes)
+
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebindings_new, computebindings_new)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebindings_free, computebindings_free)
     core.assign_proc(&gfx.GFXPROCS_INSTANCE.computebindings_set_element, computebindings_set_element)

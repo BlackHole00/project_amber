@@ -1,4 +1,4 @@
-package vx_lib_gfx_gl4
+package vx_lib_gfx_GL4
 
 import gl "vendor:OpenGL"
 import "shared:vx_lib/gfx"
@@ -14,9 +14,9 @@ Buffer_Impl :: struct {
     // Used only if it is an uniform buffer.
     uniform_bindings_point: uint,
 }
-gl4Buffer :: ^Buffer_Impl
+GL4Buffer :: ^Buffer_Impl
 
-buffer_new_empty :: proc(desc: gfx.Buffer_Descriptor) -> gl4Buffer {
+buffer_new_empty :: proc(desc: gfx.Buffer_Descriptor) -> GL4Buffer {
     buffer := new(Buffer_Impl, CONTEXT.gl_allocator)
 
     buffer.type = desc.type
@@ -30,14 +30,14 @@ buffer_new_empty :: proc(desc: gfx.Buffer_Descriptor) -> gl4Buffer {
     return buffer
 }
 
-buffer_new_with_data :: proc(desc: gfx.Buffer_Descriptor, data: rawptr, data_size: uint) -> gl4Buffer {
+buffer_new_with_data :: proc(desc: gfx.Buffer_Descriptor, data: rawptr, data_size: uint) -> GL4Buffer {
     buffer := buffer_new_empty(desc)
     buffer_set_data(buffer, data, data_size)
 
     return buffer
 }
 
-buffer_set_data :: proc(buffer: gl4Buffer, data: rawptr, data_size: uint) {
+buffer_set_data :: proc(buffer: GL4Buffer, data: rawptr, data_size: uint) {
     gl.NamedBufferData(buffer.buffer_handle, (int)(data_size), data, bufferusage_to_glenum(buffer.usage))
 
     if buffer.type == .Uniform_Buffer {
@@ -47,14 +47,26 @@ buffer_set_data :: proc(buffer: gl4Buffer, data: rawptr, data_size: uint) {
     }
 }
 
-buffer_free :: proc(buffer: gl4Buffer) {
+buffer_free :: proc(buffer: GL4Buffer) {
     gl.DeleteBuffers(1, &buffer.buffer_handle)
 
     free(buffer, CONTEXT.gl_allocator)
 }
 
+buffer_get_buffertype :: proc(buffer: GL4Buffer) -> gfx.Buffer_Type {
+    return buffer.type
+}
+
+buffer_get_bufferusage :: proc(buffer: GL4Buffer) -> gfx.Buffer_Usage {
+    return buffer.usage
+}
+
+buffer_get_indextype :: proc(buffer: GL4Buffer) -> gfx.Index_Type {
+    return buffer.index_type
+}
+
 @(private)
-buffer_non_dsa_bind :: proc(buffer: gl4Buffer) {
+buffer_non_dsa_bind :: proc(buffer: GL4Buffer) {
     gl.BindBuffer(buffertype_to_glenum(buffer.type), buffer.buffer_handle)
 }
 

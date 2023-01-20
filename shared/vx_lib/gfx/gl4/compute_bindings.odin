@@ -1,4 +1,4 @@
-package vx_lib_gfx_gl4
+package vx_lib_gfx_GL4
 
 import "core:slice"
 import "shared:vx_lib/gfx"
@@ -6,9 +6,9 @@ import "shared:vx_lib/gfx"
 Compute_Bindings_Impl :: struct {
     elements: []gfx.Compute_Bindings_Element,
 }
-gl4Compute_Bindings :: ^Compute_Bindings_Impl
+GL4Compute_Bindings :: ^Compute_Bindings_Impl
 
-computebindings_new :: proc(layout: []gfx.Compute_Bindings_Element) -> gl4Compute_Bindings {
+computebindings_new :: proc(layout: []gfx.Compute_Bindings_Element) -> GL4Compute_Bindings {
     if len(layout) > 16 do panic("Only 16 arguments allowed!")
 
     bindings := new(Compute_Bindings_Impl, CONTEXT.gl_allocator)
@@ -17,13 +17,13 @@ computebindings_new :: proc(layout: []gfx.Compute_Bindings_Element) -> gl4Comput
     return bindings
 }
 
-computebindings_set_element :: proc(bindings: gl4Compute_Bindings, index: uint, element: gfx.Compute_Bindings_Element) {
+computebindings_set_element :: proc(bindings: GL4Compute_Bindings, index: uint, element: gfx.Compute_Bindings_Element) {
     when ODIN_DEBUG do if index >= len(bindings.elements) do panic("Out of bound set.")
 
     bindings.elements[index] = element
 }
 
-computebindings_free :: proc(bindings: gl4Compute_Bindings) {
+computebindings_free :: proc(bindings: GL4Compute_Bindings) {
     delete(bindings.elements)
 
     free(bindings, CONTEXT.gl_allocator)

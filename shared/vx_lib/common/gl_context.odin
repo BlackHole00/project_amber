@@ -15,7 +15,7 @@ when #config(MODERN_OPENGL, false) {
 
     when ODIN_OS == .Darwin do #panic("The user is requesting to use Modern Opengl (DSA) on MacOs. This is not possible. Please build with -define:MODERN_OPENGL=false when targeting MacOs.")
 
-    import "shared:vx_lib/gfx/gl4"
+    import "shared:vx_lib/gfx/GL4"
 } else {
     OPENGL_VERSION: [2]int = { 3, 3 }
     MODERN_OPENGL :: false
@@ -26,7 +26,7 @@ when #config(MODERN_OPENGL, false) {
 windowcontext_init_with_gl :: proc() {
     init_gl :: proc(handle: glfw.WindowHandle, desc: platform.Window_Descriptor) -> (bool, string) {
         gfx.gfxprocs_init()
-        when MODERN_OPENGL do gl4.init(gl4.Context_Descriptor {
+        when MODERN_OPENGL do GL4.init(GL4.Context_Descriptor {
             glfw_window = handle,
             vsync = desc.vsync,
             version = OPENGL_VERSION,
@@ -55,7 +55,7 @@ windowcontext_init_with_gl :: proc() {
     }
 
     close_gl :: proc() {
-        when MODERN_OPENGL do gl4.deinit()
+        when MODERN_OPENGL do GL4.deinit()
         else do gl3.deinit()
         gfx.gfxprocs_deinit()
     }

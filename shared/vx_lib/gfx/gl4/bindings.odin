@@ -1,4 +1,4 @@
-package vx_lib_gfx_gl4
+package vx_lib_gfx_GL4
 
 import "core:slice"
 import "shared:vx_lib/gfx"
@@ -8,14 +8,14 @@ import "shared:vx_lib/gfx"
 // Note that bindings should not be recreated every frame, only 
 // This struct can be copied.
 Bindings_Impl :: struct {
-    vertex_buffers: []gl4Buffer,
-    index_buffer: Maybe(gl4Buffer),
+    vertex_buffers: []GL4Buffer,
+    index_buffer: Maybe(GL4Buffer),
 
     textures: []gfx.Texture_Binding,
 
     uniform_buffers: []gfx.Uniform_Buffer_Binding,
 }
-gl4Bindings :: ^Bindings_Impl
+GL4Bindings :: ^Bindings_Impl
 
 // Initializes the bindings.
 // Arguments: 
@@ -25,9 +25,7 @@ gl4Bindings :: ^Bindings_Impl
 // - index_buffer should be nil if draw_arrays will be used.  
 // - textures: A list of textures and corrisponding uniform name that needs to be 
 // applied.
-bindings_new :: proc(vertex_buffers: []gl4Buffer, index_buffer: Maybe(gl4Buffer), textures: []gfx.Texture_Binding, uniform_buffers: []gfx.Uniform_Buffer_Binding) -> gl4Bindings {
-    when ODIN_DEBUG do if index_buffer != nil do if index_buffer.?.type != .Index_Buffer do panic("The index buffer in the bindings should be a valid index buffer.")
-
+bindings_new :: proc(vertex_buffers: []GL4Buffer, index_buffer: Maybe(GL4Buffer), textures: []gfx.Texture_Binding, uniform_buffers: []gfx.Uniform_Buffer_Binding) -> GL4Bindings {
     bindings := new(Bindings_Impl, CONTEXT.gl_allocator)
 
     bindings.vertex_buffers = slice.clone(vertex_buffers, CONTEXT.gl_allocator)
@@ -38,7 +36,7 @@ bindings_new :: proc(vertex_buffers: []gl4Buffer, index_buffer: Maybe(gl4Buffer)
     return bindings
 }
 
-bindings_free :: proc(bindings: gl4Bindings) {
+bindings_free :: proc(bindings: GL4Bindings) {
     delete(bindings.vertex_buffers, CONTEXT.gl_allocator)
     delete(bindings.textures, CONTEXT.gl_allocator)
     delete(bindings.uniform_buffers, CONTEXT.gl_allocator)
@@ -46,15 +44,19 @@ bindings_free :: proc(bindings: gl4Bindings) {
     free(bindings, CONTEXT.gl_allocator)
 }
 
+bindings_has_index_buffer :: proc(bindings: GL4Bindings) -> bool {
+    return bindings.index_buffer != nil
+}
+
 /**************************************************************************************************
 ***************************************************************************************************
 **************************************************************************************************/
 
 @(private)
-bindings_apply :: proc(pipeline: gl4Pipeline, bindings: gl4Bindings) {
+bindings_apply :: proc(pipeline: GL4Pipeline, bindings: GL4Bindings) {
     if bindings.index_buffer == nil do pipeline_layout_apply(pipeline, bindings.vertex_buffers)
     else do pipeline_layout_apply(pipeline, bindings.vertex_buffers, bindings.index_buffer.?)
 
-    for binding, i in bindings.textures do pipeline_texture_apply(pipeline, (gl4Texture)(binding.texture), (u32)(i), binding.uniform_name)
-    for binding in bindings.uniform_buffers do pipeline_uniformbuffer_apply(pipeline, (u32)((gl4Buffer)(binding.buffer).uniform_bindings_point), binding.uniform_name)
+    for binding, i in bindings.textures do pipeline_texture_apply(pipeline, (GL4Texture)(binding.texture), (u32)(i), binding.uniform_name)
+    for binding in bindings.uniform_buffers do pipeline_uniformbuffer_apply(pipeline, (u32)((GL4Buffer)(binding.buffer).uniform_bindings_point), binding.uniform_name)
 }

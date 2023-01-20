@@ -1,4 +1,4 @@
-package vx_lib_gfx_gl4
+package vx_lib_gfx_GL4
 
 
 INVALID_HANDLE :: 0

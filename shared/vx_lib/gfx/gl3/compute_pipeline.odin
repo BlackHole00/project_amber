@@ -18,9 +18,6 @@ Gl3Compute_Pipeline :: ^Compute_Pipeline_Impl
 computepipeline_new :: proc(desc: gfx.Compute_Pipeline_Descriptor) -> Gl3Compute_Pipeline {
     pipeline := new(Compute_Pipeline_Impl, CONTEXT.gl_allocator)
 
-    if len(desc.global_work_sizes) != (int)(desc.dimensions) do panic("The length of work sizes must be the same as the dimensions.")
-    if len(desc.local_work_sizes)  != (int)(desc.dimensions) do panic("The length of work sizes must be the same as the dimensions.")
-
     csource := strings.clone_to_cstring(desc.source, context.allocator)
     defer delete(csource)
     ckernel := strings.clone_to_cstring(desc.entry_point, context.allocator)

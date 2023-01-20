@@ -1,4 +1,4 @@
-package vx_lib_gfx_gl4
+package vx_lib_gfx_GL4
 
 import glsm "shared:vx_lib/gfx/glstatemanager"
 import gl "vendor:OpenGL"
@@ -41,12 +41,12 @@ Pipeline_Impl :: struct {
     is_draw_pipeline: bool,
 
     states: Pipeline_States,
-    render_target: Maybe(gl4Framebuffer),
+    render_target: Maybe(GL4Framebuffer),
 }
 
-gl4Pipeline :: ^Pipeline_Impl
+GL4Pipeline :: ^Pipeline_Impl
 
-pipeline_new :: proc(desc: gfx.Pipeline_Descriptor, render_target: Maybe(gl4Framebuffer) = nil) -> gl4Pipeline {
+pipeline_new :: proc(desc: gfx.Pipeline_Descriptor, render_target: Maybe(GL4Framebuffer) = nil) -> GL4Pipeline {
     pipeline := new(Pipeline_Impl, CONTEXT.gl_allocator)
 
     if desc.vertex_source != nil && desc.fragment_source != nil {
@@ -105,7 +105,7 @@ pipeline_new :: proc(desc: gfx.Pipeline_Descriptor, render_target: Maybe(gl4Fram
     return pipeline
 }
 
-pipeline_free :: proc(pipeline: gl4Pipeline) {
+pipeline_free :: proc(pipeline: GL4Pipeline) {
     if pipeline.is_draw_pipeline {
         gl.DeleteProgram(pipeline.shader_handle)
         pipeline.shader_handle = INVALID_HANDLE
@@ -122,11 +122,11 @@ pipeline_free :: proc(pipeline: gl4Pipeline) {
     free(pipeline, CONTEXT.gl_allocator)
 }
 
-pipeline_resize :: proc(pipeline: gl4Pipeline, new_size: [2]uint) {
+pipeline_resize :: proc(pipeline: GL4Pipeline, new_size: [2]uint) {
     pipeline.states.viewport_size = new_size
 }
 
-pipeline_clear :: proc(pipeline: gl4Pipeline) {
+pipeline_clear :: proc(pipeline: GL4Pipeline) {
     pipeline_bind(pipeline)
 
     // VERY IMPORTANT NOTE: If DepthMask is set to false when clearing a screen, the depth buffer will not be properly cleared, causing a black screen.
@@ -150,13 +150,11 @@ pipeline_clear :: proc(pipeline: gl4Pipeline) {
     gl.Clear(clear_bits)
 }
 
-pipeline_set_wireframe :: proc(pipeline: gl4Pipeline, wireframe: bool) {
+pipeline_set_wireframe :: proc(pipeline: GL4Pipeline, wireframe: bool) {
     pipeline.states.wireframe = wireframe
 }
 
-pipeline_draw_arrays :: proc(pipeline: gl4Pipeline, bindings: gl4Bindings, primitive: gfx.Primitive, first: int, count: int) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-
+pipeline_draw_arrays :: proc(pipeline: GL4Pipeline, bindings: GL4Bindings, primitive: gfx.Primitive, first: int, count: int) {
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
@@ -164,10 +162,7 @@ pipeline_draw_arrays :: proc(pipeline: gl4Pipeline, bindings: gl4Bindings, primi
     gl.DrawArrays(primitive_to_glenum(primitive), (i32)(first), (i32)(count))
 }
 
-pipeline_draw_elements :: proc(pipeline: gl4Pipeline, bindings: gl4Bindings, primitive: gfx.Primitive, count: int) {
-    when ODIN_DEBUG do if bindings.index_buffer == nil do panic("Draw elements should have a valid index buffer in the bindings.")
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-
+pipeline_draw_elements :: proc(pipeline: GL4Pipeline, bindings: GL4Bindings, primitive: gfx.Primitive, count: int) {
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
@@ -175,9 +170,7 @@ pipeline_draw_elements :: proc(pipeline: gl4Pipeline, bindings: gl4Bindings, pri
     gl.DrawElements(primitive_to_glenum(primitive), (i32)(count), indextype_to_glenum(bindings.index_buffer.?.index_type), nil)
 }
 
-pipeline_draw_arrays_instanced :: proc(pipeline: gl4Pipeline, bindings: gl4Bindings, primitive: gfx.Primitive, first: int, count: int, instance_count: int) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-
+pipeline_draw_arrays_instanced :: proc(pipeline: GL4Pipeline, bindings: GL4Bindings, primitive: gfx.Primitive, first: int, count: int, instance_count: int) {
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
@@ -185,10 +178,7 @@ pipeline_draw_arrays_instanced :: proc(pipeline: gl4Pipeline, bindings: gl4Bindi
     gl.DrawArraysInstanced(primitive_to_glenum(primitive), (i32)(first), (i32)(count), (i32)(instance_count))
 }
 
-pipeline_draw_elements_instanced :: proc(pipeline: gl4Pipeline, bindings: gl4Bindings, primitive: gfx.Primitive, count: int, instance_count: int) {
-    when ODIN_DEBUG do if bindings.index_buffer == nil do panic("Draw elements should have a valid index buffer in the bindings.")
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-
+pipeline_draw_elements_instanced :: proc(pipeline: GL4Pipeline, bindings: GL4Bindings, primitive: gfx.Primitive, count: int, instance_count: int) {
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
@@ -196,9 +186,7 @@ pipeline_draw_elements_instanced :: proc(pipeline: gl4Pipeline, bindings: gl4Bin
     gl.DrawElementsInstanced(primitive_to_glenum(primitive), (i32)(count), indextype_to_glenum(bindings.index_buffer.?.index_type), nil, (i32)(instance_count))
 }
 
-pipeline_uniform_1f :: proc(pipeline: gl4Pipeline, uniform_name: string, value: f32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-
+pipeline_uniform_1f :: proc(pipeline: GL4Pipeline, uniform_name: string, value: f32) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -206,9 +194,7 @@ pipeline_uniform_1f :: proc(pipeline: gl4Pipeline, uniform_name: string, value: 
     }
 }
 
-pipeline_uniform_2f :: proc(pipeline: gl4Pipeline, uniform_name: string, value: [2]f32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-    
+pipeline_uniform_2f :: proc(pipeline: GL4Pipeline, uniform_name: string, value: [2]f32) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -216,9 +202,7 @@ pipeline_uniform_2f :: proc(pipeline: gl4Pipeline, uniform_name: string, value: 
     }
 }
 
-pipeline_uniform_3f :: proc(pipeline: gl4Pipeline, uniform_name: string, value: [3]f32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-    
+pipeline_uniform_3f :: proc(pipeline: GL4Pipeline, uniform_name: string, value: [3]f32) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -226,9 +210,7 @@ pipeline_uniform_3f :: proc(pipeline: gl4Pipeline, uniform_name: string, value: 
     }
 }
 
-pipeline_uniform_4f :: proc(pipeline: gl4Pipeline, uniform_name: string, value: [4]f32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-    
+pipeline_uniform_4f :: proc(pipeline: GL4Pipeline, uniform_name: string, value: [4]f32) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -236,9 +218,7 @@ pipeline_uniform_4f :: proc(pipeline: gl4Pipeline, uniform_name: string, value: 
     }
 }
 
-pipeline_uniform_mat4f :: proc(pipeline: gl4Pipeline, uniform_name: string, value: ^matrix[4, 4]f32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-    
+pipeline_uniform_mat4f :: proc(pipeline: GL4Pipeline, uniform_name: string, value: ^matrix[4, 4]f32) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -246,9 +226,7 @@ pipeline_uniform_mat4f :: proc(pipeline: gl4Pipeline, uniform_name: string, valu
     }
 }
 
-pipeline_uniform_1i :: proc(pipeline: gl4Pipeline, uniform_name: string, value: i32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-    
+pipeline_uniform_1i :: proc(pipeline: GL4Pipeline, uniform_name: string, value: i32) {
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -256,12 +234,29 @@ pipeline_uniform_1i :: proc(pipeline: gl4Pipeline, uniform_name: string, value: 
     }
 }
 
+pipeline_get_size :: proc(pipeline: GL4Pipeline) -> [2]uint {
+    return pipeline.states.viewport_size
+}
+
+pipeline_is_draw_pipeline :: proc(pipeline: GL4Pipeline) -> bool {
+    return pipeline.is_draw_pipeline
+}
+
+pipeline_is_wireframe :: proc(pipeline: GL4Pipeline) -> bool {
+    return pipeline.states.wireframe
+}
+
+pipeline_does_uniform_exist :: proc(pipeline: GL4Pipeline, uniform_name: string) -> bool {
+    _, ok := pipeline_find_uniform_location(pipeline, uniform_name)
+    return ok
+}
+
 /**************************************************************************************************
 ***************************************************************************************************
 **************************************************************************************************/
 
 @(private)
-pipeline_bind :: proc(pipeline: gl4Pipeline) {
+pipeline_bind :: proc(pipeline: GL4Pipeline) {
     if pipeline.is_draw_pipeline {
         pipeline_shader_bind(pipeline)
         pipeline_layout_bind(pipeline)
@@ -271,7 +266,7 @@ pipeline_bind :: proc(pipeline: gl4Pipeline) {
 }
 
 @(private)
-pipeline_apply :: proc(pipeline: gl4Pipeline) {
+pipeline_apply :: proc(pipeline: GL4Pipeline) {
     pipeline_bind(pipeline)
 
     if !pipeline.is_draw_pipeline do return
@@ -301,15 +296,15 @@ pipeline_apply :: proc(pipeline: gl4Pipeline) {
 }
 
 @(private)
-pipeline_bind_rendertarget :: proc(pipeline: gl4Pipeline) {
-    if pipeline.render_target != nil do framebuffer_bind(pipeline.render_target.(gl4Framebuffer))
+pipeline_bind_rendertarget :: proc(pipeline: GL4Pipeline) {
+    if pipeline.render_target != nil do framebuffer_bind(pipeline.render_target.(GL4Framebuffer))
     else do bind_to_default_framebuffer()
 
     glsm.Viewport(0, 0, (i32)(pipeline.states.viewport_size.x), (i32)(pipeline.states.viewport_size.y))
 }
 
 @(private)
-pipeline_layout_resolve :: proc(pipeline: gl4Pipeline, elements: []gfx.Layout_Element) {
+pipeline_layout_resolve :: proc(pipeline: GL4Pipeline, elements: []gfx.Layout_Element) {
     buffer_count := pipeline_layout_find_buffer_count(elements)
 
     pipeline.layout_strides = make([]i32, len(elements), CONTEXT.gl_allocator)
@@ -349,7 +344,7 @@ pipeline_layout_find_buffer_count :: proc(elements: []gfx.Layout_Element) -> (co
 }
 
 @(private)
-pipeline_layout_apply_without_index_buffer :: proc(pipeline: gl4Pipeline, vertex_buffers: []gl4Buffer) {
+pipeline_layout_apply_without_index_buffer :: proc(pipeline: GL4Pipeline, vertex_buffers: []GL4Buffer) {
     for buffer, i in vertex_buffers do gl.VertexArrayVertexBuffer(pipeline.layout_handle, (u32)(i), buffer.buffer_handle, 0, pipeline.layout_strides[i])
 
     for element, i in pipeline.layout_elements {
@@ -358,7 +353,7 @@ pipeline_layout_apply_without_index_buffer :: proc(pipeline: gl4Pipeline, vertex
 }
 
 @(private)
-pipeline_layout_apply_with_index_buffer :: proc(pipeline: gl4Pipeline, vertex_buffers: []gl4Buffer, index_buffer: gl4Buffer) {
+pipeline_layout_apply_with_index_buffer :: proc(pipeline: GL4Pipeline, vertex_buffers: []GL4Buffer, index_buffer: GL4Buffer) {
     assert(index_buffer.type == .Index_Buffer)
 
     pipeline_layout_apply_without_index_buffer(pipeline, vertex_buffers)
@@ -374,23 +369,23 @@ pipeline_layout_unbind :: proc() {
 pipeline_layout_apply :: proc { pipeline_layout_apply_without_index_buffer, pipeline_layout_apply_with_index_buffer }
 
 @(private)
-pipeline_layout_bind :: proc(pipeline: gl4Pipeline) {
+pipeline_layout_bind :: proc(pipeline: GL4Pipeline) {
     glsm.BindVertexArray(pipeline.layout_handle)
 }
 
 @(private)
-pipeline_shader_bind :: proc(pipeline: gl4Pipeline) {
+pipeline_shader_bind :: proc(pipeline: GL4Pipeline) {
     glsm.UseProgram(pipeline.shader_handle)
 }
 
 @(private)
-pipeline_texture_apply :: proc(pipeline: gl4Pipeline, texture: gl4Texture, texture_unit: u32, uniform_name: string) {
+pipeline_texture_apply :: proc(pipeline: GL4Pipeline, texture: GL4Texture, texture_unit: u32, uniform_name: string) {
     texture_full_bind(texture, (u32)(texture_unit))
     pipeline_uniform_1i(pipeline, uniform_name, (i32)(texture_unit))
 }
 
 @(private)
-pipeline_uniformbuffer_apply :: proc(pipeline: gl4Pipeline, location_idx: u32, uniform_name: string) {
+pipeline_uniformbuffer_apply :: proc(pipeline: GL4Pipeline, location_idx: u32, uniform_name: string) {
     c_uniform_name := strings.clone_to_cstring(uniform_name, CONTEXT.gl_allocator)
     defer delete(c_uniform_name)
     loc := gl.GetUniformBlockIndex(pipeline.shader_handle, c_uniform_name)
@@ -398,7 +393,7 @@ pipeline_uniformbuffer_apply :: proc(pipeline: gl4Pipeline, location_idx: u32, u
 }
 
 @(private)
-pipeline_find_uniform_location :: proc(pipeline: gl4Pipeline, uniform_name: string) -> (i32, bool) {
+pipeline_find_uniform_location :: proc(pipeline: GL4Pipeline, uniform_name: string) -> (i32, bool) {
     if uniform_name in pipeline.uniform_locations do return pipeline.uniform_locations[uniform_name], true
 
     c_uniform_name := strings.clone_to_cstring(uniform_name)

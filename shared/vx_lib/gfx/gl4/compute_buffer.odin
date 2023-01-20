@@ -1,19 +1,21 @@
-package vx_lib_gfx_gl4
+package vx_lib_gfx_GL4
 
 import cl "shared:OpenCL"
 import "shared:vx_lib/gfx"
 
 Compute_Buffer_Impl :: struct {
+    type: gfx.Compute_Buffer_Type,
     cl_mem: cl.mem,
     flags: cl.mem_flags,
     size: uint,
     is_opengl: bool,
 }
-gl4Compute_Buffer :: ^Compute_Buffer_Impl
+GL4Compute_Buffer :: ^Compute_Buffer_Impl
 
-computebuffer_new_empty :: proc(desc: gfx.Compute_Buffer_Descriptor) -> gl4Compute_Buffer {
+computebuffer_new_empty :: proc(desc: gfx.Compute_Buffer_Descriptor) -> GL4Compute_Buffer {
     buffer := new(Compute_Buffer_Impl, CONTEXT.gl_allocator)
 
+    buffer.type = desc.type
     buffer.size = desc.size
     buffer.is_opengl = false
     switch desc.type {
@@ -29,11 +31,10 @@ computebuffer_new_empty :: proc(desc: gfx.Compute_Buffer_Descriptor) -> gl4Compu
     return buffer
 }
 
-computebuffer_new_with_data :: proc(desc: gfx.Compute_Buffer_Descriptor, data: rawptr, data_size: uint, mode: gfx.Data_Handling_Mode) -> gl4Compute_Buffer {
-    if (uint)(data_size) < desc.size do panic("The size of data must be greater or equal than the size of the buffer.")
-
+computebuffer_new_with_data :: proc(desc: gfx.Compute_Buffer_Descriptor, data: rawptr, data_size: uint, mode: gfx.Data_Handling_Mode) -> GL4Compute_Buffer {
     buffer := new(Compute_Buffer_Impl, CONTEXT.gl_allocator)
 
+    buffer.type = desc.type
     buffer.size = desc.size
     buffer.is_opengl = false
 
@@ -57,9 +58,11 @@ computebuffer_new_with_data :: proc(desc: gfx.Compute_Buffer_Descriptor, data: r
     return buffer
 }
 
-computebuffer_new_from_buffer :: proc(desc: gfx.Compute_Buffer_Descriptor, gfx_buffer: gl4Buffer) -> gl4Compute_Buffer {
+computebuffer_new_from_buffer :: proc(desc: gfx.Compute_Buffer_Descriptor, gfx_buffer: GL4Buffer) -> GL4Compute_Buffer {
     buffer := new(Compute_Buffer_Impl, CONTEXT.gl_allocator)
     buffer.is_opengl = true
+
+    buffer.type = desc.type
 
     switch desc.type {
         case .Read_Only:     buffer.flags |= cl.MEM_READ_ONLY
@@ -74,9 +77,11 @@ computebuffer_new_from_buffer :: proc(desc: gfx.Compute_Buffer_Descriptor, gfx_b
     return buffer
 }
 
-computebuffer_new_from_texture :: proc(desc: gfx.Compute_Buffer_Descriptor, texture: gl4Texture) -> gl4Compute_Buffer {
+computebuffer_new_from_texture :: proc(desc: gfx.Compute_Buffer_Descriptor, texture: GL4Texture) -> GL4Compute_Buffer {
     buffer := new(Compute_Buffer_Impl, CONTEXT.gl_allocator)
     buffer.is_opengl = true
+
+    buffer.type = desc.type
 
     switch desc.type {
         case .Read_Only:     buffer.flags |= cl.MEM_READ_ONLY
@@ -96,15 +101,13 @@ computebuffer_new_from_texture :: proc(desc: gfx.Compute_Buffer_Descriptor, text
     return buffer
 }
 
-computebuffer_free :: proc(buffer: gl4Compute_Buffer) {
+computebuffer_free :: proc(buffer: GL4Compute_Buffer) {
     cl.ReleaseMemObject(buffer.cl_mem)
 
     free(buffer, CONTEXT.gl_allocator)
 }
 
-computebuffer_update_bound_texture :: proc(buffer: gl4Compute_Buffer, texture: gl4Texture) {
-    when ODIN_DEBUG do if !buffer.is_opengl do panic("Only works with compute opengl buffers.")
-
+computebuffer_update_bound_texture :: proc(buffer: GL4Compute_Buffer, texture: GL4Texture) {
     cl.ReleaseMemObject(buffer.cl_mem)
 
     if buffer.cl_mem = cl.CreateFromGLTexture(
@@ -117,9 +120,7 @@ computebuffer_update_bound_texture :: proc(buffer: gl4Compute_Buffer, texture: g
     ); buffer.cl_mem == nil do panic("Could not create an opencl buffer")
 }
 
-computebuffer_update_bound_buffer :: proc(buffer: gl4Compute_Buffer, gfx_buffer: gl4Buffer) {
-    when ODIN_DEBUG do if !buffer.is_opengl do panic("Only works with compute opengl buffers.")
-
+computebuffer_update_bound_buffer :: proc(buffer: GL4Compute_Buffer, gfx_buffer: GL4Buffer) {
     cl.ReleaseMemObject(buffer.cl_mem)
 
     if buffer.cl_mem = cl.CreateFromGLBuffer(CONTEXT.cl_context, buffer.flags, gfx_buffer.buffer_handle, nil); buffer.cl_mem == nil {
@@ -127,9 +128,7 @@ computebuffer_update_bound_buffer :: proc(buffer: gl4Compute_Buffer, gfx_buffer:
     }
 }
 
-computebuffer_set_data :: proc(buffer: gl4Compute_Buffer, input: rawptr, input_size: uint, blocking := false, sync: ^gfx.Sync = nil) {
-    if (uint)(input_size) > buffer.size do panic("The size of the input is greater than the size of the buffer.")
-
+computebuffer_set_data :: proc(buffer: GL4Compute_Buffer, input: rawptr, input_size: uint, blocking := false, sync: ^gfx.Sync = nil) {
     computebuffer_glacquire(buffer)
     defer computebuffer_glrelease(buffer)
 
@@ -139,9 +138,7 @@ computebuffer_set_data :: proc(buffer: gl4Compute_Buffer, input: rawptr, input_s
     if !blocking && sync != nil do sync^ = cleventsync_new(event, .Compute_Buffer_Upload)
 }
 
-computebuffer_get_data :: proc(buffer: gl4Compute_Buffer, output: rawptr, output_size: uint, blocking := false, sync: ^gfx.Sync = nil) {
-    if (uint)(output_size) > buffer.size do panic("The size of the input is lesser than the size of the buffer.")
-
+computebuffer_get_data :: proc(buffer: GL4Compute_Buffer, output: rawptr, output_size: uint, blocking := false, sync: ^gfx.Sync = nil) {
     computebuffer_glacquire(buffer)
     defer computebuffer_glrelease(buffer)
 
@@ -151,10 +148,22 @@ computebuffer_get_data :: proc(buffer: gl4Compute_Buffer, output: rawptr, output
     if !blocking && sync != nil do sync^ = cleventsync_new(event, .Compute_Buffer_Download)
 }
 
+computebuffer_get_buffertype :: proc(buffer: GL4Compute_Buffer) -> gfx.Compute_Buffer_Type {
+    return buffer.type
+}
+
+computebuffer_is_gfx :: proc(buffer: GL4Compute_Buffer) -> bool {
+    return buffer.is_opengl
+}
+
+computebuffer_get_size :: proc(buffer: GL4Compute_Buffer) -> uint {
+    return buffer.size
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 @(private)
-computebuffer_glacquire :: proc(buffer: gl4Compute_Buffer) {
+computebuffer_glacquire :: proc(buffer: GL4Compute_Buffer) {
     if buffer.is_opengl {
         event: cl.event
         if cl.EnqueueAcquireGLObjects(CONTEXT.queue, 1, &buffer.cl_mem, 0, nil, &event) != cl.SUCCESS do panic("Could not acquire gl objects.")
@@ -163,7 +172,7 @@ computebuffer_glacquire :: proc(buffer: gl4Compute_Buffer) {
 }
 
 @(private)
-computebuffer_glrelease :: proc(buffer: gl4Compute_Buffer, events_to_wait: []cl.event = {}) {
+computebuffer_glrelease :: proc(buffer: GL4Compute_Buffer, events_to_wait: []cl.event = {}) {
     if buffer.is_opengl {
         event: cl.event
         if cl.EnqueueReleaseGLObjects(CONTEXT.queue, 1, &buffer.cl_mem, (u32)(len(events_to_wait)), raw_data(events_to_wait), &event) != cl.SUCCESS do panic("Could not release gl objects.")

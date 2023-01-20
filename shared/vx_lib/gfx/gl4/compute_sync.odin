@@ -1,4 +1,4 @@
-package vx_lib_gfx_gl4
+package vx_lib_gfx_GL4
 
 import cl "shared:OpenCL"
 import "shared:vx_lib/gfx"
@@ -24,10 +24,10 @@ cleventsync_new :: proc(event: cl.event, info: gfx.Sync_Info_Type) -> gfx.Sync {
     }, CONTEXT.gl_allocator)
 }
 
-cldispatchsync_new :: proc(dispatch_event: cl.event, bindings: gl4Compute_Bindings) -> gfx.Sync {
+cldispatchsync_new :: proc(dispatch_event: cl.event, bindings: GL4Compute_Bindings) -> gfx.Sync {
     Cl_Dispatch_Sync_Data :: struct {
         event: cl.event,
-        bindings: gl4Compute_Bindings,
+        bindings: GL4Compute_Bindings,
     }
 
     data := new(Cl_Dispatch_Sync_Data, CONTEXT.gl_allocator)
@@ -54,7 +54,7 @@ cldispatchsync_new :: proc(dispatch_event: cl.event, bindings: gl4Compute_Bindin
 
             for element in data.bindings.elements {
                 #partial switch v in element {
-                    case gfx.Compute_Bindings_Buffer_Element: computebuffer_glrelease((gl4Compute_Buffer)(v.buffer))
+                    case gfx.Compute_Bindings_Buffer_Element: computebuffer_glrelease((GL4Compute_Buffer)(v.buffer))
                 }
             }
 

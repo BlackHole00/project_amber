@@ -1,4 +1,4 @@
-package vx_lib_gfx_gl4
+package vx_lib_gfx_GL4
 
 import "core:strings"
 import "core:slice"
@@ -13,13 +13,10 @@ Compute_Pipeline_Impl :: struct {
     global_work_sizes: []uint,
     local_work_sizes: []uint,
 }
-gl4Compute_Pipeline :: ^Compute_Pipeline_Impl
+GL4Compute_Pipeline :: ^Compute_Pipeline_Impl
 
-computepipeline_new :: proc(desc: gfx.Compute_Pipeline_Descriptor) -> gl4Compute_Pipeline {
+computepipeline_new :: proc(desc: gfx.Compute_Pipeline_Descriptor) -> GL4Compute_Pipeline {
     pipeline := new(Compute_Pipeline_Impl, CONTEXT.gl_allocator)
-
-    if len(desc.global_work_sizes) != (int)(desc.dimensions) do panic("The length of work sizes must be the same as the dimensions.")
-    if len(desc.local_work_sizes)  != (int)(desc.dimensions) do panic("The length of work sizes must be the same as the dimensions.")
 
     csource := strings.clone_to_cstring(desc.source, context.allocator)
     defer delete(csource)
@@ -55,7 +52,7 @@ computepipeline_new :: proc(desc: gfx.Compute_Pipeline_Descriptor) -> gl4Compute
     return pipeline
 }
 
-computepipeline_free :: proc(pipeline: gl4Compute_Pipeline) {
+computepipeline_free :: proc(pipeline: GL4Compute_Pipeline) {
     cl.ReleaseKernel(pipeline.kernel)
 
     delete(pipeline.global_work_sizes)
@@ -64,13 +61,13 @@ computepipeline_free :: proc(pipeline: gl4Compute_Pipeline) {
     free(pipeline, CONTEXT.gl_allocator)
 }
 
-computepipeline_compute :: proc(pipeline: gl4Compute_Pipeline, bindings: gl4Compute_Bindings, sync: ^gfx.Sync = nil) {
+computepipeline_compute :: proc(pipeline: GL4Compute_Pipeline, bindings: GL4Compute_Bindings, sync: ^gfx.Sync = nil) {
     for element, i in &bindings.elements {
         switch v in &element {
             case gfx.Compute_Bindings_Raw_Element: cl.SetKernelArg(pipeline.kernel, (u32)(i), v.size, v.data)
             case gfx.Compute_Bindings_Buffer_Element: {
-                computebuffer_glacquire((gl4Compute_Buffer)(v.buffer))
-                if cl.SetKernelArg(pipeline.kernel, (u32)(i), size_of(cl.mem), &(gl4Compute_Buffer)(v.buffer).cl_mem) != cl.SUCCESS do panic("Could not set kernel argument.")
+                computebuffer_glacquire((GL4Compute_Buffer)(v.buffer))
+                if cl.SetKernelArg(pipeline.kernel, (u32)(i), size_of(cl.mem), &(GL4Compute_Buffer)(v.buffer).cl_mem) != cl.SUCCESS do panic("Could not set kernel argument.")
             }
             case gfx.Compute_Bindings_U32_Element: cl.SetKernelArg(pipeline.kernel, (u32)(i), size_of(u32), &v.value)
             case gfx.Compute_Bindings_I32_Element: cl.SetKernelArg(pipeline.kernel, (u32)(i), size_of(i32), &v.value)
@@ -101,15 +98,27 @@ computepipeline_compute :: proc(pipeline: gl4Compute_Pipeline, bindings: gl4Comp
     else do sync^ = tmp
 }
 
-computepipeline_set_local_work_size :: proc(pipeline: gl4Compute_Pipeline, size: []uint) {
+computepipeline_set_local_work_size :: proc(pipeline: GL4Compute_Pipeline, size: []uint) {
     for s, i in size {
         pipeline.local_work_sizes[i] = s
         pipeline.global_work_sizes[i] = get_optimal_global_size(pipeline.global_work_sizes[i], s)
     }
 }
 
-computepipeline_set_global_work_size :: proc(pipeline: gl4Compute_Pipeline, size: []uint) {
+computepipeline_set_global_work_size :: proc(pipeline: GL4Compute_Pipeline, size: []uint) {
     for s, i in size do pipeline.global_work_sizes[i] = get_optimal_global_size(s, pipeline.local_work_sizes[i])
+}
+
+computepipeline_get_dimensions :: proc(pipeline: GL4Compute_Pipeline) -> uint {
+    return pipeline.dimensions
+}
+
+computepipeline_get_global_work_sizes :: proc(pipeline: GL4Compute_Pipeline) -> []uint {
+    return pipeline.global_work_sizes
+}
+
+computepipeline_get_local_work_sizes :: proc(pipeline: GL4Compute_Pipeline) -> []uint {
+    return pipeline.local_work_sizes
 }
 
 @(private)

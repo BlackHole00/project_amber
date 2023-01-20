@@ -12,6 +12,9 @@ Compute_Pipeline_Descriptor :: struct {
 Compute_Pipeline :: distinct rawptr
 
 computepipeline_new :: proc(desc: Compute_Pipeline_Descriptor) -> Compute_Pipeline {
+    if len(desc.global_work_sizes) != (int)(desc.dimensions) do panic("The length of work sizes must be the same as the dimensions.")
+    if len(desc.local_work_sizes)  != (int)(desc.dimensions) do panic("The length of work sizes must be the same as the dimensions.")
+
     return GFXPROCS_INSTANCE.computepipeline_new(desc)
 }
 
