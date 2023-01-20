@@ -26,8 +26,6 @@ Gl3Bindings :: ^Bindings_Impl
 // - textures: A list of textures and corrisponding uniform name that needs to be 
 // applied.
 bindings_new :: proc(vertex_buffers: []Gl3Buffer, index_buffer: Maybe(Gl3Buffer), textures: []gfx.Texture_Binding, uniform_buffers: []gfx.Uniform_Buffer_Binding) -> Gl3Bindings {
-    when ODIN_DEBUG do if index_buffer != nil do if index_buffer.?.type != .Index_Buffer do panic("The index buffer in the bindings should be a valid index buffer.")
-
     bindings := new(Bindings_Impl, CONTEXT.gl_allocator)
 
     bindings.vertex_buffers = slice.clone(vertex_buffers, CONTEXT.gl_allocator)
@@ -44,6 +42,10 @@ bindings_free :: proc(bindings: Gl3Bindings) {
     delete(bindings.uniform_buffers, CONTEXT.gl_allocator)
 
     free(bindings, CONTEXT.gl_allocator)
+}
+
+bindings_has_index_buffer :: proc(bindings: Gl3Bindings) -> bool {
+    return bindings.index_buffer != nil
 }
 
 /**************************************************************************************************

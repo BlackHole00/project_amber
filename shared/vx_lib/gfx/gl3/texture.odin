@@ -17,8 +17,6 @@ Texture_Impl :: struct {
 Gl3Texture :: ^Texture_Impl
 
 texture_new_with_size_1d :: proc(desc: gfx.Texture_Descriptor, size: uint) -> Gl3Texture {
-    when ODIN_DEBUG do if desc.type != .Texture_1D do panic("texture_new_with_size_1d works only with 1D textures")
-
     texture := _internal_texture_new_no_size(desc)
     texture_set_size_1d(texture, size)
 
@@ -26,8 +24,6 @@ texture_new_with_size_1d :: proc(desc: gfx.Texture_Descriptor, size: uint) -> Gl
 }
 
 texture_new_with_size_2d :: proc(desc: gfx.Texture_Descriptor, dimension: [2]uint) -> Gl3Texture {
-    when ODIN_DEBUG do if desc.type != .Texture_2D do panic("texture_new_with_size_2d works only with 2D textures")
-
     texture := _internal_texture_new_no_size(desc)
     texture_set_size_2d(texture, dimension)
 
@@ -35,8 +31,6 @@ texture_new_with_size_2d :: proc(desc: gfx.Texture_Descriptor, dimension: [2]uin
 }
 
 texture_new_with_size_3d :: proc(desc: gfx.Texture_Descriptor, dimension: [3]uint) -> Gl3Texture {
-    when ODIN_DEBUG do if desc.type != .Texture_3D do panic("texture_new_with_size_3d works only with 3D textures")
-    
     texture := _internal_texture_new_no_size(desc)
     texture_set_size_3d(texture, dimension)
 
@@ -44,8 +38,6 @@ texture_new_with_size_3d :: proc(desc: gfx.Texture_Descriptor, dimension: [3]uin
 }
 
 texture_new_with_data_1d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, data_size: uint) -> Gl3Texture {
-    when ODIN_DEBUG do if desc.type != .Texture_1D do panic("texture_new_with_data_1d works only with 1D textures")
-
     texture := _internal_texture_new_no_size(desc)
     texture_set_size_1d(texture, data_size)
     texture_set_data_1d(texture, data, data_size)
@@ -54,8 +46,6 @@ texture_new_with_data_1d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, dat
 }
 
 texture_new_with_data_2d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, data_size: uint, dimension: [2]uint) -> Gl3Texture {
-    when ODIN_DEBUG do if desc.type != .Texture_2D do panic("texture_new_with_data_2d works only with 2D textures")
-
     texture := _internal_texture_new_no_size(desc)
     texture_set_size_2d(texture, dimension)
     texture_set_data_2d(texture, data, data_size, dimension)
@@ -64,8 +54,6 @@ texture_new_with_data_2d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, dat
 }
 
 texture_new_with_data_3d :: proc(desc: gfx.Texture_Descriptor, data: rawptr, data_size: uint, dimension: [3]uint) -> Gl3Texture {
-    when ODIN_DEBUG do if desc.type != .Texture_3D do panic("texture_new_with_data_3d works only with 3D textures")
-
     texture := _internal_texture_new_no_size(desc)
     texture_set_size_3d(texture, dimension)
     texture_set_data_3d(texture, data, data_size, dimension)
@@ -80,8 +68,6 @@ texture_free :: proc(texture: Gl3Texture) {
 }
 
 texture_set_data_1d :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, offset := 0) {
-    when ODIN_DEBUG do if texture.type != .Texture_1D do panic("texture_set_data_1d works only with 1D textures")
-
     texture_non_dsa_bind(texture)
 
     if offset == 0 do gl.TexImage1D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(data_size), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
@@ -96,8 +82,6 @@ texture_set_data_1d :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, 
 }
 
 texture_set_data_2d :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, dimension: [2]uint, offset := [2]uint{ 0, 0 }) {
-    when ODIN_DEBUG do if texture.type != .Texture_2D do panic("texture_set_data_2d works only with 2D textures")
-
     texture_non_dsa_bind(texture)
 
     if offset == { 0, 0 } do gl.TexImage2D(texturetype_to_glenum(texture.type), 0, textureformat_to_glinternalformat(texture.internal_texture_format), (i32)(dimension.x), (i32)(dimension.y), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
@@ -112,8 +96,6 @@ texture_set_data_2d :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, 
 }
 
 texture_set_data_3d :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, dimension: [3]uint, offset := [3]uint{ 0, 0, 0 }) {
-    when ODIN_DEBUG do if texture.type != .Texture_3D do panic("texture_set_data_3d works only with 3D textures")
-
     texture_non_dsa_bind(texture)
 
     if offset == { 0, 0, 0} do gl.TexImage3D(texturetype_to_glenum(texture.type), 0, textureformat_to_glformat(texture.internal_texture_format), (i32)(dimension.x), (i32)(dimension.y), (i32)(dimension.z), 0, (u32)(textureformat_to_glformat(texture.format)), (u32)(pixeltype_to_glenum(texture.pixel_type)), data)
@@ -128,8 +110,6 @@ texture_set_data_3d :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, 
 }
 
 texture_set_data_cubemap_face :: proc(texture: Gl3Texture, data: rawptr, data_size: uint, dimension: [2]uint, face: gfx.Cubemap_Face) {
-    when ODIN_DEBUG do if texture.type != .Texture_CubeMap do panic("texture_set_data_cubemap_face works only with .Texture_CubeMap textures!")
-
     when true {
         texture_non_dsa_bind(texture)
 
@@ -158,8 +138,6 @@ texture_set_data_cubemap_face :: proc(texture: Gl3Texture, data: rawptr, data_si
 texture_set_data :: proc { texture_set_data_1d, texture_set_data_2d, texture_set_data_3d }
 
 texture_resize_1d :: proc(texture: Gl3Texture, new_len: uint, copy_content := true) {
-    when ODIN_DEBUG do if texture^.type != .Texture_1D do panic("texture_resize_1d works only with 1D textures")
-
     old_texture := texture^
 
     texture_init_raw(texture, texture.texture_desc)
@@ -170,8 +148,6 @@ texture_resize_1d :: proc(texture: Gl3Texture, new_len: uint, copy_content := tr
 }
 
 texture_resize_2d :: proc(texture: Gl3Texture, new_size: [2]uint, copy_content := true) {
-    when ODIN_DEBUG do if texture.type != .Texture_2D do panic("texture_resize_2d works only with 2D textures")
-
     old_texture := texture^
 
     texture_init_raw(texture, texture.texture_desc)
@@ -182,8 +158,6 @@ texture_resize_2d :: proc(texture: Gl3Texture, new_size: [2]uint, copy_content :
 }
 
 texture_resize_3d :: proc(texture: Gl3Texture, new_size: [3]uint, copy_content := true) {
-    when ODIN_DEBUG do if texture^.type != .Texture_3D do panic("texture_resize_3d works only with 3D textures")
-
     old_texture := texture^
 
     texture_init_raw(texture, texture.texture_desc)
@@ -194,8 +168,6 @@ texture_resize_3d :: proc(texture: Gl3Texture, new_size: [3]uint, copy_content :
 }
 
 texture_copy_1d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: int = 0, dest_offset: int = 0) {
-    when ODIN_DEBUG do if src.type != .Texture_1D || dest.type != .Texture_1D do panic("texture_copy_1d works only with 1D textures")
-
     size := min(src.texture_size.x, dest.texture_size.y)
     _ = size
 
@@ -214,8 +186,6 @@ texture_copy_1d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: int = 0, 
 }
 
 texture_copy_2d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: [2]int = { 0, 0 }, dest_offset: [2]int = { 0, 0 }) {
-    when ODIN_DEBUG do if src.type != .Texture_2D || dest.type != .Texture_2D do panic("texture_copy_2d works only with 2D textures")
-
     size: [2]uint = ---
     size.x = min(src.texture_size.x, dest.texture_size.y)
     size.y = min(src.texture_size.y, dest.texture_size.y)
@@ -235,8 +205,6 @@ texture_copy_2d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: [2]int = 
 }
 
 texture_copy_3d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: [3]int = { 0, 0, 0 }, dest_offset: [3]int = { 0, 0, 0 }) {
-    when ODIN_DEBUG do if src.type != .Texture_3D || dest.type != .Texture_3D do panic("texture_copy_3d works only with 3D textures")
-
     size: [3]uint = ---
     size.x = min(src.texture_size.x, dest.texture_size.y)
     size.y = min(src.texture_size.y, dest.texture_size.y)
@@ -253,6 +221,44 @@ texture_copy_3d :: proc(src: Gl3Texture, dest: Gl3Texture, src_offset: [3]int = 
     texture_non_dsa_bind(dest)
     for i in 0..<size.z do gl.CopyTexSubImage3D(texturetype_to_glenum(dest.type), 0, (i32)(real_src_offset.x), (i32)(real_src_offset.y), (i32)(real_src_offset.z) + (i32)(i), (i32)(real_dest_offset.x), (i32)(real_dest_offset.y), (i32)(size.x), (i32)(size.y))
     texture_non_dsa_unbind(texturetype_to_glenum(dest.type))
+}
+
+texture_get_texturetype :: proc(texture: Gl3Texture) -> gfx.Texture_Type {
+    return texture.type
+}
+
+texture_get_internalformat :: proc(texture: Gl3Texture) -> gfx.Texture_Format {
+    return texture.texture_desc.internal_texture_format
+}
+
+texture_get_format :: proc(texture: Gl3Texture) -> gfx.Texture_Format {
+    return texture.texture_desc.format
+}
+
+texture_get_warp :: proc(texture: Gl3Texture, warp_identifier: gfx.Warp_Identifier) -> gfx.Texture_Warp {
+    switch warp_identifier {
+        case .S: return texture.texture_desc.warp_s
+        case .T: return texture.texture_desc.warp_t
+    }
+
+    panic("Unreachable")
+}
+
+texture_get_filter :: proc(texture: Gl3Texture, filter_identifier: gfx.Filter_Identifier) -> gfx.Texture_Filter {
+    switch filter_identifier {
+        case .Min: return texture.texture_desc.min_filter
+        case .Mag: return texture.texture_desc.mag_filter
+    }
+
+    panic("Unreachable")
+}
+
+texture_does_gen_mipmaps :: proc(texture: Gl3Texture) -> bool {
+    return texture.gen_mipmaps
+}
+
+texture_get_size :: proc(texture: Gl3Texture) -> [3]uint {
+    return texture.texture_size
 }
 
 /**************************************************************************************************

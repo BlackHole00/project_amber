@@ -9,8 +9,6 @@ Compute_Bindings_Impl :: struct {
 Gl3Compute_Bindings :: ^Compute_Bindings_Impl
 
 computebindings_new :: proc(layout: []gfx.Compute_Bindings_Element) -> Gl3Compute_Bindings {
-    if len(layout) > 16 do panic("Only 16 arguments allowed!")
-
     bindings := new(Compute_Bindings_Impl, CONTEXT.gl_allocator)
     bindings.elements = slice.clone(layout, CONTEXT.gl_allocator)
 
@@ -18,8 +16,6 @@ computebindings_new :: proc(layout: []gfx.Compute_Bindings_Element) -> Gl3Comput
 }
 
 computebindings_set_element :: proc(bindings: Gl3Compute_Bindings, index: uint, element: gfx.Compute_Bindings_Element) {
-    when ODIN_DEBUG do if index >= len(bindings.elements) do panic("Out of bound set.")
-
     bindings.elements[index] = element
 }
 

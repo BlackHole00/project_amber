@@ -35,10 +35,26 @@ framebuffer_resize :: proc(framebuffer: Framebuffer, size: [2]uint) {
 }
 
 framebuffer_get_color_texture_bindings :: proc(framebuffer: Framebuffer, color_texture_uniform: string) -> Texture_Binding {
+    when ODIN_DEBUG do if !framebuffer_has_color_attachment(framebuffer) do panic("This framebuffer does not support color_attachment")
+
     return GFXPROCS_INSTANCE.framebuffer_get_color_texture_bindings(framebuffer, color_texture_uniform)
 }
 
 framebuffer_get_depth_stencil_texture_bindings:: proc(framebuffer: Framebuffer, depth_stencil_texture_uniform: string) -> Texture_Binding {
-    return framebuffer_get_depth_stencil_texture_bindings(framebuffer, depth_stencil_texture_uniform)
+    when ODIN_DEBUG do if !framebuffer_has_depthstencil_attachment(framebuffer) do panic("This framebuffer does not support depth_stencil_attachment")
+
+    return GFXPROCS_INSTANCE.framebuffer_get_depth_stencil_texture_bindings(framebuffer, depth_stencil_texture_uniform)
+}
+
+framebuffer_has_color_attachment :: proc(framebuffer: Framebuffer) -> bool {
+    return GFXPROCS_INSTANCE.framebuffer_has_color_attachment(framebuffer)
+}
+
+framebuffer_has_depthstencil_attachment :: proc(framebuffer: Framebuffer) -> bool {
+    return GFXPROCS_INSTANCE.framebuffer_has_depthstencil_attachment(framebuffer)
+}
+
+framebuffer_uses_external_textures :: proc(framebuffer: Framebuffer) -> bool {
+    return GFXPROCS_INSTANCE.framebuffer_uses_external_textures(framebuffer)
 }
 

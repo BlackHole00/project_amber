@@ -4,6 +4,8 @@ import cl "shared:OpenCL"
 import "shared:vx_lib/gfx"
 
 Compute_Buffer_Impl :: struct {
+    type: gfx.Compute_Buffer_Type,
+
     cl_mem: cl.mem,
     flags: cl.mem_flags,
     size: uint,
@@ -14,6 +16,7 @@ Gl3Compute_Buffer :: ^Compute_Buffer_Impl
 computebuffer_new_empty :: proc(desc: gfx.Compute_Buffer_Descriptor) -> Gl3Compute_Buffer {
     buffer := new(Compute_Buffer_Impl, CONTEXT.gl_allocator)
 
+    buffer.type = desc.type
     buffer.size = desc.size
     buffer.is_opengl = false
     switch desc.type {
@@ -34,6 +37,7 @@ computebuffer_new_with_data :: proc(desc: gfx.Compute_Buffer_Descriptor, data: r
 
     buffer := new(Compute_Buffer_Impl, CONTEXT.gl_allocator)
 
+    buffer.type = desc.type
     buffer.size = desc.size
     buffer.is_opengl = false
 
@@ -61,6 +65,8 @@ computebuffer_new_from_buffer :: proc(desc: gfx.Compute_Buffer_Descriptor, gfx_b
     buffer := new(Compute_Buffer_Impl, CONTEXT.gl_allocator)
     buffer.is_opengl = true
 
+    buffer.type = desc.type
+
     switch desc.type {
         case .Read_Only:     buffer.flags |= cl.MEM_READ_ONLY
         case .Write_Only:    buffer.flags |= cl.MEM_WRITE_ONLY
@@ -77,6 +83,8 @@ computebuffer_new_from_buffer :: proc(desc: gfx.Compute_Buffer_Descriptor, gfx_b
 computebuffer_new_from_texture :: proc(desc: gfx.Compute_Buffer_Descriptor, texture: Gl3Texture) -> Gl3Compute_Buffer {
     buffer := new(Compute_Buffer_Impl, CONTEXT.gl_allocator)
     buffer.is_opengl = true
+
+    buffer.type = desc.type
 
     switch desc.type {
         case .Read_Only:     buffer.flags |= cl.MEM_READ_ONLY
@@ -103,8 +111,6 @@ computebuffer_free :: proc(buffer: Gl3Compute_Buffer) {
 }
 
 computebuffer_update_bound_texture :: proc(buffer: Gl3Compute_Buffer, texture: Gl3Texture) {
-    when ODIN_DEBUG do if !buffer.is_opengl do panic("Only works with compute opengl buffers.")
-
     cl.ReleaseMemObject(buffer.cl_mem)
 
     if buffer.cl_mem = cl.CreateFromGLTexture(
@@ -118,8 +124,6 @@ computebuffer_update_bound_texture :: proc(buffer: Gl3Compute_Buffer, texture: G
 }
 
 computebuffer_update_bound_buffer :: proc(buffer: Gl3Compute_Buffer, gfx_buffer: Gl3Buffer) {
-    when ODIN_DEBUG do if !buffer.is_opengl do panic("Only works with compute opengl buffers.")
-
     cl.ReleaseMemObject(buffer.cl_mem)
 
     if buffer.cl_mem = cl.CreateFromGLBuffer(CONTEXT.cl_context, buffer.flags, gfx_buffer.buffer_handle, nil); buffer.cl_mem == nil {
@@ -128,8 +132,6 @@ computebuffer_update_bound_buffer :: proc(buffer: Gl3Compute_Buffer, gfx_buffer:
 }
 
 computebuffer_set_data :: proc(buffer: Gl3Compute_Buffer, input: rawptr, input_size: uint, blocking := false, sync: ^gfx.Sync = nil) {
-    if (uint)(input_size) > buffer.size do panic("The size of the input is greater than the size of the buffer.")
-
     computebuffer_glacquire(buffer)
     defer computebuffer_glrelease(buffer)
 
@@ -140,8 +142,6 @@ computebuffer_set_data :: proc(buffer: Gl3Compute_Buffer, input: rawptr, input_s
 }
 
 computebuffer_get_data :: proc(buffer: Gl3Compute_Buffer, output: rawptr, output_size: uint, blocking := false, sync: ^gfx.Sync = nil) {
-    if (uint)(output_size) > buffer.size do panic("The size of the input is lesser than the size of the buffer.")
-
     computebuffer_glacquire(buffer)
     defer computebuffer_glrelease(buffer)
 
@@ -149,6 +149,18 @@ computebuffer_get_data :: proc(buffer: Gl3Compute_Buffer, output: rawptr, output
     cl.EnqueueReadBuffer(CONTEXT.queue, buffer.cl_mem, blocking, 0, output_size, output, 0, nil, &event)
 
     if !blocking && sync != nil do sync^ = cleventsync_new(event, .Compute_Buffer_Download)
+}
+
+computebuffer_get_buffertype :: proc(buffer: Gl3Compute_Buffer) -> gfx.Compute_Buffer_Type {
+    return buffer.type
+}
+
+computebuffer_is_gfx :: proc(buffer: Gl3Compute_Buffer) -> bool {
+    return buffer.is_opengl
+}
+
+computebuffer_get_size :: proc(buffer: Gl3Compute_Buffer) -> uint {
+    return buffer.size
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -112,6 +112,18 @@ computepipeline_set_global_work_size :: proc(pipeline: Gl3Compute_Pipeline, size
     for s, i in size do pipeline.global_work_sizes[i] = get_optimal_global_size(s, pipeline.local_work_sizes[i])
 }
 
+computepipeline_get_dimensions :: proc(pipeline: Gl3Compute_Pipeline) -> uint {
+    return pipeline.dimensions
+}
+
+computepipeline_get_global_work_sizes :: proc(pipeline: Gl3Compute_Pipeline) -> []uint {
+    return pipeline.global_work_sizes
+}
+
+computepipeline_get_local_work_sizes :: proc(pipeline: Gl3Compute_Pipeline) -> []uint {
+    return pipeline.local_work_sizes
+}
+
 @(private)
 get_optimal_global_size :: proc(desired_size: uint, logical_size: uint) -> (size: uint) {
     for size < desired_size do size += logical_size

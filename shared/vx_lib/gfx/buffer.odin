@@ -51,3 +51,16 @@ buffer_set_data :: proc(buffer: Buffer, data: []$T) {
 buffer_free :: proc(buffer: Buffer) {
     GFXPROCS_INSTANCE.buffer_free(buffer)
 }
+
+buffer_get_buffertype :: proc(buffer: Buffer) -> Buffer_Type {
+    return GFXPROCS_INSTANCE.buffer_get_buffertype(buffer)
+}
+
+buffer_get_bufferusage :: proc(buffer: Buffer) -> Buffer_Usage {
+    return GFXPROCS_INSTANCE.buffer_get_bufferusage(buffer)
+}
+
+buffer_get_indextype :: proc(buffer: Buffer) -> Index_Type {
+    when ODIN_DEBUG do if buffer_get_buffertype(buffer) != .Index_Buffer do panic("buffer_get_indextype works only with index buffers")
+    return GFXPROCS_INSTANCE.buffer_get_indextype(buffer)
+}

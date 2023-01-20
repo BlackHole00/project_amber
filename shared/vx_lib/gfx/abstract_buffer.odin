@@ -56,3 +56,7 @@ abstractbuffer_get_data_as :: proc(buffer: ^Abstract_Buffer, $type: typeid) -> (
 abstractbuffer_free :: proc(buffer: Abstract_Buffer) {
     delete(buffer.data, buffer.allocator)
 }
+
+abstactbuffer_get_size :: proc(buffer: Abstract_Buffer) -> uint {
+    return size_of(byte) * len(buffer.data)
+}

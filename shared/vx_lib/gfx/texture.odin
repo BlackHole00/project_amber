@@ -52,6 +52,16 @@ Cubemap_Face :: enum {
     NegativeZ,
 }
 
+Warp_Identifier :: enum {
+    S,
+    T,
+}
+
+Filter_Identifier :: enum {
+    Min,
+    Mag,
+}
+
 Texture_Descriptor :: struct {
     type: Texture_Type,
     internal_texture_format: Texture_Format,
@@ -158,46 +168,94 @@ texture_free :: proc(texture: Texture) {
     GFXPROCS_INSTANCE.texture_free(texture)
 }
 
-texture_set_data_1d :: proc(texture: Texture, data: []$T, offset := 0) {
+texture_set_data_1d :: proc(texture: Texture, data: []$T, offset := 0) {    
+    when ODIN_DEBUG do if texture_get_texturetype(texture) != .Texture_1D do panic("texture_set_data_1d works only with 1D textures")
+
     GFXPROCS_INSTANCE.texture_set_data_1d(texture, raw_data(data), size_of(T) * len(data), offset)
 }
 
 texture_set_data_2d :: proc(texture: Texture, data: []$T, dimension: [2]uint, offset := [2]uint{ 0, 0 }) {
+    when ODIN_DEBUG do if texture_get_texturetype(texture) != .Texture_2D do panic("texture_set_data_2d works only with 2D textures")
+    
     GFXPROCS_INSTANCE.texture_set_data_2d(texture, raw_data(data), size_of(T) * len(data), dimension, offset)
 }
 
 texture_set_data_3d :: proc(texture: Texture, data: []$T, dimension: [3]uint, offset := [3]uint{ 0, 0, 0 }) {
+    when ODIN_DEBUG do if texture_get_texturetype(texture) != .Texture_3D do panic("texture_set_data_3d works only with 3D textures")
+    
     GFXPROCS_INSTANCE.texture_set_data_2d(texture, raw_data(data), size_of(T) * len(data), dimension, offset)
 }
 
 texture_set_data_cubemap_face :: proc(texture: Texture, data: []$T, dimension: [2]uint, face: Cubemap_Face) {
+    when ODIN_DEBUG do if texture_get_texturetype(texture) != .Texture_CubeMap do panic("texture_set_data_cubemap_face works only with .Texture_CubeMap textures!")
+    
     GFXPROCS_INSTANCE.texture_set_data_cubemap_face(texture, raw_data(data), size_of(T) * len(data), dimension, face)
 }
 
 texture_set_data :: proc { texture_set_data_1d, texture_set_data_2d, texture_set_data_3d }
 
 texture_resize_1d :: proc(texture: Texture, new_len: uint, copy_content := true) {
+    when ODIN_DEBUG do if texture_get_texturetype(texture) != .Texture_1D do panic("texture_resize_1d works only with 1D textures")
+    
     GFXPROCS_INSTANCE.texture_resize_1d(texture, new_len, copy_content)
 }
 
 texture_resize_2d :: proc(texture: Texture, new_size: [2]uint, copy_content := true) {
+    when ODIN_DEBUG do if texture_get_texturetype(texture) != .Texture_2D do panic("texture_resize_2d works only with 2D textures")
+    
     GFXPROCS_INSTANCE.texture_resize_2d(texture, new_size, copy_content)
 }
 
 texture_resize_3d :: proc(texture: Texture, new_size: [3]uint, copy_content := true) {
+    when ODIN_DEBUG do if texture_get_texturetype(texture) != .Texture_3D do panic("texture_resize_3d works only with 3D textures")
+    
     GFXPROCS_INSTANCE.texture_resize_3d(texture, new_size, copy_content)
 }
 
 texture_copy_1d :: proc(src: Texture, dest: Texture, src_offset: int = 0, dest_offset: int = 0) {
+    when ODIN_DEBUG do if texture_get_texturetype(src) != .Texture_1D || texture_get_texturetype(dest) != .Texture_1D do panic("texture_copy_1d works only with 1D textures")
+    
     GFXPROCS_INSTANCE.texture_copy_1d(src, dest, src_offset, dest_offset)
 }
 
 texture_copy_2d :: proc(src: Texture, dest: Texture, src_offset: [2]int = { 0, 0 }, dest_offset: [2]int = { 0, 0 }) {
+    when ODIN_DEBUG do if texture_get_texturetype(src) != .Texture_2D || texture_get_texturetype(dest) != .Texture_2D do panic("texture_copy_2d works only with 2D textures")
+    
     GFXPROCS_INSTANCE.texture_copy_2d(src, dest, src_offset, dest_offset)
 }
 
 texture_copy_3d :: proc(src: Texture, dest: Texture, src_offset: [3]int = { 0, 0, 0 }, dest_offset: [3]int = { 0, 0, 0 }) {
+    when ODIN_DEBUG do if texture_get_texturetype(src) != .Texture_3D || texture_get_texturetype(dest) != .Texture_3D do panic("texture_copy_3d works only with 3D textures")
+    
     GFXPROCS_INSTANCE.texture_copy_3d(src, dest, src_offset, dest_offset)
+}
+
+texture_get_texturetype :: proc(texture: Texture) -> Texture_Type {
+    return GFXPROCS_INSTANCE.texture_get_texturetype(texture)
+}
+
+texture_get_internalformat :: proc(texture: Texture) -> Texture_Format {
+    return GFXPROCS_INSTANCE.texture_get_internalformat(texture)
+}
+
+texture_get_format :: proc(texture: Texture) -> Texture_Format {
+    return GFXPROCS_INSTANCE.texture_get_format(texture)
+}
+
+texture_get_warp :: proc(texture: Texture, warp_identifier: Warp_Identifier) -> Texture_Warp {
+    return GFXPROCS_INSTANCE.texture_get_warp(texture, warp_identifier)
+}
+
+texture_get_filter :: proc(texture: Texture, filter_identifier: Filter_Identifier) -> Texture_Filter {
+    return GFXPROCS_INSTANCE.texture_get_filter(texture, filter_identifier)
+}
+
+texture_does_gen_mipmaps :: proc(texture: Texture) -> bool {
+    return GFXPROCS_INSTANCE.texture_does_gen_mipmaps(texture)
+}
+
+texture_get_size :: proc(texture: Texture) -> [3]uint {
+    return GFXPROCS_INSTANCE.texture_get_size(texture)
 }
 
 /**************************************************************************************************

@@ -7,6 +7,8 @@ Sync_Info_Type :: enum {
     Compute_Buffer_Upload,
     Compute_Buffer_Download,
     Other,
+
+    // TODO: Add other syncs
 }
 
 Sync_Impl :: struct {

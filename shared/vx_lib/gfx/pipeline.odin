@@ -110,45 +110,111 @@ pipeline_clear :: proc(pipeline: Pipeline) {
 }
 
 pipeline_set_wireframe :: proc(pipeline: Pipeline, wireframe: bool) {
+    when ODIN_DEBUG do if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+
     GFXPROCS_INSTANCE.pipeline_set_wireframe(pipeline, wireframe)
 }
 
 pipeline_draw_arrays :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, first: int, count: int) {
+    when ODIN_DEBUG do if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+
     GFXPROCS_INSTANCE.pipeline_draw_arrays(pipeline, bindings, primitive, first, count)
 }
 
 pipeline_draw_elements :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, count: int) {
+    when ODIN_DEBUG { 
+        if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.")
+        if !bindings_has_index_buffer(bindings) do panic("When drawing elements a valid index buffer must be provided.")
+    }
+
     GFXPROCS_INSTANCE.pipeline_draw_elements(pipeline, bindings, primitive, count)
 }
 
 pipeline_draw_arrays_instanced :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, first: int, count: int, instance_count: int) {
+    when ODIN_DEBUG do if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+
     GFXPROCS_INSTANCE.pipeline_draw_arrays_instanced(pipeline, bindings, primitive, first, count, instance_count)
 }
 
 pipeline_draw_elements_instanced :: proc(pipeline: Pipeline, bindings: Bindings, primitive: Primitive, count: int, instance_count: int) {
+    when ODIN_DEBUG {
+        if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.")
+        if !bindings_has_index_buffer(bindings) do panic("When drawing elements a valid index buffer must be provided.")
+    }
+
     GFXPROCS_INSTANCE.pipeline_draw_elements_instanced(pipeline, bindings, primitive, count, instance_count)
 }
 
 pipeline_uniform_1f :: proc(pipeline: Pipeline, uniform_name: string, value: f32) {
+    when ODIN_DEBUG {
+        if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+        if !pipeline_does_uniform_exist(pipeline, uniform_name) do panic("Pipeline does not have the requested uniform.")
+    }
+
     GFXPROCS_INSTANCE.pipeline_uniform_1f(pipeline, uniform_name, value)
 }
 
 pipeline_uniform_2f :: proc(pipeline: Pipeline, uniform_name: string, value: [2]f32) {
+    when ODIN_DEBUG {
+        if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+        if !pipeline_does_uniform_exist(pipeline, uniform_name) do panic("Pipeline does not have the requested uniform.")
+    }
+
     GFXPROCS_INSTANCE.pipeline_uniform_2f(pipeline, uniform_name, value)
 }
 
 pipeline_uniform_3f :: proc(pipeline: Pipeline, uniform_name: string, value: [3]f32) {
+    when ODIN_DEBUG {
+        if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+        if !pipeline_does_uniform_exist(pipeline, uniform_name) do panic("Pipeline does not have the requested uniform.")
+    }
+
     GFXPROCS_INSTANCE.pipeline_uniform_3f(pipeline, uniform_name, value)
 }
 
 pipeline_uniform_4f :: proc(pipeline: Pipeline, uniform_name: string, value: [4]f32) {
+    when ODIN_DEBUG {
+        if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+        if !pipeline_does_uniform_exist(pipeline, uniform_name) do panic("Pipeline does not have the requested uniform.")
+    }
+
     GFXPROCS_INSTANCE.pipeline_uniform_4f(pipeline, uniform_name, value)
 }
 
 pipeline_uniform_mat4f :: proc(pipeline: Pipeline, uniform_name: string, value: ^matrix[4, 4]f32) {
+    when ODIN_DEBUG {
+        if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+        if !pipeline_does_uniform_exist(pipeline, uniform_name) do panic("Pipeline does not have the requested uniform.")
+    }
+
     GFXPROCS_INSTANCE.pipeline_uniform_mat4f(pipeline, uniform_name, value)
 }
 
 pipeline_uniform_1i :: proc(pipeline: Pipeline, uniform_name: string, value: i32) {
+    when ODIN_DEBUG {
+        if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+        if !pipeline_does_uniform_exist(pipeline, uniform_name) do panic("Pipeline does not have the requested uniform.")
+    }
+    
     GFXPROCS_INSTANCE.pipeline_uniform_1i(pipeline, uniform_name, value)
+}
+
+pipeline_get_size :: proc(pipeline: Pipeline) -> [2]uint {
+    return GFXPROCS_INSTANCE.pipeline_get_size(pipeline)
+}
+
+pipeline_is_draw_pipeline :: proc(pipeline: Pipeline) -> bool {
+    return GFXPROCS_INSTANCE.pipeline_is_draw_pipeline(pipeline)
+}
+
+pipeline_is_wireframe :: proc(pipeline: Pipeline) -> bool {
+    when ODIN_DEBUG do if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+
+    return GFXPROCS_INSTANCE.pipeline_is_wireframe(pipeline)
+}
+
+pipeline_does_uniform_exist :: proc(pipeline: Pipeline, uniform_name: string) -> bool {
+    when ODIN_DEBUG do if !pipeline_is_draw_pipeline(pipeline) do panic("Pipeline must be a draw pipeline.") 
+
+    return GFXPROCS_INSTANCE.pipeline_does_uniform_exist(pipeline, uniform_name)
 }

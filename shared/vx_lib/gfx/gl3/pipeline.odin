@@ -152,8 +152,6 @@ pipeline_set_wireframe :: proc(pipeline: Gl3Pipeline, wireframe: bool) {
 }
 
 pipeline_draw_arrays :: proc(pipeline: Gl3Pipeline, bindings: Gl3Bindings, primitive: gfx.Primitive, first: int, count: int) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
@@ -164,9 +162,6 @@ pipeline_draw_arrays :: proc(pipeline: Gl3Pipeline, bindings: Gl3Bindings, primi
 }
 
 pipeline_draw_elements :: proc(pipeline: Gl3Pipeline, bindings: Gl3Bindings, primitive: gfx.Primitive, count: int) {
-    when ODIN_DEBUG do if bindings.index_buffer == nil do panic("Draw elements should have a valid index buffer in the bindings.")
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
@@ -177,8 +172,6 @@ pipeline_draw_elements :: proc(pipeline: Gl3Pipeline, bindings: Gl3Bindings, pri
 }
 
 pipeline_draw_arrays_instanced :: proc(pipeline: Gl3Pipeline, bindings: Gl3Bindings, primitive: gfx.Primitive, first: int, count: int, instance_count: int) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
@@ -189,9 +182,6 @@ pipeline_draw_arrays_instanced :: proc(pipeline: Gl3Pipeline, bindings: Gl3Bindi
 }
 
 pipeline_draw_elements_instanced :: proc(pipeline: Gl3Pipeline, bindings: Gl3Bindings, primitive: gfx.Primitive, count: int, instance_count: int) {
-    when ODIN_DEBUG do if bindings.index_buffer == nil do panic("Draw elements should have a valid index buffer in the bindings.")
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-
     pipeline_apply(pipeline)
     pipeline_bind(pipeline)
     bindings_apply(pipeline, bindings)
@@ -202,8 +192,6 @@ pipeline_draw_elements_instanced :: proc(pipeline: Gl3Pipeline, bindings: Gl3Bin
 }
 
 pipeline_uniform_1f :: proc(pipeline: Gl3Pipeline, uniform_name: string, value: f32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -213,8 +201,6 @@ pipeline_uniform_1f :: proc(pipeline: Gl3Pipeline, uniform_name: string, value: 
 }
 
 pipeline_uniform_2f :: proc(pipeline: Gl3Pipeline, uniform_name: string, value: [2]f32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-    
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -224,8 +210,6 @@ pipeline_uniform_2f :: proc(pipeline: Gl3Pipeline, uniform_name: string, value: 
 }
 
 pipeline_uniform_3f :: proc(pipeline: Gl3Pipeline, uniform_name: string, value: [3]f32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-    
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -235,8 +219,6 @@ pipeline_uniform_3f :: proc(pipeline: Gl3Pipeline, uniform_name: string, value: 
 }
 
 pipeline_uniform_4f :: proc(pipeline: Gl3Pipeline, uniform_name: string, value: [4]f32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-    
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -246,8 +228,6 @@ pipeline_uniform_4f :: proc(pipeline: Gl3Pipeline, uniform_name: string, value: 
 }
 
 pipeline_uniform_mat4f :: proc(pipeline: Gl3Pipeline, uniform_name: string, value: ^matrix[4, 4]f32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-    
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
@@ -257,14 +237,29 @@ pipeline_uniform_mat4f :: proc(pipeline: Gl3Pipeline, uniform_name: string, valu
 }
 
 pipeline_uniform_1i :: proc(pipeline: Gl3Pipeline, uniform_name: string, value: i32) {
-    when ODIN_DEBUG do if !pipeline.is_draw_pipeline do panic("Not a draw pipeline.")
-    
     if loc, ok := pipeline_find_uniform_location(pipeline, uniform_name); !ok {
         log.warn("Could not find the uniform", uniform_name, "in pipeline", pipeline.shader_handle)
     } else {
         glsm.UseProgram(pipeline.shader_handle)
         gl.Uniform1i(loc, value)
     }
+}
+
+pipeline_get_size :: proc(pipeline: Gl3Pipeline) -> [2]uint {
+    return pipeline.states.viewport_size
+}
+
+pipeline_is_draw_pipeline :: proc(pipeline: Gl3Pipeline) -> bool {
+    return pipeline.is_draw_pipeline
+}
+
+pipeline_is_wireframe :: proc(pipeline: Gl3Pipeline) -> bool {
+    return pipeline.states.wireframe
+}
+
+pipeline_does_uniform_exist :: proc(pipeline: Gl3Pipeline, uniform_name: string) -> bool {
+    _, ok := pipeline_find_uniform_location(pipeline, uniform_name)
+    return ok
 }
 
 /**************************************************************************************************

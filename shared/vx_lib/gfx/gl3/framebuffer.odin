@@ -103,8 +103,6 @@ framebuffer_resize :: proc(framebuffer: Gl3Framebuffer, size: [2]uint) {
 }
 
 framebuffer_get_color_texture_bindings :: proc(framebuffer: Gl3Framebuffer, color_texture_uniform: string) -> gfx.Texture_Binding {
-    if !framebuffer.use_color_attachment do panic("This framebuffer do not support color_attachment")
-
     return gfx.Texture_Binding {
         texture = (gfx.Texture)(framebuffer.color_attachment),
         uniform_name = color_texture_uniform,
@@ -112,12 +110,22 @@ framebuffer_get_color_texture_bindings :: proc(framebuffer: Gl3Framebuffer, colo
 }
 
 framebuffer_get_depth_stencil_texture_bindings:: proc(framebuffer: Gl3Framebuffer, depth_stencil_texture_uniform: string) -> gfx.Texture_Binding {
-    if !framebuffer.use_depth_stencil_attachment do panic("This framebuffer do not support depth_stencil_attachment")
-
     return gfx.Texture_Binding {
         texture = (gfx.Texture)(framebuffer.depth_stencil_attachment),
         uniform_name = depth_stencil_texture_uniform,
     }
+}
+
+framebuffer_has_color_attachment :: proc(framebuffer: Gl3Framebuffer) -> bool {
+    return framebuffer.use_color_attachment
+}
+
+framebuffer_has_depthstencil_attachment :: proc(framebuffer: Gl3Framebuffer) -> bool {
+    return framebuffer.use_depth_stencil_attachment
+}
+
+framebuffer_uses_external_textures :: proc(framebuffer: Gl3Framebuffer) -> bool {
+    return framebuffer.external_textures
 }
 
 /**************************************************************************************************

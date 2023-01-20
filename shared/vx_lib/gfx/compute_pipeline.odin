@@ -30,3 +30,15 @@ computepipeline_set_local_work_size :: proc(pipeline: Compute_Pipeline, size: []
 computepipeline_set_global_work_size :: proc(pipeline: Compute_Pipeline, size: []uint) {
     GFXPROCS_INSTANCE.computepipeline_set_global_work_size(pipeline, size)
 }
+
+computepipeline_get_dimensions :: proc(pipeline: Compute_Pipeline) -> uint {
+    return GFXPROCS_INSTANCE.computepipeline_get_dimensions(pipeline)
+}
+
+computepipeline_get_global_work_sizes :: proc(pipeline: Compute_Pipeline) -> []uint {
+    return GFXPROCS_INSTANCE.computepipeline_get_global_work_sizes(pipeline)
+}
+
+computepipeline_get_local_work_sizes :: proc(pipeline: Compute_Pipeline) -> []uint {
+    return GFXPROCS_INSTANCE.computepipeline_get_local_work_sizes(pipeline)
+}

@@ -55,6 +55,18 @@ buffer_free :: proc(buffer: Gl3Buffer) {
     free(buffer, CONTEXT.gl_allocator)
 }
 
+buffer_get_buffertype :: proc(buffer: Gl3Buffer) -> gfx.Buffer_Type {
+    return buffer.type
+}
+
+buffer_get_bufferusage :: proc(buffer: Gl3Buffer) -> gfx.Buffer_Usage {
+    return buffer.usage
+}
+
+buffer_get_indextype :: proc(buffer: Gl3Buffer) -> gfx.Index_Type {
+    return buffer.index_type
+}
+
 @(private)
 buffer_non_dsa_bind :: proc(buffer: Gl3Buffer) {
     gl.BindBuffer(buffertype_to_glenum(buffer.type), buffer.buffer_handle)
