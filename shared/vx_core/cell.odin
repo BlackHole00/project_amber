@@ -5,7 +5,7 @@ import "core:log"
 
 Cell :: struct($T: typeid) {
     using ptr: ^T,
-    allocator: mem.Allocator,
+    alloc: mem.Allocator,
 }
 
 cell_init_raw :: proc(cell: ^Cell($T), allocator := context.allocator) {
@@ -15,7 +15,7 @@ cell_init_raw :: proc(cell: ^Cell($T), allocator := context.allocator) {
         }
     } 
 
-    cell.allocator = allocator
+    cell.alloc = allocator
     cell.ptr = new(T, allocator)
 }
 
@@ -26,7 +26,7 @@ cell_init_with_data :: proc(cell: ^Cell($T), data: T, allocator := context.alloc
         }
     }
 
-    cell.allocator = allocator
+    cell.alloc = allocator
     cell.ptr = new(T, allocator)
     cell.ptr^ = data
 }
@@ -40,7 +40,7 @@ cell_free :: proc(cell: ^Cell($T)) {
         }
     }
 
-    free(cell.ptr, cell.allocator)
+    free(cell.ptr, cell.alloc)
     cell.ptr = nil
 }
 

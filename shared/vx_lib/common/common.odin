@@ -8,7 +8,8 @@ vx_lib_init :: proc() {
     platform.platform_init()
     platform_register_default_procs()
 
-    windowcontext_init_with_gl()
+    //windowcontext_init_with_gl()
+    windowcontext_init_with_dx11()
 }
 
 // Frees the platform and the platform.Window_Context. Must be called after the
