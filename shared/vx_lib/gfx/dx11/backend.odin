@@ -1,12 +1,13 @@
 package vx_lib_gfx_dx11
 
-import gl "vendor:OpenGL"
 import "shared:glfw"
 import core "shared:vx_core"
 import "shared:vx_lib/gfx"
 
 BACKEND_INITIALIZER :: gfx.Backend_Initializer {
+    pre_window_init_proc = backend_pre_window_init,
     init_proc = backend_init,
+    post_frame_proc = backend_post_frame,
     deinit_proc = backend_deinit,
 }
 
@@ -31,6 +32,17 @@ backend_deinit :: proc() {
     if CONTEXT_INSTANCE.device_context != nil do CONTEXT_INSTANCE.device_context->Release()
 
     core.cell_free(&CONTEXT_INSTANCE)
+}
+
+@(private)
+backend_pre_window_init :: proc() -> bool {
+    glfw.WindowHint(glfw.CLIENT_API , glfw.NO_API)
+
+    return true
+}
+
+@(private)
+backend_post_frame :: proc(handle: glfw.WindowHandle) {
 }
 
 backend_get_info :: proc() -> gfx.Backend_Info {

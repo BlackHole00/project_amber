@@ -1,11 +1,8 @@
 package vx_lib_gfx_dx11
 
-import "core:strings"
 import "shared:vx_lib/gfx"
 
 device_check_requirements :: proc(requirements: gfx.Device_Requirements) -> gfx.Device_Set_Error {
-    if requirements.headless do return .Impossible_Functionality // TODO
-
     return .Unavaliable_Functionality
 }
 

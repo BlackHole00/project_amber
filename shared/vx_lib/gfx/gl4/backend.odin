@@ -6,7 +6,9 @@ import core "shared:vx_core"
 import "shared:vx_lib/gfx"
 
 BACKEND_INITIALIZER :: gfx.Backend_Initializer {
+    pre_window_init_proc = backend_pre_window_init,
     init_proc = backend_init,
+    post_frame_proc = backend_post_frame,
     deinit_proc = backend_deinit,
 }
 
@@ -40,6 +42,20 @@ backend_init :: proc(user_init_data: gfx.Backend_User_Initialization_Data, init_
 @(private)
 backend_deinit :: proc() {
     core.cell_free(&CONTEXT_INSTANCE)
+}
+
+@(private)
+backend_pre_window_init :: proc() -> bool {
+    glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 4)
+    glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 6)
+    glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+
+    return true
+}
+
+@(private)
+backend_post_frame :: proc(handle: glfw.WindowHandle) {
+    glfw.SwapBuffers(handle)
 }
 
 backend_get_info :: proc() -> gfx.Backend_Info {

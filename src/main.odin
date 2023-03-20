@@ -17,7 +17,6 @@ init :: proc() {
 
 	DEVICE_REQUIREMENTS :: gfx.Device_Requirements {
 		device_type = .Performance,
-		headless = false,
 	}
 	SWAPCHAIN_DESCRIPTOR := gfx.Swapchain_Descriptor {
 		present_mode = .Fifo,

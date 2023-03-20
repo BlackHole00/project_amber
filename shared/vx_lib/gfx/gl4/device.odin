@@ -6,8 +6,6 @@ import gl "vendor:OpenGL"
 import "shared:vx_lib/gfx"
 
 device_check_requirements :: proc(requirements: gfx.Device_Requirements) -> gfx.Device_Set_Error {
-    if requirements.headless do return .Impossible_Functionality
-
     return .Unavaliable_Functionality
 }
 
@@ -24,7 +22,6 @@ device_get_info :: proc() -> Maybe(gfx.Device_Info) {
         api_info = api_info,
 
         device_type = .Unknown,
-        headless = false,
     }
 }
 

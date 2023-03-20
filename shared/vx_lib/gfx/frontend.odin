@@ -9,26 +9,30 @@ Gfx_Descriptor :: struct {
 	allocator: mem.Allocator,
 	logger: log.Logger,
 	debug: bool,
-
-	window_handle: glfw.WindowHandle,
 }
 
-init :: proc(desciptor: Gfx_Descriptor, initializer: Backend_Initializer, user_init_data: Backend_User_Initialization_Data) -> bool {
-    core.cell_init(&CONTEXT_INSTANCE, desciptor.allocator)
+pre_window_init :: proc(descriptor: Gfx_Descriptor, initializer: Backend_Initializer) -> bool {
+    core.cell_init(&CONTEXT_INSTANCE, descriptor.allocator)
 
-    CONTEXT_INSTANCE.backend_deinit_proc = initializer.deinit_proc
+    CONTEXT_INSTANCE.backend_initializer = initializer
 
-    CONTEXT_INSTANCE.allocator = desciptor.allocator
-    CONTEXT_INSTANCE.logger = desciptor.logger
-    CONTEXT_INSTANCE.debug = desciptor.debug
+    CONTEXT_INSTANCE.descriptor = descriptor
 
-    return initializer.init_proc(user_init_data, Backend_Initialization_Data {
-        window_handle = desciptor.window_handle,
+    return initializer.pre_window_init_proc()
+}
+
+init :: proc(window_handle: glfw.WindowHandle, user_init_data: Backend_User_Initialization_Data) -> bool {
+    return CONTEXT_INSTANCE.backend_initializer.init_proc(user_init_data, Backend_Initialization_Data {
+        window_handle = window_handle,
     })
 }
 
+post_frame :: proc(handle: glfw.WindowHandle) {
+    CONTEXT_INSTANCE.backend_initializer.post_frame_proc(handle)
+}
+
 deinit :: proc() {
-    CONTEXT_INSTANCE.backend_deinit_proc()
+    CONTEXT_INSTANCE.backend_initializer.deinit_proc()
 
     core.cell_free(&CONTEXT_INSTANCE)
 }

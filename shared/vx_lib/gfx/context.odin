@@ -1,16 +1,11 @@
 package vx_lib_gfx
 
-import "core:mem"
-import "core:log"
 import core "shared:vx_core"
 
 @(private="package")
 Context :: struct {
-	backend_deinit_proc: proc(),
-
-    allocator: mem.Allocator,
-	logger: log.Logger,
-	debug: bool,
+	backend_initializer: Backend_Initializer,
+    using descriptor: Gfx_Descriptor,
 
     using procs: struct {
         backend_get_info: proc() -> Backend_Info,

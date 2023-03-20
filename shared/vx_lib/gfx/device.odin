@@ -24,8 +24,6 @@ Device_Type :: enum {
 
 Device_Requirements :: struct {
 	device_type: Device_Type,
-	headless: bool,
-
 	// limits to be added in the future
 }
 
@@ -35,7 +33,6 @@ Device_Info :: struct {
 	api_info: string,
 
 	device_type: Device_Type,
-	headless: bool,
 
 	// limits to be added in the future
 }

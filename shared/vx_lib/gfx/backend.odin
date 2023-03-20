@@ -17,8 +17,11 @@ Backend_Initialization_Data :: struct {
 }
 
 Backend_Initializer :: struct {
-    init_proc: proc(user_init_data: Backend_User_Initialization_Data, init_data: Backend_Initialization_Data) -> bool,
+	// returns false if the initialization has failed.
+	init_proc: proc(user_init_data: Backend_User_Initialization_Data, init_data: Backend_Initialization_Data) -> bool,
 	deinit_proc: proc(),
+	pre_window_init_proc: proc() -> bool,
+	post_frame_proc: proc(handle: glfw.WindowHandle),
 }
 
 Backend_Info :: struct {

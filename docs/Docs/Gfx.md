@@ -58,8 +58,6 @@ Gfx_Descriptor :: struct {
 	allocator: mem.Allocator,
 	loggel: log.Logger,
 	debug: bool,
-
-	window_handle: glfw.WindowHandle,
 }
 ```
 
@@ -83,7 +81,7 @@ Backend_Initializer :: struct {
 		init_data: Backend_Initialization_Data) -> bool,
 	deinit_proc: proc(),
 	pre_window_init_proc: proc() -> bool,
-	post_frame_proc: proc(),
+	post_frame_proc: proc(handle: glfw.WindowHandle),
 }
 ```
 
@@ -93,9 +91,10 @@ This is not a real type, but is an abstract type that represents the package as 
 ```go
 pre_window_init :: proc(desciptor: Gfx_Descriptor, initializer: Backend_Initializer)
 	-> bool {}
-init :: proc(user_init_data: Backend_User_Initialization_Data) -> bool {}
+init :: proc(window_handle: glfw.WindowHandle, 
+	user_init_data: Backend_User_Initialization_Data) -> bool {}
 deinit :: proc() {}
-post_frame :: proc() {}
+post_frame :: proc(handle: glfw.WindowHandle) {}
 ```
 
 ### Backend_Info
