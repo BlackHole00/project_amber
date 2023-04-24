@@ -10,6 +10,7 @@ Platform_Extension :: struct {
 
     init_proc: proc() -> (result: Platform_Operation_Result, message: string),
     preframe_proc: proc() -> (result: Platform_Operation_Result, message: string),
+    frame_proc: proc() -> (result: Platform_Operation_Result, message: string),
     postframe_proc: proc() -> (result: Platform_Operation_Result, message: string),
     deinit_proc: proc() -> (result: Platform_Operation_Result, message: string),
 

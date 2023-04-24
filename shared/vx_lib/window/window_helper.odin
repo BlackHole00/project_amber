@@ -1,4 +1,4 @@
-package vx_lib_platform
+package vx_lib_window
 
 import "core:fmt"
 import "core:strings"
@@ -53,6 +53,7 @@ Window_Helper :: struct {
     input: Window_Helper_Input,
     state: Window_Helper_General_State,
 }
+@(private)
 WINDOWHELPER_INSTANCE: core.Cell(Window_Helper)
 
 @(private)
@@ -158,6 +159,9 @@ windowhelper_get_ms :: proc() -> f64 {
     return WINDOWHELPER_INSTANCE.state.ms
 }
 
+windowhelper_get_raw_handle :: proc() -> glfw.WindowHandle {
+    return WINDOW_INSTANCE.handle
+}
 
 windowhelper_close_window :: proc() {
     glfw.SetWindowShouldClose(WINDOW_INSTANCE.handle, true)
@@ -193,10 +197,6 @@ windowhelper_set_window_size :: proc (size: [2]uint, call_resize_callback := tru
     WINDOW_INSTANCE.data.size = size
 
     glfw.SetWindowSize(WINDOW_INSTANCE.handle, (c.int)(size.x), (c.int)(size.y))
-
-    if (call_resize_callback) {
-        WINDOW_INSTANCE.callbacks.resize_proc()
-    }
 }
 
 windowhelper_set_window_pos :: proc(size: [2]uint) {
@@ -207,7 +207,7 @@ windowhelper_set_fullscreen :: proc(fullscreen: bool) {
     WINDOW_INSTANCE.data.fullscreen = fullscreen
     monitor: glfw.MonitorHandle = fullscreen ? glfw.GetPrimaryMonitor() : nil
 
-    glfw.SetWindowMonitor(WINDOW_INSTANCE.handle, monitor, 0, 0, (c.int)(WINDOW_INSTANCE.data.size.x), (c.int)(WINDOW_INSTANCE.data.size.y), WINDOW_INSTANCE.data.vsync ? 60 : glfw.DONT_CARE)
+    glfw.SetWindowMonitor(WINDOW_INSTANCE.handle, monitor, 0, 0, (c.int)(WINDOW_INSTANCE.data.size.x), (c.int)(WINDOW_INSTANCE.data.size.y), glfw.DONT_CARE)
 
     if !fullscreen {
         pos := windowhelper_get_window_pos()

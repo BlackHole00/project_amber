@@ -1,4 +1,4 @@
-package vx_lib_platform
+package vx_lib_window
 
 import "core:c"
 

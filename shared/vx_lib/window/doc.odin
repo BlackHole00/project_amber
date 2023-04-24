@@ -7,4 +7,4 @@
 // If GLFW is initialized it is possible to use an abstraction layer over
 // the window and the user input, using Window (singleton), Window_Context
 // (singleton) and Window_Helper (singleton). 
-package vx_lib_platform
+package vx_lib_window

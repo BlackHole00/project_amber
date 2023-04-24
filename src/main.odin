@@ -129,31 +129,43 @@ package main
 // }
 
 import core "shared:vx_core"
-import "shared:vx_lib/platform"
+import deps "shared:vx_lib/dependences"
+import plt "shared:vx_lib/platform"
+import wnd "shared:vx_lib/window"
+
+counter := 0
+
+frame :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
+	counter += 1
+
+	return .Ok, ""
+}
 
 main :: proc() {
 	context = core.default_context()
+	defer core.free_default_context()
 
-	platform.platform_init()
-	defer platform.platform_deinit()
+	plt.platform_init()
+	defer plt.platform_deinit()
 
-	platform.platform_register_extension(platform.Platform_Extension {
-		name = "windowing",
+	plt.platform_register_extension(deps.GLFW_EXTENSION)
+	plt.platform_register_extension(wnd.WINDOW_EXTENSION)
+	plt.platform_register_extension(plt.Platform_Extension {
+		name = "project_amber.game",
 		dependants = {},
-		dependencies = {},
+		dependencies = { "vx_lib.window" },
+		frame_proc = frame,
 	})
 
-	platform.platform_register_extension(platform.Platform_Extension {
-		name = "gfx",
-		dependants = {},
-		dependencies = { "windowing" },
+	wnd.window_set_descriptor(wnd.Window_Descriptor {
+		fullscreen = false,
+		size 		= { 640, 480 },
+		title 		= "Project Amber",
+		decorated 	= true,
+		resizable	= false,
+		show_fps_in_title = true,
+		grab_cursor = false,
 	})
 
-	platform.platform_register_extension(platform.Platform_Extension {
-		name = "game",
-		dependants = {},
-		dependencies = { "windowing", "gfx" },
-	})
-
-	platform.platform_run()
+	plt.platform_run()
 }

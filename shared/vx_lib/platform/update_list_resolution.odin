@@ -60,6 +60,8 @@ check_for_preliminary_validity :: proc() -> bool {
 @(private)
 platform_resolve_update_list :: proc() -> bool {
     resolved := make(map[Platform_Extension_Identifier]bool)
+    defer delete(resolved)
+
     PLATFORM_INSTANCE.extensions_update_list = make([]uint, len(PLATFORM_INSTANCE.extensions))
     resolved_count := 0
 

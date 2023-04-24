@@ -1,3 +1,7 @@
+- [ ] untie platform and window closing
+
+
+Old:
 - [ ] Bindings should have a Bindings_Descriptor
 - [ ] Uniforms should be handled in bindings, somehow
     - something similar to the texture

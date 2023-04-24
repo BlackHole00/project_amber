@@ -3,6 +3,11 @@ package vx_lib_platform
 import "core:log"
 import core "shared:vx_core"
 
+@(private)
+dummy_extension_proc :: proc() -> (result: Platform_Operation_Result, message: string) {
+    return .Ok, ""
+}
+
 Platform :: struct {
     should_close: bool,
 
@@ -23,10 +28,13 @@ platform_init :: proc() {
 
 platform_deinit :: proc() {
     delete(PLATFORM_INSTANCE.extensions)
-
-    if PLATFORM_INSTANCE.extensions_update_list != nil do delete(PLATFORM_INSTANCE.extensions_update_list)
+    delete(PLATFORM_INSTANCE.extensions_update_list)
 
     core.cell_free(&PLATFORM_INSTANCE)
+}
+
+platform_should_close :: proc() -> bool {
+    return PLATFORM_INSTANCE.should_close
 }
 
 platform_request_close :: proc() {
@@ -78,7 +86,7 @@ platform_get_extension_info :: proc(identifier: Platform_Extension_Identifier) -
 }
 
 platform_run :: proc() {
-    log.info("Resolving extensions update list...")
+    log.info("Resolving extensions update list.")
     if !platform_resolve_update_list() {
         panic("Could not resolve the update list!")
     }
@@ -90,11 +98,66 @@ platform_run :: proc() {
         }, sep = "")
     }
 
-    log.info("Running extensions'init proc")
-    // for extension_id in PLATFORM_INSTANCE.extensions_update_list {
-    //     if err, msg := PLATFORM_INSTANCE.extensions[extension_id].init_proc(); err != .Ok {
-            
-    //     }
-    // }
+    log.info("Running extensions'init proc.")
+    for extension_id in PLATFORM_INSTANCE.extensions_update_list {
+        if PLATFORM_INSTANCE.extensions[extension_id].init_proc == nil do continue
+
+        err, msg := PLATFORM_INSTANCE.extensions[extension_id].init_proc()
+        extension_print_platform_operation_result("init", PLATFORM_INSTANCE.extensions[extension_id], err, msg)
+
+        if (err == .Fatal) {
+            panic("Failed to run extensions'init proc.")
+        }
+    }
+
+    log.info("Entering main loop. Calling extensions'preframe, frame and postframe procs.")
+    for !PLATFORM_INSTANCE.should_close {
+        for extension_id in PLATFORM_INSTANCE.extensions_update_list {
+            if PLATFORM_INSTANCE.extensions[extension_id].preframe_proc == nil do continue
+
+            err, msg := PLATFORM_INSTANCE.extensions[extension_id].preframe_proc()
+            extension_print_platform_operation_result("preframe", PLATFORM_INSTANCE.extensions[extension_id], err, msg)
+
+            if (err == .Fatal) {
+                panic("Failed to run extensions'preframe proc.")
+            }
+        }
+
+        for extension_id in PLATFORM_INSTANCE.extensions_update_list {
+            if PLATFORM_INSTANCE.extensions[extension_id].frame_proc == nil do continue
+
+            err, msg := PLATFORM_INSTANCE.extensions[extension_id].frame_proc()
+            extension_print_platform_operation_result("frame", PLATFORM_INSTANCE.extensions[extension_id], err, msg)
+
+            if (err == .Fatal) {
+                panic("Failed to run extensions'frame proc.")
+            }
+        }
+
+        for extension_id in PLATFORM_INSTANCE.extensions_update_list {
+            if PLATFORM_INSTANCE.extensions[extension_id].postframe_proc == nil do continue
+
+            err, msg := PLATFORM_INSTANCE.extensions[extension_id].postframe_proc()
+            extension_print_platform_operation_result("postframe", PLATFORM_INSTANCE.extensions[extension_id], err, msg)
+
+            if (err == .Fatal) {
+                panic("Failed to run extensions'postframe proc.")
+            }
+        }
+    }
+
+    log.info("Exiting main loop. Calling extensions'deinit procs.")
+    for i := len(PLATFORM_INSTANCE.extensions_update_list) - 1; i >= 0; i -= 1 { // reverse order
+        extension_id := PLATFORM_INSTANCE.extensions_update_list[i]
+
+        if PLATFORM_INSTANCE.extensions[extension_id].deinit_proc == nil do continue
+
+        err, msg := PLATFORM_INSTANCE.extensions[extension_id].deinit_proc()
+        extension_print_platform_operation_result("deinit", PLATFORM_INSTANCE.extensions[extension_id], err, msg)
+
+        if (err == .Fatal) {
+            panic("Failed to run extensions'deinit proc.")
+        }
+    }
 }
 
