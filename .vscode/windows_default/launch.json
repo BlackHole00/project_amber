@@ -5,41 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Build And Run",
+            "name": "Debug",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}\\build\\Main.exe",
-            "args": [],
-            "stopAtEntry": false,
+            "program": "${workspaceFolder}\\build\\main.exe",
+            "symbolSearchPath": "${workspaceFolder}\\build",
             "cwd": "${workspaceFolder}",
-            "environment": [],
-            "preLaunchTask": "build"
-        },
-        {
-            "name": "Build and Debug",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}\\build\\Main.exe",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "avoidWindowsConsoleRedirection": true,
-            "externalConsole": true,
-            "MIMode": "gdb",
-            "miDebuggerPath": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "Set Disassembly Flavor to Intel",
-                    "text": "-gdb-set disassembly-flavor intel",
-                    "ignoreFailures": true
-                }
-            ],
+            "externalConsole": false,
+            "logging": {
+              "moduleLoad": false,
+              "trace": true
+            },
             "preLaunchTask": "build"
         }
     ]

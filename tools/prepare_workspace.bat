@@ -1,8 +1,12 @@
 @echo off
 
 cd ..
+
+del build\*.*
 del  .\run.bat
+del  .\run.sh
 del  .\build.bat
+del  .\build.sh
 del  .\ols.json
 del  .\.vscode\launch.json
 del  .\.vscode\tasks.json

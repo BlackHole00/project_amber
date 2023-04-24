@@ -97,7 +97,7 @@ platform_start :: proc() {
             case .Warn: log.warn("Initialization procedure", record.name, "has encountered a non-fatal error: ", message)
             case .Fatal: {
                 log.warn("Initialization procedure", record.name, "has encountered a non-fatal error: ", message)
-                panic("One initialization procedure failed. Aborting.")
+                 panic("One initialization procedure failed. Aborting.")
             }
         }
     }
