@@ -3,133 +3,98 @@ package vx_lib_platform
 import "core:log"
 import core "shared:vx_core"
 
-// A platform callback. It will be called at the initializaion if the procedure 
-// has been registered with platform_register_starting_proc() or it will be
-// called at the deinitialization it platform_register_closing_proc() has been
-// used.  
-// It must return a result of the operation and an eventual error message 
-// (should be "" if no error has been encountered). It the result is .Fatal the
-// application will panic.
-Platform_Proc :: #type proc() -> (ok: Platform_Proc_Result, error_message: string)
-
-Platform_Proc_Result :: enum {
-    Ok,
-    Warn,
-    Fatal,
-}
-
-@(private)
-Platform_Proc_Record :: struct {
-    procedure: Platform_Proc,
-    name: string,
-}
-
-// SINGLETON - This struct is used to intialize the platform and all its 
-// components and libraries before the window initialization.
 Platform :: struct {
-    started: bool,
-    closed: bool,
+    should_close: bool,
 
-    // Contains the procedure that will be called when the platform needs to be
-    // initialized.
-    starting_procs: [dynamic]Platform_Proc_Record,
+    extensions: [dynamic]Platform_Extension,
 
-    // Contains the procedure that will be called when the platform needs to be
-    // deinitialized.
-    closing_procs: [dynamic]Platform_Proc_Record,
+    // This list stores the order in which the extensions should be executed
+    // (considering dependencies and dependans). Each extension is identified by
+    // its index of the extensions list.
+    extensions_update_list: []uint,
 }
 PLATFORM_INSTANCE: core.Cell(Platform)
 
 platform_init :: proc() {
     core.cell_init(&PLATFORM_INSTANCE)
 
-    PLATFORM_INSTANCE.starting_procs = make([dynamic]Platform_Proc_Record)
-    PLATFORM_INSTANCE.closing_procs = make([dynamic]Platform_Proc_Record)
+    PLATFORM_INSTANCE.extensions = make([dynamic]Platform_Extension)
 }
 
-platform_free :: proc() {
-    delete(PLATFORM_INSTANCE.starting_procs)
-    delete(PLATFORM_INSTANCE.closing_procs)
+platform_deinit :: proc() {
+    delete(PLATFORM_INSTANCE.extensions)
+
+    if PLATFORM_INSTANCE.extensions_update_list != nil do delete(PLATFORM_INSTANCE.extensions_update_list)
 
     core.cell_free(&PLATFORM_INSTANCE)
 }
 
-// Adds a function that will be called at the initialization.
-platform_register_starting_proc :: proc(name: string, procedure: Platform_Proc) {
-    append(&PLATFORM_INSTANCE.starting_procs, Platform_Proc_Record {
-        procedure,
-        name,
-    })
+platform_request_close :: proc() {
+    PLATFORM_INSTANCE.should_close = true
 }
 
-// Adds a function that will be called at the deinitialization.
-platform_register_closing_proc :: proc(name: string, procedure: Platform_Proc) {
-    append(&PLATFORM_INSTANCE.closing_procs, Platform_Proc_Record {
-        procedure,
-        name,
-    })
+platform_register_extension :: proc(extension: Platform_Extension) -> bool {
+    if platform_extension_exists(extension.name) {
+        log.warn("Extension", extension.name, "already exists. The second instance will not be added")
+        return false
+    }
+
+    append(&PLATFORM_INSTANCE.extensions, extension)
+    return true
 }
 
-platform_register_procs :: proc(name: string,
-    starting_proc: Platform_Proc,
-    closing_proc: Platform_Proc,
-) {
-    platform_register_starting_proc(name, starting_proc)
-    platform_register_closing_proc(name, closing_proc)
+platform_replace_extension :: proc(extension: Platform_Extension) -> bool {
+    if platform_extension_exists(extension.name) {
+        log.warn("Extension", extension.name, "does not exists. It cannot be replaced")
+        return false
+    }
+
+    for ex, i in PLATFORM_INSTANCE.extensions do if ex.name == extension.name {
+        PLATFORM_INSTANCE.extensions[i] = extension
+
+        break
+    }
+
+    return true
 }
 
-// Initializes all the libaries requested.
-platform_start :: proc() {
-    when ODIN_DEBUG {
-        if PLATFORM_INSTANCE.started {
-            log.warn("The platform has already been initialized")
-            return
+platform_extension_exists :: proc(identifier: Platform_Extension_Identifier) -> bool {
+    for ex in PLATFORM_INSTANCE.extensions do if ex.name == identifier do return true
+
+    return false
+}
+
+platform_get_extension_info :: proc(identifier: Platform_Extension_Identifier) -> Maybe(Platform_Extension_Info) {
+    for ex in PLATFORM_INSTANCE.extensions {
+        if ex.name == identifier do return Platform_Extension_Info {
+            name    = ex.name,
+            version = ex.version,
+            dependencies = ex.dependencies,
+            dependants = ex.dependants,
         }
     }
 
-    log.info("Initializating the platform.")
-    for record in PLATFORM_INSTANCE.starting_procs {
-        log.info("Running", record.name, "initialization.")
-        err, message := record.procedure()
-
-        switch err {
-            case .Ok: log.info("Successfully ran", record.name, "initialization procedure")
-            case .Warn: log.warn("Initialization procedure", record.name, "has encountered a non-fatal error: ", message)
-            case .Fatal: {
-                log.warn("Initialization procedure", record.name, "has encountered a non-fatal error: ", message)
-                 panic("One initialization procedure failed. Aborting.")
-            }
-        }
-    }
-    log.info("Successfully initializated the platform.")
-
-    PLATFORM_INSTANCE.started = true
+    return nil
 }
 
-// Deinitializes all the libaries requested.
-platform_close :: proc() {
-    when ODIN_DEBUG {
-        if PLATFORM_INSTANCE.closed {
-            log.warn("The platform has already been closed")
-            return
-        }
+platform_run :: proc() {
+    log.info("Resolving extensions update list...")
+    if !platform_resolve_update_list() {
+        panic("Could not resolve the update list!")
     }
 
-    log.info("Deinitializing the platform.")
-    had_errors := false
-    for record in PLATFORM_INSTANCE.closing_procs {
-        log.info("Running", record.name, "deinitialization.")
-        err, message := record.procedure()
-
-        if err == .Ok do log.info("Successfully ran", record.name, "closing procedure")
-        else {
-            log.warn("Closing procedure", record.name, "has encountered an error: ", message)
-            had_errors = true
-        }
+    log.info("Generated extensions update list:")
+    for extension_id in PLATFORM_INSTANCE.extensions_update_list {
+        log.info(args = {
+            "\t- ", PLATFORM_INSTANCE.extensions[extension_id].name,
+        }, sep = "")
     }
 
-    if had_errors do log.warn("Deinitializated the platform with errors.")
-    else do log.info("Successfullty deinitializated the platform.")
-
-    PLATFORM_INSTANCE.closed = true
+    log.info("Running extensions'init proc")
+    // for extension_id in PLATFORM_INSTANCE.extensions_update_list {
+    //     if err, msg := PLATFORM_INSTANCE.extensions[extension_id].init_proc(); err != .Ok {
+            
+    //     }
+    // }
 }
+
