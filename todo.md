@@ -1,4 +1,5 @@
 - [ ] untie platform and window closing
+- [ ] create better glue between extension and gfx
 
 
 Old:

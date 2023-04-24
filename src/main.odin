@@ -128,16 +128,72 @@ package main
 //     }
 // }
 
+import "core:log"
+import gl "vendor:OpenGL"
+import "shared:glfw"
 import core "shared:vx_core"
 import deps "shared:vx_lib/dependences"
 import plt "shared:vx_lib/platform"
 import wnd "shared:vx_lib/window"
+import "shared:vx_lib/gfx"
+import "shared:vx_lib/gfx/gl4"
 
 counter := 0
 
-frame :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
-	counter += 1
+init :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
+	context = core.default_context()
 
+	DEVICE_REQUIREMENTS :: gfx.Device_Requirements {
+		device_type = .Performance,
+	}
+	SWAPCHAIN_DESCRIPTOR := gfx.Swapchain_Descriptor {
+		present_mode = .Fifo,
+		size = wnd.windowhelper_get_window_size(),
+		refresh_rate = 60,
+		format = .Unknown,
+	}
+
+	backend_info := gfx.backend_get_info()
+	defer gfx.backendinfo_free(backend_info)
+
+	log.info("Using backend: ", backend_info)
+
+	if state := gfx.device_try_set(DEVICE_REQUIREMENTS); state == .Unavaliable_Functionality {
+		gfx.device_set(DEVICE_REQUIREMENTS)
+	} else {
+		log.fatal(args = { "Could not set a device (error", state, ")" }, sep = "")
+		panic("Could not set a device")
+	}
+
+	device_info := gfx.device_get_info()
+	defer gfx.deviceinfo_free(device_info)
+
+	if device_info == nil do log.warn("Could not get device info.")
+	else do log.info("Using device: ", device_info.?)
+
+	if state := gfx.device_try_set_swapchain(SWAPCHAIN_DESCRIPTOR); state == .Unavaliable_Functionality {
+		gfx.device_set_swapchain(SWAPCHAIN_DESCRIPTOR)
+	} else {
+		log.fatal(args = { "Could not set the swapchain (error", state, ")" }, sep = "")
+		panic("Could not set the swapchain")
+	}
+
+	swpachain_info := gfx.swapchain_get_info()
+	if swpachain_info == nil do log.warn("Could not get swapchain info.")
+	else do log.info("Using swapchain: ", swpachain_info.?)
+	return .Ok, ""
+}
+
+frame :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
+	input_common()
+	
+	gl.ClearColor(1.0, 0.5, 0.25, 1.0)
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+
+	return .Ok, ""
+}
+
+deinit :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 	return .Ok, ""
 }
 
@@ -150,11 +206,16 @@ main :: proc() {
 
 	plt.platform_register_extension(deps.GLFW_EXTENSION)
 	plt.platform_register_extension(wnd.WINDOW_EXTENSION)
+	plt.platform_register_extension(gfx.GFXSUPPORT_EXTENSION)
+	plt.platform_register_extension(gfx.GFX_EXTENSION)
 	plt.platform_register_extension(plt.Platform_Extension {
 		name = "project_amber.game",
 		dependants = {},
 		dependencies = { "vx_lib.window" },
+		
+		init_proc = init,
 		frame_proc = frame,
+		deinit_proc = deinit,
 	})
 
 	wnd.window_set_descriptor(wnd.Window_Descriptor {
@@ -167,5 +228,37 @@ main :: proc() {
 		grab_cursor = false,
 	})
 
+	gfx.set_gfxdescriptor(gfx.Gfx_Descriptor {
+		allocator = context.allocator,
+		logger = context.logger,
+		debug = ODIN_DEBUG,
+	})
+	gfx.set_backendinitializer(gl4.BACKEND_INITIALIZER)
+	gfx.set_backenduserinitializationdata(gfx.Backend_User_Initialization_Data {
+		allocator = context.allocator,
+		logger = context.logger,
+		debug = ODIN_DEBUG,
+	})
+
 	plt.platform_run()
+}
+
+input_common :: proc() {
+    if wnd.windowhelper_get_keyboard_keystate(glfw.KEY_TAB).just_pressed {
+        wnd.windowhelper_set_mouse_grabbbed(!wnd.windowhelper_is_mouse_grabbed())
+    }
+    if wnd.windowhelper_get_keyboard_keystate(glfw.KEY_ESCAPE).just_pressed {
+        wnd.windowhelper_close_window()
+    }
+
+    if wnd.windowhelper_get_keyboard_keystate(glfw.KEY_LEFT_ALT).pressed && wnd.windowhelper_get_keyboard_keystate(glfw.KEY_F).just_pressed {
+        @static not_fullscreen_size: [2]uint
+
+        if !wnd.windowhelper_is_fullscreen() {
+            not_fullscreen_size = wnd.windowhelper_get_window_size()
+
+            wnd.windowhelper_set_window_size(wnd.windowhelper_get_screen_size())
+        } else do wnd.windowhelper_set_window_size(not_fullscreen_size)
+        wnd.windowhelper_set_fullscreen(!wnd.windowhelper_is_fullscreen())
+    }
 }
