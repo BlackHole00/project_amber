@@ -14,6 +14,19 @@ CONTEXT_LOG_FILE: os.Handle
 @(private)
 CONTEXT_TRACKING_ALLOCATOR: mem.Tracking_Allocator
 
+@(private)
+assertion_failure_proc :: proc(prefix, message: string, loc: runtime.Source_Code_Location) -> ! {
+    log.fatal(args = {
+        prefix,
+        ": ",
+        message,
+    }, sep = "", location = loc)
+
+    if CONTEXT_LOG_FILE != 0 do os.close(CONTEXT_LOG_FILE)
+
+    runtime.trap()
+}
+
 default_context :: proc() -> runtime.Context {
     if !CONTEXT_VALID do init_default_context()
 
@@ -38,6 +51,8 @@ init_default_context :: proc() {
 
 	mem.tracking_allocator_init(&CONTEXT_TRACKING_ALLOCATOR, DEFAULT_CONTEXT_INSTANCE.allocator)
 	DEFAULT_CONTEXT_INSTANCE.allocator = mem.tracking_allocator(&CONTEXT_TRACKING_ALLOCATOR)
+
+    DEFAULT_CONTEXT_INSTANCE.assertion_failure_proc = assertion_failure_proc
 
     CONTEXT_VALID = true
 }
