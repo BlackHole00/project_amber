@@ -13,28 +13,10 @@ BACKEND_INITIALIZER :: gfx.Backend_Initializer {
 }
 
 @(private)
-backend_init :: proc(user_init_data: gfx.Backend_User_Initialization_Data, init_data: gfx.Backend_Initialization_Data) -> bool {
-    core.cell_init(&CONTEXT_INSTANCE)
-
-    CONTEXT_INSTANCE.allocator = user_init_data.allocator
-    CONTEXT_INSTANCE.logger = user_init_data.logger
-    CONTEXT_INSTANCE.debug = user_init_data.debug
-
-    glfw.MakeContextCurrent(init_data.window_handle)
+backend_init :: proc(data: gfx.Backend_Initialization_Data) -> bool {
+    glfw.MakeContextCurrent(data.window_handle)
 
     gl.load_up_to(4, 6, glfw.gl_set_proc_address)
-
-    gfx.CONTEXT_INSTANCE.backend_get_info   = backend_get_info
-    gfx.CONTEXT_INSTANCE.backendinfo_free   = backendinfo_free
-    gfx.CONTEXT_INSTANCE.device_check_requirements = device_check_requirements
-    gfx.CONTEXT_INSTANCE.device_set         = device_set
-    gfx.CONTEXT_INSTANCE.device_get_info    = device_get_info
-    gfx.CONTEXT_INSTANCE.deviceinfo_free    = deviceinfo_free
-    gfx.CONTEXT_INSTANCE.device_check_swapchain_descriptor = device_check_swapchain_descriptor
-    gfx.CONTEXT_INSTANCE.device_set_swapchain = device_set_swapchain
-    gfx.CONTEXT_INSTANCE.swapchain_get_info = swapchain_get_info 
-    gfx.CONTEXT_INSTANCE.swapchain_resize   = swapchain_resize 
-    gfx.CONTEXT_INSTANCE.swapchain_get_rendertarget = swapchain_get_rendertarget 
 
     return true
 }
@@ -45,10 +27,29 @@ backend_deinit :: proc() {
 }
 
 @(private)
-backend_pre_window_init :: proc() -> bool {
+backend_pre_window_init :: proc(user_descriptor: gfx.Backend_User_Descritor) -> bool {
     glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 4)
     glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 6)
     glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+
+    core.cell_init(&CONTEXT_INSTANCE)
+
+    CONTEXT_INSTANCE.allocator = user_descriptor.allocator
+    CONTEXT_INSTANCE.logger = user_descriptor.logger
+    CONTEXT_INSTANCE.debug = user_descriptor.debug
+
+    gfx.CONTEXT_INSTANCE.backend_get_info   = backend_get_info
+    gfx.CONTEXT_INSTANCE.backendinfo_free   = backendinfo_free
+    gfx.CONTEXT_INSTANCE.get_deviceinfolist = get_deviceinfolist
+    gfx.CONTEXT_INSTANCE.deviceinfolist_free = deviceinfolist_free
+    gfx.CONTEXT_INSTANCE.device_set         = device_set
+    gfx.CONTEXT_INSTANCE.device_get_info    = device_get_info
+    gfx.CONTEXT_INSTANCE.deviceinfo_free    = deviceinfo_free
+    gfx.CONTEXT_INSTANCE.device_check_swapchain_descriptor = device_check_swapchain_descriptor
+    gfx.CONTEXT_INSTANCE.device_set_swapchain = device_set_swapchain
+    gfx.CONTEXT_INSTANCE.swapchain_get_info = swapchain_get_info 
+    gfx.CONTEXT_INSTANCE.swapchain_resize   = swapchain_resize 
+    gfx.CONTEXT_INSTANCE.swapchain_get_rendertarget = swapchain_get_rendertarget 
 
     return true
 }

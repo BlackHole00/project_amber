@@ -2,6 +2,8 @@
 
 cd ..
 
+mkdir build
+
 del build\*.*
 del  .\run.bat
 del  .\run.sh

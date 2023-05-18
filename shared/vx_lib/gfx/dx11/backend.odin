@@ -12,14 +12,8 @@ BACKEND_INITIALIZER :: gfx.Backend_Initializer {
 }
 
 @(private)
-backend_init :: proc(user_init_data: gfx.Backend_User_Initialization_Data, init_data: gfx.Backend_Initialization_Data) -> bool {
-    core.cell_init(&CONTEXT_INSTANCE)
-
-    CONTEXT_INSTANCE.allocator = user_init_data.allocator
-    CONTEXT_INSTANCE.logger = user_init_data.logger
-    CONTEXT_INSTANCE.debug = user_init_data.debug
-
-    CONTEXT_INSTANCE.native_hwnd = glfw.GetWin32Window(init_data.window_handle)
+backend_init :: proc(data: gfx.Backend_Initialization_Data) -> bool {
+    CONTEXT_INSTANCE.native_hwnd = glfw.GetWin32Window(data.window_handle)
 
     return true
 }
@@ -35,8 +29,14 @@ backend_deinit :: proc() {
 }
 
 @(private)
-backend_pre_window_init :: proc() -> bool {
+backend_pre_window_init :: proc(user_descriptor: gfx.Backend_User_Descritor) -> bool {
     glfw.WindowHint(glfw.CLIENT_API , glfw.NO_API)
+
+    core.cell_init(&CONTEXT_INSTANCE)
+
+    CONTEXT_INSTANCE.allocator = user_descriptor.allocator
+    CONTEXT_INSTANCE.logger = user_descriptor.logger
+    CONTEXT_INSTANCE.debug = user_descriptor.debug
 
     return true
 }

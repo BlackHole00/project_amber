@@ -5,22 +5,22 @@ import "core:log"
 import "shared:glfw"
 import core "shared:vx_core"
 
-Backend_User_Initialization_Data :: struct {
-    allocator: mem.Allocator,
-    logger: log.Logger,
-    debug: bool,
-    extra_data: rawptr,
+Backend_User_Descritor :: struct {
+	allocator: mem.Allocator,
+	logger: log.Logger,
+	debug: bool,
+	extra_data: rawptr, // To be interpreted by the backend implementation
 }
 
 Backend_Initialization_Data :: struct {
-    window_handle: glfw.WindowHandle,
+	window_handle: glfw.WindowHandle,
 }
 
 Backend_Initializer :: struct {
 	// returns false if the initialization has failed.
-	init_proc: proc(user_init_data: Backend_User_Initialization_Data, init_data: Backend_Initialization_Data) -> bool,
+	init_proc: proc(data: Backend_Initialization_Data) -> bool,
 	deinit_proc: proc(),
-	pre_window_init_proc: proc() -> bool,
+	pre_window_init_proc: proc(user_descriptor: Backend_User_Descritor) -> bool,
 	post_frame_proc: proc(handle: glfw.WindowHandle),
 }
 

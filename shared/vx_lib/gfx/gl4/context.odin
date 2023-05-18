@@ -10,6 +10,7 @@ Context :: struct {
 	logger: log.Logger,
 	debug: bool,
 
+    device_set: bool,
     swapchain_descriptor: Maybe(gfx.Swapchain_Descriptor),
 }
 CONTEXT_INSTANCE: core.Cell(Context)
