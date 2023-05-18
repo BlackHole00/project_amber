@@ -1,3 +1,4 @@
+//+build windows
 package vx_lib_gfx_dx11
 
 import "shared:glfw"
@@ -37,6 +38,19 @@ backend_pre_window_init :: proc(user_descriptor: gfx.Backend_User_Descritor) -> 
     CONTEXT_INSTANCE.allocator = user_descriptor.allocator
     CONTEXT_INSTANCE.logger = user_descriptor.logger
     CONTEXT_INSTANCE.debug = user_descriptor.debug
+
+    gfx.CONTEXT_INSTANCE.backend_get_info   = backend_get_info
+    gfx.CONTEXT_INSTANCE.backendinfo_free   = backendinfo_free
+    gfx.CONTEXT_INSTANCE.device_get_info    = device_get_info
+    gfx.CONTEXT_INSTANCE.get_deviceinfolist = get_deviceinfolist
+    gfx.CONTEXT_INSTANCE.deviceinfo_free    = deviceinfo_free
+    gfx.CONTEXT_INSTANCE.deviceinfolist_free = deviceinfolist_free
+    gfx.CONTEXT_INSTANCE.device_set         = device_set
+    gfx.CONTEXT_INSTANCE.device_check_swapchain_descriptor = device_check_swapchain_descriptor
+    gfx.CONTEXT_INSTANCE.device_set_swapchain = device_set_swapchain
+    // gfx.CONTEXT_INSTANCE.swapchain_get_info = swapchain_get_info
+    // gfx.CONTEXT_INSTANCE.swapchain_resize = swapchain_resize
+    // gfx.CONTEXT_INSTANCE.swapchain_get_rendertarget = swapchain_get_rendertarget
 
     return true
 }

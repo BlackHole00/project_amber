@@ -1,7 +1,7 @@
 package main
 
 import "core:log"
-import gl "vendor:OpenGL"
+// import gl "vendor:OpenGL"
 import "shared:glfw"
 import core "shared:vx_core"
 import deps "shared:vx_lib/dependences"
@@ -9,6 +9,10 @@ import plt "shared:vx_lib/platform"
 import wnd "shared:vx_lib/window"
 import "shared:vx_lib/gfx"
 import "shared:vx_lib/gfx/gl4"
+import "shared:vx_lib/gfx/dx11"
+
+_ :: gl4
+_ :: dx11
 
 counter := 0
 
@@ -61,8 +65,8 @@ init :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 frame :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 	input_common()
 	
-	gl.ClearColor(1.0, 0.5, 0.25, 1.0)
-	gl.Clear(gl.COLOR_BUFFER_BIT)
+	// gl.ClearColor(1.0, 0.5, 0.25, 1.0)
+	// gl.Clear(gl.COLOR_BUFFER_BIT)
 
 	return .Ok, ""
 }
@@ -113,7 +117,8 @@ main :: proc() {
 			logger = context.logger,
 			debug = ODIN_DEBUG,
 		},
-		backend_initializer = gl4.BACKEND_INITIALIZER,
+		backend_initializer = dx11.BACKEND_INITIALIZER,
+		// backend_initializer = gl4.BACKEND_INITIALIZER,
 	})
 
 	plt.platform_run()

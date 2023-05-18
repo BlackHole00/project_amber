@@ -1,3 +1,4 @@
+//+build windows
 package vx_lib_gfx_dx11
 
 import "core:mem"
@@ -15,6 +16,10 @@ Context :: struct {
 
     native_hwnd: win.HWND,
 
+    // this array will only be valid before device_set() is called.
+    adapters: Maybe([dynamic]^dxgi.IAdapter),
+
+    adapter: ^dxgi.IAdapter,
     device: ^d3d11.IDevice,
     device_context: ^d3d11.IDeviceContext,
     swapchain: ^dxgi.ISwapChain,
