@@ -1,35 +1,39 @@
 package vx_lib_gfx_gl4
 
+import "core:fmt"
 import "core:strings"
 import "shared:glfw"
 import gl "vendor:OpenGL"
 import "shared:vx_lib/gfx"
 
-device_set :: proc(index: uint) -> bool {
-    // OpenGl only has ONE device
-    if index != 0 do return false
-
-    CONTEXT_INSTANCE.device_set = true
-
-    return true
+get_device_count :: proc() -> uint {
+    return 1
 }
 
-device_get_info :: proc() -> Maybe(gfx.Device_Info) {
-    if !CONTEXT_INSTANCE.device_set do return nil
+get_deviceinfo_of_idx :: proc(index: uint) -> gfx.Device_Info {
+    assert(index == 0)
 
     return device_get_deviceinfo_from_driver()
 }
 
-get_deviceinfolist :: proc() -> gfx.Device_Info_List {
-    list := make([]gfx.Device_Info, 1) 
-    list[0] = device_get_deviceinfo_from_driver()
+deviceinfo_free :: proc(info: gfx.Device_Info) {
+    context.allocator = CONTEXT_INSTANCE.allocator
 
-    return list
+    delete(info.device_description)
+}
+
+device_get_info :: proc() -> gfx.Device_Info {
+    return device_get_deviceinfo_from_driver()
+}
+
+device_set :: proc(index: uint) -> bool {
+    // OpenGl only has ONE device
+    if index != 0 do return false
+
+    return true
 }
 
 device_check_swapchain_descriptor :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapchain_Set_Error {
-    if descriptor.refresh_rate != 60 do return .Illegal_Refresh_Rate
-
     return .Unavaliable_Functionality
 }
 
@@ -37,27 +41,11 @@ device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) {
     CONTEXT_INSTANCE.swapchain_descriptor = descriptor
 
     switch descriptor.present_mode {
-        case .Fifo: glfw.SwapInterval(1)
+        case .Vsync: glfw.SwapInterval(1)
         case .Immediate: glfw.SwapInterval(0)
-        case .Mailbox: glfw.SwapInterval(0)
     }
     swapchain_resize(descriptor.size)
 
-}
-
-deviceinfo_free :: proc(info: gfx.Device_Info) {
-    context.allocator = CONTEXT_INSTANCE.allocator
-
-    delete(info.device_name)
-    delete(info.driver_info)
-    delete(info.api_info)
-}
-
-deviceinfolist_free :: proc(list: gfx.Device_Info_List) {
-    context.allocator = CONTEXT_INSTANCE.allocator
-
-    deviceinfo_free(list[0])
-    delete(list)
 }
 
 @(private)
@@ -65,14 +53,29 @@ device_get_deviceinfo_from_driver :: proc() -> gfx.Device_Info {
     context.allocator = CONTEXT_INSTANCE.allocator
 
     device_name := strings.clone_from_cstring(gl.GetString(gl.RENDERER))
+    defer delete(device_name)
     driver_info := strings.clone_from_cstring(gl.GetString(gl.VENDOR))
+    defer delete(driver_info)
     api_info := strings.clone_from_cstring(gl.GetString(gl.VERSION))
+    defer delete(api_info)
+    
+    l_device_name := strings.to_lower(device_name)
+    defer delete(l_device_name)
+    l_driver_info := strings.to_lower(driver_info)
+    defer delete(l_driver_info)
+
+    device_vendor := gfx.Device_Vendor.Unknown
+    if strings.contains(l_device_name, "radeon") || strings.contains(l_driver_info, "ati") {
+        device_vendor = .Amd
+    } else if strings.contains(l_device_name, "nvidia") || strings.contains(l_driver_info, "nvidia") {
+        device_vendor = .Nvidia
+    } else if strings.contains(l_device_name, "intel") || strings.contains(l_driver_info, "intel") {
+        device_vendor = .Intel
+    }
 
     return gfx.Device_Info {
-        device_name = device_name,
-        driver_info = driver_info,
-        api_info = api_info,
-
+        device_description = fmt.aprint(device_name, driver_info, api_info),
+        device_vendor = device_vendor,
         device_type = .Unknown,
     }
 }

@@ -16,7 +16,7 @@ BACKEND_INITIALIZER :: gfx.Backend_Initializer {
 backend_init :: proc(data: gfx.Backend_Initialization_Data) -> bool {
     glfw.MakeContextCurrent(data.window_handle)
 
-    gl.load_up_to(4, 6, glfw.gl_set_proc_address)
+    gl.load_up_to(4, 5, glfw.gl_set_proc_address)
 
     return true
 }
@@ -29,7 +29,7 @@ backend_deinit :: proc() {
 @(private)
 backend_pre_window_init :: proc(user_descriptor: gfx.Backend_User_Descritor) -> bool {
     glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 4)
-    glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 6)
+    glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 5)
     glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 
     core.cell_init(&CONTEXT_INSTANCE)
@@ -40,8 +40,8 @@ backend_pre_window_init :: proc(user_descriptor: gfx.Backend_User_Descritor) -> 
 
     gfx.CONTEXT_INSTANCE.backend_get_info   = backend_get_info
     gfx.CONTEXT_INSTANCE.backendinfo_free   = backendinfo_free
-    gfx.CONTEXT_INSTANCE.get_deviceinfolist = get_deviceinfolist
-    gfx.CONTEXT_INSTANCE.deviceinfolist_free = deviceinfolist_free
+    gfx.CONTEXT_INSTANCE.get_device_count   = get_device_count
+    gfx.CONTEXT_INSTANCE.get_deviceinfo_of_idx = get_deviceinfo_of_idx
     gfx.CONTEXT_INSTANCE.device_set         = device_set
     gfx.CONTEXT_INSTANCE.device_get_info    = device_get_info
     gfx.CONTEXT_INSTANCE.deviceinfo_free    = deviceinfo_free

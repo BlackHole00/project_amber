@@ -20,10 +20,9 @@ init :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 	context = core.default_context()
 
 	SWAPCHAIN_DESCRIPTOR := gfx.Swapchain_Descriptor {
-		present_mode = .Fifo,
+		present_mode = .Vsync,
 		size = wnd.windowhelper_get_window_size(),
-		refresh_rate = 60,
-		format = .Unknown,
+		format = .R8G8B8A8,
 	}
 
 	backend_info := gfx.backend_get_info()

@@ -12,28 +12,23 @@ Swapchain_Set_Error :: enum {
 	Illegal_Size,
 	Illegal_Format,
 	Illegal_Refresh_Rate,
+	Illegal_Multisample,
 	// ... To add regarding limits
 }
 
 Present_Mode :: enum {
-	Immediate, // Frames submitted are sent to the gpu without waiting. Has tearing.
-	Fifo,      // Waits for vsync.
-	Mailbox,   // Similar to immediate, but has not tearing.
+	Vsync,      // Waits for vsync.
+	Immediate,  // No vsync
 }
 
 Swapchain_Descriptor :: struct {
 	present_mode: Present_Mode,
 	size: [2]uint,
-	refresh_rate: uint, // in Hz
 	format: Image_Format,
+	fullscreen: bool,
 }
 
-Swapchain_Info :: struct {
-	present_mode: Present_Mode,
-	size: [2]uint,
-	refresh_rate: uint,
-	format: Image_Format,
-}
+Swapchain_Info :: Swapchain_Descriptor
 
 // Returns nil if the swapchain has not been already created or if the backend cannot
 // provide the necessary information.

@@ -2,40 +2,65 @@
 package vx_lib_gfx_dx11
 
 import "core:log"
-import "core:fmt"
+import "core:strings"
 import win "core:sys/windows"
 import "vendor:directx/dxgi"
+import "vendor:directx/d3d11"
 import "shared:vx_lib/gfx"
 
+get_device_count :: proc() -> uint {
+    if CONTEXT_INSTANCE.adapters == nil do generate_adapter_list()
+
+    return len(CONTEXT_INSTANCE.adapters.?)
+}
+
+get_deviceinfo_of_idx :: proc(index: uint) -> gfx.Device_Info {
+    if CONTEXT_INSTANCE.adapters == nil do generate_adapter_list()
+
+    return deviceinfo_get_from_adapter(CONTEXT_INSTANCE.adapters.?[index])
+}
+
+deviceinfo_free :: proc(info: gfx.Device_Info) {
+    delete(info.device_description)
+}
+
+device_get_info :: proc() -> gfx.Device_Info {
+    return deviceinfo_get_from_adapter(CONTEXT_INSTANCE.adapter)
+}
+
 device_set :: proc(index: uint) -> bool {
-    if CONTEXT_INSTANCE.adapters == nil do return false
-    if index >= len(CONTEXT_INSTANCE.adapters.?) do return false
+    if CONTEXT_INSTANCE.adapters == nil do generate_adapter_list()
 
     CONTEXT_INSTANCE.adapter = CONTEXT_INSTANCE.adapters.?[index]
     free_adapter_list()
 
-    // TODO: create d3d11 device
-
-    return true
-}
-
-device_get_info :: proc() -> Maybe(gfx.Device_Info) {
-    if CONTEXT_INSTANCE.adapter == nil do return nil
-
-    return deviceinfo_get_from_adapter(CONTEXT_INSTANCE.adapter)
-}
-
-get_deviceinfolist :: proc() -> gfx.Device_Info_List {
-    if CONTEXT_INSTANCE.adapters == nil do generate_adapter_list()
-
-    context.allocator = CONTEXT_INSTANCE.allocator
-
-    list := make([]gfx.Device_Info, len(CONTEXT_INSTANCE.adapters.?))
-    for adapter, i in CONTEXT_INSTANCE.adapters.? {
-        list[i] = deviceinfo_get_from_adapter(adapter)
+    flags: d3d11.CREATE_DEVICE_FLAGS
+    if CONTEXT_INSTANCE.debug {
+        // flags += d3d11.CREATE_DEVICE_FLAG.DEBUG
+        incl(&flags, d3d11.CREATE_DEVICE_FLAG.DEBUG)
+    }
+    feature_levels := []d3d11.FEATURE_LEVEL {
+        // ._12_1,
+        // ._12_0,
+        ._11_1,
     }
 
-    return list
+    if d3d11.CreateDevice(
+        CONTEXT_INSTANCE.adapter,
+        .UNKNOWN,
+        nil,
+        flags,
+        &feature_levels[0],
+        (u32)(len(feature_levels)),
+        d3d11.SDK_VERSION,
+        &CONTEXT_INSTANCE.device,
+        nil,
+        &CONTEXT_INSTANCE.device_context,
+    ) != win.NO_ERROR {
+        return false
+    }
+
+    return true
 }
 
 device_check_swapchain_descriptor :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapchain_Set_Error {
@@ -44,21 +69,48 @@ device_check_swapchain_descriptor :: proc(descriptor: gfx.Swapchain_Descriptor) 
 
 device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) {
     CONTEXT_INSTANCE.swapchain_descriptor = descriptor
-}
 
-deviceinfo_free :: proc(info: gfx.Device_Info) {
-    delete(info.device_name)
-    delete(info.driver_info)
-    // delete(info.api_info)
-}
-
-deviceinfolist_free :: proc(list: gfx.Device_Info_List) {
-    context.allocator = CONTEXT_INSTANCE.allocator
-
-    for info in list {
-        deviceinfo_free(info)
+    dxgi_factory: ^dxgi.IFactory2
+    if (CONTEXT_INSTANCE.debug) {
+        assert(dxgi.CreateDXGIFactory2(dxgi.CREATE_FACTORY_DEBUG, dxgi.IFactory2_UUID, auto_cast &dxgi_factory) == 0, "Could not create a DXGIFactory")
+    } else {
+        assert(dxgi.CreateDXGIFactory2(0, dxgi.IFactory2_UUID, auto_cast &dxgi_factory) == 0, "Could not create a DXGIFactory")
     }
-    delete(list)
+    defer dxgi_factory->Release()
+
+    flags: u32 = 0
+    if descriptor.present_mode != .Vsync {
+        flags = (u32)(dxgi.SWAP_CHAIN_FLAG.ALLOW_TEARING)
+    }
+
+    swapchain_desc := dxgi.SWAP_CHAIN_DESC1 {
+        Width = (u32)(descriptor.size.x),
+        Height = (u32)(descriptor.size.y),
+        Format = gfxImageFormat_to_d3d11SwapchanFormat(descriptor.format),
+        Stereo = false,
+        SwapEffect = .DISCARD,
+        SampleDesc = dxgi.SAMPLE_DESC {
+            Count = 1,
+            Quality = 0,
+        },
+        BufferUsage = { .RENDER_TARGET_OUTPUT },
+        BufferCount = 1,
+        Scaling = .STRETCH,
+        AlphaMode = .UNSPECIFIED,
+        Flags = flags,
+    }
+
+    swapchain_fullscreen_desc := dxgi.SWAP_CHAIN_FULLSCREEN_DESC {
+        RefreshRate = dxgi.RATIONAL {
+            Numerator = 1,
+            Denominator = 60,
+        },
+        ScanlineOrdering = .UNSPECIFIED,
+        Scaling = .STRETCHED,
+        Windowed = (win.BOOL)(!descriptor.fullscreen),
+    }
+
+    assert(dxgi_factory->CreateSwapChainForHwnd(CONTEXT_INSTANCE.device, CONTEXT_INSTANCE.native_hwnd, &swapchain_desc, &swapchain_fullscreen_desc, nil, &CONTEXT_INSTANCE.swapchain) == win.NO_ERROR)
 }
 
 @(private)
@@ -100,11 +152,28 @@ deviceinfo_get_from_adapter :: proc(adapter: ^dxgi.IAdapter) -> gfx.Device_Info 
     info: gfx.Device_Info
 
     if str, err := win.utf16_to_utf8(transmute([]u16)(adapter_desc.Description[:]), context.allocator); err == .None {
-        info.device_name = str
+        info.device_description = str
     }
-    info.driver_info = fmt.aprint(adapter_desc.Revision)
-    info.api_info = "Unknown"
-    info.device_type = .Unknown
+
+    l_device_description := strings.to_lower(info.device_description)
+    defer delete(l_device_description)
+
+    device_vendor := gfx.Device_Vendor.Unknown
+    if strings.contains(l_device_description, "radeon") {
+        device_vendor = .Amd
+    } else if strings.contains(l_device_description, "nvidia") {
+        device_vendor = .Nvidia
+    } else if strings.contains(l_device_description, "intel") {
+        device_vendor = .Intel
+    }
+
+    device_type := gfx.Device_Type.Unknown
+    if (l_device_description == "microsoft basic render driver") {
+        device_type = .Software
+    }
+
+    info.device_vendor = device_vendor
+    info.device_type = device_type
 
     return info
 }

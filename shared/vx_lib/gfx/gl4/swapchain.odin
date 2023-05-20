@@ -4,14 +4,7 @@ import gl "vendor:OpenGL"
 import "shared:vx_lib/gfx"
 
 swapchain_get_info :: proc() -> Maybe(gfx.Swapchain_Info) {
-    if CONTEXT_INSTANCE.swapchain_descriptor == nil do return nil
-
-    return gfx.Swapchain_Info {
-        present_mode = CONTEXT_INSTANCE.swapchain_descriptor.?.present_mode,
-        size = CONTEXT_INSTANCE.swapchain_descriptor.?.size,
-        refresh_rate = CONTEXT_INSTANCE.swapchain_descriptor.?.refresh_rate,
-        format = .Unknown,
-    }
+    return CONTEXT_INSTANCE.swapchain_descriptor
 }
 
 swapchain_resize :: proc(size: [2]uint) -> bool {
@@ -21,7 +14,6 @@ swapchain_resize :: proc(size: [2]uint) -> bool {
     CONTEXT_INSTANCE.swapchain_descriptor = gfx.Swapchain_Descriptor {
         present_mode = CONTEXT_INSTANCE.swapchain_descriptor.?.present_mode,
         size = size,
-        refresh_rate = CONTEXT_INSTANCE.swapchain_descriptor.?.refresh_rate,
         format = .Unknown,
     }
 

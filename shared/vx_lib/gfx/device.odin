@@ -9,29 +9,67 @@ Device_Type :: enum {
 	Unknown,
 }
 
-Device_Info :: struct {
-	device_name: string,
-	driver_info: string,
-	api_info: string,
+Device_Vendor :: enum {
+	Nvidia,
+	Amd,
+	Intel,
+	Other,
+	Unknown,
+}
 
+Device_Info :: struct {
+	device_description: string,
+	device_vendor: Device_Vendor,
 	device_type: Device_Type,
 
-	// limits to be added in the future
+	// limits and other information to be added in the future
 }
 
 Device_Info_List :: []Device_Info
 
+get_deviceinfo_of_idx :: proc(index: uint) -> Maybe(Device_Info) {
+	context = gfx_default_context()
+
+	if index >= get_device_count() {
+		log.warn("The user requested information about a device that doesn't exist.")
+		return nil
+	}
+
+	return CONTEXT_INSTANCE.get_deviceinfo_of_idx(index)
+}
+
+get_device_count :: proc() -> uint {
+	return CONTEXT_INSTANCE.get_device_count()
+}
+
 get_deviceinfolist :: proc() -> Device_Info_List {
-	return CONTEXT_INSTANCE.get_deviceinfolist()
+	context = gfx_default_context()
+
+	list := make(Device_Info_List, get_device_count())
+	for info, i in &list {
+		info = get_deviceinfo_of_idx((uint)(i)).?
+	}
+
+	return list
 }
 
 // Return the device info. Return nil if the device has not been chosen yet.
 device_get_info :: proc() -> Maybe(Device_Info) {
-	return CONTEXT_INSTANCE.device_get_info()
+	if CONTEXT_INSTANCE.selected_device_index == nil {
+		log.warn("Requested device info while a device has not been set.")
+
+		return nil
+	}
+
+	return get_deviceinfo_of_idx(CONTEXT_INSTANCE.selected_device_index.?)
 }
 
 deviceinfolist_free :: proc(list: Device_Info_List) {
-	CONTEXT_INSTANCE.deviceinfolist_free(list)
+	for info in list {
+		deviceinfo_free(info)
+	}
+
+	delete(list)
 }
 
 deviceinfo_free :: proc(info: Device_Info) {
@@ -40,7 +78,19 @@ deviceinfo_free :: proc(info: Device_Info) {
 
 // The index references the Device_Info_List returned by `get_deviceinfolist`.
 device_set :: proc(index: uint) -> bool {
-	return CONTEXT_INSTANCE.device_set(index)
+	context = gfx_default_context()
+
+	if index >= get_device_count() {
+		log.warn("Trying to set a device that is non existent (out-of-bounds).")
+		return false
+	}
+
+	result := CONTEXT_INSTANCE.device_set(index)
+	if result {
+		CONTEXT_INSTANCE.selected_device_index = index
+	}
+
+	return result
 }
 
 // Tries and creates a swapchain using the provided descriptor.

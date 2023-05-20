@@ -11,14 +11,12 @@ Context :: struct {
         backend_get_info: proc() -> Backend_Info,
         backendinfo_free: proc(info: Backend_Info),
 
-        device_get_info: proc() -> Maybe(Device_Info),
-        get_deviceinfolist: proc() -> Device_Info_List,
-
+        get_device_count: proc() -> uint,
+        get_deviceinfo_of_idx: proc(index: uint) -> Device_Info,
         deviceinfo_free: proc(info: Device_Info),
-        deviceinfolist_free: proc(list: Device_Info_List),
 
+        device_get_info: proc() -> Device_Info,
         device_set: proc(index: uint) -> bool,
-
         device_check_swapchain_descriptor: proc(descriptor: Swapchain_Descriptor) -> Swapchain_Set_Error,
         device_set_swapchain: proc(descriptor: Swapchain_Descriptor),
 
@@ -26,6 +24,8 @@ Context :: struct {
         swapchain_resize: proc(size: [2]uint) -> bool,
         swapchain_get_rendertarget: proc() -> Render_Target,
     },
+
+    selected_device_index: Maybe(uint),
 }
 
 CONTEXT_INSTANCE: core.Cell(Context)
