@@ -4,7 +4,9 @@ import "core:log"
 
 Device_Type :: enum {
     Software,
+	Likely_Power_Efficient,
     Power_Efficient,
+	Likely_Performance,
     Performance,
 	Unknown,
 }

@@ -23,6 +23,7 @@ init :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 		present_mode = .Vsync,
 		size = wnd.windowhelper_get_window_size(),
 		format = .R8G8B8A8,
+		// fullscreen = true,
 	}
 
 	backend_info := gfx.backend_get_info()
