@@ -46,7 +46,7 @@ device_set :: proc(index: uint) -> bool {
         ._11_1,
     }
 
-    if d3d11.CreateDevice(
+    if err := d3d11.CreateDevice(
         CONTEXT_INSTANCE.adapter,
         .UNKNOWN,
         nil,
@@ -57,7 +57,8 @@ device_set :: proc(index: uint) -> bool {
         &CONTEXT_INSTANCE.device,
         nil,
         &CONTEXT_INSTANCE.device_context,
-    ) != win.NO_ERROR {
+    ); err != win.NO_ERROR {
+        log.error("Device failed to start with error", err)
         return false
     }
 

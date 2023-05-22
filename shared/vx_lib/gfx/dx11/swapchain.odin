@@ -26,5 +26,6 @@ swapchain_present :: proc() {
         interval = 0
     }
 
-    assert(CONTEXT_INSTANCE.swapchain->Present(interval, flags) == win.NO_ERROR)
+    err := CONTEXT_INSTANCE.swapchain->Present(interval, flags)
+    assert(err == win.NO_ERROR || err == dxgi.STATUS_OCCLUDED)
 }

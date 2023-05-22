@@ -1,8 +1,13 @@
 package main
 
+// import "core:strings"
+import "core:strconv"
 import "core:log"
+import "core:os"
 // import gl "vendor:OpenGL"
+// import win "core:sys/windows"
 import "shared:glfw"
+import "shared:glslang"
 import core "shared:vx_core"
 import deps "shared:vx_lib/dependences"
 import plt "shared:vx_lib/platform"
@@ -18,6 +23,13 @@ counter := 0
 
 init :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 	context = core.default_context()
+
+	device_id: uint = 0
+	if data, ok := os.read_entire_file("config.txt"); ok {
+		defer delete(data)
+
+		device_id, _ = strconv.parse_uint((string)(data))
+	}
 
 	SWAPCHAIN_DESCRIPTOR := gfx.Swapchain_Descriptor {
 		present_mode = .Vsync,
@@ -42,10 +54,10 @@ init :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 		}, sep = "")
 	}
 
-	log.info("Setting device with idx = 0")
+	log.info("Setting device with idx =", device_id)
 
 	// TODO: choose the best device. Note that OpenGl will only have one device.
-	if !gfx.device_set(0) {
+	if !gfx.device_set(device_id) {
 		panic("Could not set a device!")
 	}
 
@@ -76,6 +88,8 @@ deinit :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 }
 
 main :: proc() {
+	glslang.shader_create(nil)
+
 	context = core.default_context()
 	defer core.free_default_context()
 
@@ -117,8 +131,8 @@ main :: proc() {
 			logger = context.logger,
 			debug = ODIN_DEBUG,
 		},
-		// backend_initializer = dx11.BACKEND_INITIALIZER,
-		backend_initializer = gl4.BACKEND_INITIALIZER,
+		backend_initializer = dx11.BACKEND_INITIALIZER,
+		// backend_initializer = gl4.BACKEND_INITIALIZER,
 	})
 
 	plt.platform_run()
