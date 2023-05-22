@@ -15,14 +15,24 @@ Device_Vendor :: enum {
 	Nvidia,
 	Amd,
 	Intel,
+	Apple,
 	Other,
 	Unknown,
+}
+
+Device_Memory_Cannot_Determine :: struct {}
+Device_Memory :: union #no_nil {
+	uint,
+	Device_Memory_Cannot_Determine,
 }
 
 Device_Info :: struct {
 	device_description: string,
 	device_vendor: Device_Vendor,
 	device_type: Device_Type,
+
+	dedicated_memory: Device_Memory,
+	shared_memory: Device_Memory,
 
 	// limits and other information to be added in the future
 }

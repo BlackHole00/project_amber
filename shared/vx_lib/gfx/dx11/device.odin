@@ -6,6 +6,7 @@ import "core:strings"
 import win "core:sys/windows"
 import "vendor:directx/dxgi"
 import "vendor:directx/d3d11"
+import bku "shared:vx_lib/gfx/backendutils"
 import "shared:vx_lib/gfx"
 
 get_device_count :: proc() -> uint {
@@ -158,22 +159,13 @@ deviceinfo_get_from_adapter :: proc(adapter: ^dxgi.IAdapter) -> gfx.Device_Info 
     l_device_description := strings.to_lower(info.device_description)
     defer delete(l_device_description)
 
-    device_vendor := gfx.Device_Vendor.Unknown
-    if strings.contains(l_device_description, "radeon") {
-        device_vendor = .Amd
-    } else if strings.contains(l_device_description, "nvidia") {
-        device_vendor = .Nvidia
-    } else if strings.contains(l_device_description, "intel") {
-        device_vendor = .Intel
-    }
-
-    device_type := gfx.Device_Type.Unknown
-    if (l_device_description == "microsoft basic render driver") {
-        device_type = .Software
-    }
+    device_vendor := bku.try_predict_devicevendor(info.device_description)
+    device_type := bku.try_predict_devicetype(info.device_description)
 
     info.device_vendor = device_vendor
     info.device_type = device_type
+    info.shared_memory = adapter_desc.SharedSystemMemory
+    info.dedicated_memory = adapter_desc.DedicatedVideoMemory
 
     return info
 }

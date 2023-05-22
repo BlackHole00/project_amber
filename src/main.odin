@@ -117,8 +117,8 @@ main :: proc() {
 			logger = context.logger,
 			debug = ODIN_DEBUG,
 		},
-		backend_initializer = dx11.BACKEND_INITIALIZER,
-		// backend_initializer = gl4.BACKEND_INITIALIZER,
+		// backend_initializer = dx11.BACKEND_INITIALIZER,
+		backend_initializer = gl4.BACKEND_INITIALIZER,
 	})
 
 	plt.platform_run()

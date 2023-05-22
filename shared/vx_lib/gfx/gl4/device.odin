@@ -4,6 +4,7 @@ import "core:fmt"
 import "core:strings"
 import "shared:glfw"
 import gl "vendor:OpenGL"
+import bku "shared:vx_lib/gfx/backendutils"
 import "shared:vx_lib/gfx"
 
 get_device_count :: proc() -> uint {
@@ -58,24 +59,17 @@ device_get_deviceinfo_from_driver :: proc() -> gfx.Device_Info {
     defer delete(driver_info)
     api_info := strings.clone_from_cstring(gl.GetString(gl.VERSION))
     defer delete(api_info)
-    
+ 
     l_device_name := strings.to_lower(device_name)
     defer delete(l_device_name)
     l_driver_info := strings.to_lower(driver_info)
     defer delete(l_driver_info)
 
-    device_vendor := gfx.Device_Vendor.Unknown
-    if strings.contains(l_device_name, "radeon") || strings.contains(l_driver_info, "ati") {
-        device_vendor = .Amd
-    } else if strings.contains(l_device_name, "nvidia") || strings.contains(l_driver_info, "nvidia") {
-        device_vendor = .Nvidia
-    } else if strings.contains(l_device_name, "intel") || strings.contains(l_driver_info, "intel") {
-        device_vendor = .Intel
-    }
-
     return gfx.Device_Info {
         device_description = fmt.aprint(device_name, driver_info, api_info),
-        device_vendor = device_vendor,
-        device_type = .Unknown,
+        device_vendor = bku.try_predict_devicevendor(device_name),
+        device_type = bku.try_predict_devicetype(device_name),
+        dedicated_memory = gfx.Device_Memory_Cannot_Determine {},
+        shared_memory = gfx.Device_Memory_Cannot_Determine {},
     }
 }
