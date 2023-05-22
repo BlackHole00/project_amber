@@ -13,6 +13,8 @@ CONTEXT_VALID := false
 CONTEXT_LOG_FILE: os.Handle
 @(private)
 CONTEXT_TRACKING_ALLOCATOR: mem.Tracking_Allocator
+@(private)
+CONTEXT_FILE_LOGGER: Maybe(log.Logger) = nil
 
 @(private)
 assertion_failure_proc :: proc(prefix, message: string, loc: runtime.Source_Code_Location) -> ! {
@@ -36,14 +38,18 @@ default_context :: proc() -> runtime.Context {
 init_default_context :: proc() {
     DEFAULT_CONTEXT_INSTANCE = runtime.default_context()
 
-    file, ok := os.open("log.txt", os.O_CREATE | os.O_WRONLY)
+    file, ok := os.open("log.txt", os.O_TRUNC | os.O_CREATE | os.O_WRONLY)
 
 	logger: log.Logger = ---
-	if ok == 0 do logger = log.create_console_logger()
-	else do logger = log.create_multi_logger(
-		log.create_console_logger(),
-		log.create_file_logger(file),
-	)
+	if ok != 0 do logger = log.create_console_logger()
+	else {
+        CONTEXT_FILE_LOGGER = log.create_file_logger(file)
+
+        logger = log.create_multi_logger(
+            log.create_console_logger(),
+            CONTEXT_FILE_LOGGER.?,
+        )
+    }
 	DEFAULT_CONTEXT_INSTANCE.logger = logger
     CONTEXT_LOG_FILE = file
 	if ok != 0 do log.warn("Could not open the log file! Using only console logging.")
@@ -79,7 +85,9 @@ free_default_context :: proc() {
         log.info("\tNo bad frees.")
     }
 
-    if CONTEXT_LOG_FILE != 0 do os.close(CONTEXT_LOG_FILE)
+    if CONTEXT_FILE_LOGGER != nil do log.destroy_file_logger(&CONTEXT_FILE_LOGGER.?)
+    log.destroy_multi_logger(&DEFAULT_CONTEXT_INSTANCE.logger)
+    // if CONTEXT_LOG_FILE != 0 do os.close(CONTEXT_LOG_FILE)
     mem.tracking_allocator_destroy(&CONTEXT_TRACKING_ALLOCATOR)
 
     CONTEXT_VALID = false
