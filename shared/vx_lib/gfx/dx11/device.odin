@@ -90,13 +90,13 @@ device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapch
         Height = (u32)(descriptor.size.y),
         Format = gfxImageFormat_to_d3d11SwapchanFormat(descriptor.format),
         Stereo = false,
-        SwapEffect = .FLIP_DISCARD,
+        SwapEffect = .DISCARD,
         SampleDesc = dxgi.SAMPLE_DESC {
             Count = 1,
             Quality = 0,
         },
         BufferUsage = { .RENDER_TARGET_OUTPUT },
-        BufferCount = 2,
+        BufferCount = 1,
         Scaling = .STRETCH,
         AlphaMode = .UNSPECIFIED,
         Flags = flags,
@@ -115,6 +115,17 @@ device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapch
     if dxgi_factory->CreateSwapChainForHwnd(CONTEXT_INSTANCE.device, CONTEXT_INSTANCE.native_hwnd, &swapchain_desc, &swapchain_fullscreen_desc, nil, &CONTEXT_INSTANCE.swapchain) != win.NO_ERROR {
         return .Backend_Set_Error
     }
+
+    framebuffer_texture: ^d3d11.ITexture2D
+    if CONTEXT_INSTANCE.swapchain->GetBuffer(0, d3d11.ITexture2D_UUID, auto_cast &framebuffer_texture) != win.NO_ERROR {
+        return .Backend_Set_Error
+    }
+    defer framebuffer_texture->Release()
+
+    if CONTEXT_INSTANCE.device->CreateRenderTargetView(framebuffer_texture, nil, &CONTEXT_INSTANCE.swpachain_rendertarget) != win.NO_ERROR {
+        return .Backend_Set_Error
+    }
+
     return .Ok
 }
 
