@@ -1,3 +1,4 @@
+//+build windows, linux
 package vx_lib_gfx_gl4
 
 import "core:mem"

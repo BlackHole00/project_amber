@@ -1,3 +1,4 @@
+//+build windows
 package vx_lib_gfx_dx11
 
 import win "core:sys/windows"
