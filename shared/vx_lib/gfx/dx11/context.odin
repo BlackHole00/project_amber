@@ -23,7 +23,7 @@ Context :: struct {
     device: ^d3d11.IDevice,
     device_context: ^d3d11.IDeviceContext,
     swapchain: ^dxgi.ISwapChain1,
-    swpachain_rendertarget: ^d3d11.IRenderTargetView,
+    swapchain_rendertarget: ^d3d11.IRenderTargetView,
 
     swapchain_descriptor: Maybe(gfx.Swapchain_Descriptor),
 }

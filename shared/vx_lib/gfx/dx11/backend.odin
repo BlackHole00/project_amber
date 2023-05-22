@@ -25,7 +25,7 @@ backend_init :: proc(data: gfx.Backend_Initialization_Data) -> bool {
 backend_deinit :: proc() {
     wnd.windowhelper_set_fullscreen(false)
 
-    if CONTEXT_INSTANCE.swpachain_rendertarget != nil do CONTEXT_INSTANCE.swpachain_rendertarget->Release()
+    if CONTEXT_INSTANCE.swapchain_rendertarget != nil do CONTEXT_INSTANCE.swapchain_rendertarget->Release()
     // TODO: VVV Fix this line in fullscreen VVV
     if CONTEXT_INSTANCE.swapchain != nil do CONTEXT_INSTANCE.swapchain->Release()
 

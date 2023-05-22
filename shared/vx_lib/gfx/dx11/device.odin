@@ -116,13 +116,7 @@ device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapch
         return .Backend_Set_Error
     }
 
-    framebuffer_texture: ^d3d11.ITexture2D
-    if CONTEXT_INSTANCE.swapchain->GetBuffer(0, d3d11.ITexture2D_UUID, auto_cast &framebuffer_texture) != win.NO_ERROR {
-        return .Backend_Set_Error
-    }
-    defer framebuffer_texture->Release()
-
-    if CONTEXT_INSTANCE.device->CreateRenderTargetView(framebuffer_texture, nil, &CONTEXT_INSTANCE.swpachain_rendertarget) != win.NO_ERROR {
+    if !swapchain_generate_rendertargets() {
         return .Backend_Set_Error
     }
 
