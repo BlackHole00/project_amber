@@ -1,0 +1,23 @@
+[INFO ] --- [2023-05-22 17:35:38] [platform.odin:89:platform_run()] Resolving extensions update list.
+[INFO ] --- [2023-05-22 17:35:38] [platform.odin:94:platform_run()] Generated extensions update list:
+[INFO ] --- [2023-05-22 17:35:38] [platform.odin:96:platform_run()] 	- vx_lib.depencences.glfw
+[INFO ] --- [2023-05-22 17:35:38] [platform.odin:96:platform_run()] 	- vx_lib.gfx.support
+[INFO ] --- [2023-05-22 17:35:38] [platform.odin:96:platform_run()] 	- vx_lib.window
+[INFO ] --- [2023-05-22 17:35:38] [platform.odin:96:platform_run()] 	- vx_lib.gfx
+[INFO ] --- [2023-05-22 17:35:38] [platform.odin:96:platform_run()] 	- project_amber.game
+[INFO ] --- [2023-05-22 17:35:38] [platform.odin:101:platform_run()] Running extensions'init proc.
+[INFO ] --- [2023-05-22 17:35:38] [window.odin:41:window_init()] Creating the glfw window.
+[INFO ] --- [2023-05-22 17:35:38] [window.odin:46:window_init()] Successfully created the glfw window.
+[INFO ] --- [2023-05-22 17:35:38] [main.odin:44:init()] Using backend:  Backend_Info{name = "DirectX 11", version = Version{major = 0, minor = 1, revision = 0}}
+[INFO ] --- [2023-05-22 17:35:38] [main.odin:50:init()] Got gfx devices:
+[INFO ] --- [2023-05-22 17:35:38] [main.odin:52:init()] 	0: Device_Info{device_description = "Intel(R) UHD Graphics", device_vendor = "Intel", device_type = "Likely_Power_Efficient", dedicated_memory = 134217728, shared_memory = 17045526528}
+[INFO ] --- [2023-05-22 17:35:38] [main.odin:52:init()] 	1: Device_Info{device_description = "NVIDIA GeForce GTX 1650 Ti", device_vendor = "Nvidia", device_type = "Performance", dedicated_memory = 4156555264, shared_memory = 17045526528}
+[INFO ] --- [2023-05-22 17:35:38] [main.odin:52:init()] 	2: Device_Info{device_description = "Microsoft Basic Render Driver", device_vendor = "Other", device_type = "Software", dedicated_memory = 0, shared_memory = 17045526528}
+[INFO ] --- [2023-05-22 17:35:38] [main.odin:57:init()] Setting device with idx = 0
+[INFO ] --- [2023-05-22 17:35:38] [main.odin:73:init()] Using swapchain:  Swapchain_Descriptor{present_mode = "Vsync", size = [640, 480], format = "R8G8B8A8", fullscreen = false}
+[INFO ] --- [2023-05-22 17:35:38] [platform.odin:113:platform_run()] Entering main loop. Calling extensions'preframe, frame and postframe procs.
+[INFO ] --- [2023-05-22 17:35:46] [platform.odin:149:platform_run()] Exiting main loop. Calling extensions'deinit procs.
+[INFO ] --- [2023-05-22 17:35:47] [context.odin:70:free_default_context()] Checking for memory leaks: 
+[INFO ] --- [2023-05-22 17:35:47] [context.odin:76:free_default_context()] 	No memory Leaks.
+[INFO ] --- [2023-05-22 17:35:47] [context.odin:80:free_default_context()] Checking for bad frees: 
+[INFO ] --- [2023-05-22 17:35:47] [context.odin:85:free_default_context()] 	No bad frees.
