@@ -29,7 +29,7 @@ device_get_info :: proc() -> gfx.Device_Info {
     return deviceinfo_get_from_adapter(CONTEXT_INSTANCE.adapter)
 }
 
-device_set :: proc(index: uint) -> bool {
+device_set :: proc(index: uint) -> gfx.Device_Set_Error {
     if CONTEXT_INSTANCE.adapters == nil do generate_adapter_list()
 
     CONTEXT_INSTANCE.adapter = CONTEXT_INSTANCE.adapters.?[index]
@@ -59,17 +59,17 @@ device_set :: proc(index: uint) -> bool {
         &CONTEXT_INSTANCE.device_context,
     ); err != win.NO_ERROR {
         log.error("Device failed to start with error", err)
-        return false
+        return .Backend_Set_Error
     }
 
-    return true
+    return .Ok
 }
 
-device_check_swapchain_descriptor :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapchain_Set_Error {
+device_check_swapchain_descriptor :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapchain_Problem {
     return .Unavaliable_Functionality
 }
 
-device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) {
+device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapchain_Set_Error {
     CONTEXT_INSTANCE.swapchain_descriptor = descriptor
 
     dxgi_factory: ^dxgi.IFactory2
@@ -90,13 +90,13 @@ device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) {
         Height = (u32)(descriptor.size.y),
         Format = gfxImageFormat_to_d3d11SwapchanFormat(descriptor.format),
         Stereo = false,
-        SwapEffect = .DISCARD,
+        SwapEffect = .FLIP_DISCARD,
         SampleDesc = dxgi.SAMPLE_DESC {
             Count = 1,
             Quality = 0,
         },
         BufferUsage = { .RENDER_TARGET_OUTPUT },
-        BufferCount = 1,
+        BufferCount = 2,
         Scaling = .STRETCH,
         AlphaMode = .UNSPECIFIED,
         Flags = flags,
@@ -112,7 +112,10 @@ device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) {
         Windowed = (win.BOOL)(!descriptor.fullscreen),
     }
 
-    assert(dxgi_factory->CreateSwapChainForHwnd(CONTEXT_INSTANCE.device, CONTEXT_INSTANCE.native_hwnd, &swapchain_desc, &swapchain_fullscreen_desc, nil, &CONTEXT_INSTANCE.swapchain) == win.NO_ERROR)
+    if dxgi_factory->CreateSwapChainForHwnd(CONTEXT_INSTANCE.device, CONTEXT_INSTANCE.native_hwnd, &swapchain_desc, &swapchain_fullscreen_desc, nil, &CONTEXT_INSTANCE.swapchain) != win.NO_ERROR {
+        return .Backend_Set_Error
+    }
+    return .Ok
 }
 
 @(private)

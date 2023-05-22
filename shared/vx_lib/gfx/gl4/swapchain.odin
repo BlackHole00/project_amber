@@ -4,11 +4,11 @@ package vx_lib_gfx_gl4
 import gl "vendor:OpenGL"
 import "shared:vx_lib/gfx"
 
-swapchain_get_info :: proc() -> Maybe(gfx.Swapchain_Info) {
-    return CONTEXT_INSTANCE.swapchain_descriptor
+swapchain_get_info :: proc() -> gfx.Swapchain_Info {
+    return CONTEXT_INSTANCE.swapchain_descriptor.?
 }
 
-swapchain_resize :: proc(size: [2]uint) -> bool {
+swapchain_resize :: proc(size: [2]uint) -> gfx.Swapchain_Resize_Error {
     gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
     gl.Viewport(0, 0, (i32)(size.x), (i32)(size.y))
 
@@ -18,7 +18,7 @@ swapchain_resize :: proc(size: [2]uint) -> bool {
         format = .Unknown,
     }
 
-    return true
+    return .Ok
 }
 
 swapchain_get_rendertarget :: proc() -> gfx.Render_Target {

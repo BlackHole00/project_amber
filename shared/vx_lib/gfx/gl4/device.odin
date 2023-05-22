@@ -28,18 +28,16 @@ device_get_info :: proc() -> gfx.Device_Info {
     return device_get_deviceinfo_from_driver()
 }
 
-device_set :: proc(index: uint) -> bool {
-    // OpenGl only has ONE device
-    if index != 0 do return false
-
-    return true
+device_set :: proc(index: uint) -> gfx.Device_Set_Error {
+    // OpenGl only has ONE device. The frontend already checks for the index
+    return .Ok
 }
 
-device_check_swapchain_descriptor :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapchain_Set_Error {
+device_check_swapchain_descriptor :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapchain_Problem {
     return .Unavaliable_Functionality
 }
 
-device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) {
+device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapchain_Set_Error {
     CONTEXT_INSTANCE.swapchain_descriptor = descriptor
 
     switch descriptor.present_mode {
@@ -48,6 +46,7 @@ device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) {
     }
     swapchain_resize(descriptor.size)
 
+    return .Ok
 }
 
 @(private)

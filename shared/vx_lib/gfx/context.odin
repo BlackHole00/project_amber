@@ -16,16 +16,17 @@ Context :: struct {
         deviceinfo_free: proc(info: Device_Info),
 
         device_get_info: proc() -> Device_Info,
-        device_set: proc(index: uint) -> bool,
+        device_set: proc(index: uint) -> Device_Set_Error,
         device_check_swapchain_descriptor: proc(descriptor: Swapchain_Descriptor) -> Swapchain_Set_Error,
-        device_set_swapchain: proc(descriptor: Swapchain_Descriptor),
+        device_set_swapchain: proc(descriptor: Swapchain_Descriptor) -> Swapchain_Set_Error,
 
-        swapchain_get_info: proc() -> Maybe(Swapchain_Info),
-        swapchain_resize: proc(size: [2]uint) -> bool,
+        swapchain_get_info: proc() -> Swapchain_Info,
+        swapchain_resize: proc(size: [2]uint) -> Swapchain_Resize_Error,
         swapchain_get_rendertarget: proc() -> Render_Target,
     },
 
     selected_device_index: Maybe(uint),
+    swapchain_set: bool,
 }
 
 CONTEXT_INSTANCE: core.Cell(Context)

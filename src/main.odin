@@ -57,13 +57,11 @@ init :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 	log.info("Setting device with idx =", device_id)
 
 	// TODO: choose the best device. Note that OpenGl will only have one device.
-	if !gfx.device_set(device_id) {
+	if gfx.device_set(device_id) != .Ok {
 		panic("Could not set a device!")
 	}
 
-	if state := gfx.device_try_set_swapchain(SWAPCHAIN_DESCRIPTOR); state == .Unavaliable_Functionality {
-		gfx.device_set_swapchain(SWAPCHAIN_DESCRIPTOR)
-	} else {
+	if state := gfx.device_set_swapchain(SWAPCHAIN_DESCRIPTOR); state != .Unavaliable_Functionality && state != .Ok {
 		log.fatal(args = { "Could not set the swapchain (error", state, ")" }, sep = "")
 		panic("Could not set the swapchain")
 	}

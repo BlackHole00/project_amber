@@ -37,6 +37,12 @@ Device_Info :: struct {
 	// limits and other information to be added in the future
 }
 
+Device_Set_Error :: enum {
+	Ok,
+	Invalid_Device_Index,
+	Backend_Set_Error,
+}
+
 Device_Info_List :: []Device_Info
 
 get_deviceinfo_of_idx :: proc(index: uint) -> Maybe(Device_Info) {
@@ -89,40 +95,38 @@ deviceinfo_free :: proc(info: Device_Info) {
 }
 
 // The index references the Device_Info_List returned by `get_deviceinfolist`.
-device_set :: proc(index: uint) -> bool {
+device_set :: proc(index: uint) -> Device_Set_Error {
 	context = gfx_default_context()
 
 	if index >= get_device_count() {
 		log.warn("Trying to set a device that is non existent (out-of-bounds).")
-		return false
+		return .Invalid_Device_Index
 	}
 
 	result := CONTEXT_INSTANCE.device_set(index)
-	if result {
+	if result == .Ok {
 		CONTEXT_INSTANCE.selected_device_index = index
 	}
 
 	return result
 }
 
-// Tries and creates a swapchain using the provided descriptor.
-device_try_set_swapchain :: proc(descriptor: Swapchain_Descriptor) -> Swapchain_Set_Error {
-    error := CONTEXT_INSTANCE.device_check_swapchain_descriptor(descriptor)
-	if (error == .Ok) do CONTEXT_INSTANCE.device_set_swapchain(descriptor)
-
-	return error
+device_check_swapchain_descriptor :: proc(descriptor: Swapchain_Descriptor) -> Swapchain_Problem {
+    return CONTEXT_INSTANCE.device_check_swapchain_descriptor(descriptor)
 }
 
-// Creates a best-effort swapchain trying to keep its properties as close as the
-// ones provided by the descriptor. It is necessary to use for the implementations 
-// that return `.Unavaliable_Functionality` from `device_try_set_swapchain`.
 device_set_swapchain :: proc(descriptor: Swapchain_Descriptor) -> Swapchain_Set_Error {
 	context = gfx_default_context()
 
     error := CONTEXT_INSTANCE.device_check_swapchain_descriptor(descriptor)
-	if (gfx_is_debug() && error != .Ok) do log.warn("Force set of the swapchain with error", error)
 
-	CONTEXT_INSTANCE.device_set_swapchain(descriptor)
+	if error != .Ok && error != .Unavaliable_Functionality do return error
+	if error == .Unavaliable_Functionality do log.warn("Setting the swapchain with a .Unavaliable_Functionality error.")
 
-	return error
+	if error = CONTEXT_INSTANCE.device_set_swapchain(descriptor); error != .Ok && error != .Unavaliable_Functionality {
+		return error
+	}
+	CONTEXT_INSTANCE.swapchain_set = true
+
+	return error	// Should be .Ok
 }
