@@ -2,7 +2,7 @@ package fmod
 
 when #config(ENABLE_FMOD, false) {
 
-when ODIN_OS == .Windows do foreign import fmod "fmod64.lib"
+when ODIN_OS == .Windows do foreign import fmod "libs/fmod64.lib"
 else do #panic("no fmod support yet!")
 
 @(default_calling_convention="c", link_prefix="FMOD_")
@@ -20,7 +20,6 @@ foreign fmod {
     Sound_SetMode :: proc(sound: SOUND, mode: MODE) -> RESULT ---
     Sound_Set3DMinMaxDistance :: proc(sound: SOUND, min: f32, max: f32) -> RESULT ---
 // FMOD_RESULT F_API FMOD_Channel_Set3DAttributes          (FMOD_CHANNEL *channel, const FMOD_VECTOR *pos, const FMOD_VECTOR *vel);
-    
     Channel_Set3DAttributes :: proc(channel: CHANNEL, pos: ^VECTOR, vel: ^VECTOR) -> RESULT ---
 }
 
