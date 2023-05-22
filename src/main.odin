@@ -74,6 +74,7 @@ init :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 
 frame :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 	input_common()
+	check_for_resize()
 	
 	// gl.ClearColor(1.0, 0.5, 0.25, 1.0)
 	// gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -113,7 +114,7 @@ main :: proc() {
 		size 		= { 640, 480 },
 		title 		= "Project Amber",
 		decorated 	= true,
-		resizable	= false,
+		resizable	= true,
 		show_fps_in_title = true,
 		grab_cursor = false,
 	})
@@ -154,4 +155,10 @@ input_common :: proc() {
         } else do wnd.windowhelper_set_window_size(not_fullscreen_size)
         wnd.windowhelper_set_fullscreen(!wnd.windowhelper_is_fullscreen())
     }
+}
+
+check_for_resize :: proc() {
+	if wnd.windowhelper_has_been_resized() {
+		gfx.swapchain_resize(wnd.windowhelper_get_window_size())
+	}
 }
