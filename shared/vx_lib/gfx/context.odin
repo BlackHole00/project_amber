@@ -23,6 +23,19 @@ Context :: struct {
         swapchain_get_info: proc() -> Swapchain_Info,
         swapchain_resize: proc(size: [2]uint) -> Swapchain_Resize_Error,
         swapchain_get_rendertarget: proc() -> Render_Target,
+
+        buffer_new_empty: proc(descriptor: Buffer_Descriptor) -> (Buffer, Buffer_Creation_Error),
+        buffer_new_with_data: proc(descriptor: Buffer_Descriptor, data: []byte) -> (Buffer, Buffer_Creation_Error),
+        buffer_free: proc(buffer: Buffer),
+        buffer_set_data: proc(buffer: Buffer, data: []byte) -> Buffer_Set_Data_Error,
+        buffer_map: proc(buffer: Buffer, mode: Buffer_Map_Mode) -> ([]byte, Buffer_Map_Error),
+        buffer_unmap: proc(buffer: Buffer) -> Buffer_Unmap_Error,
+        buffer_resize: proc(buffer: Buffer, size: uint) -> Buffer_Resize_Error,
+        buffer_get_type: proc(buffer: Buffer) -> Buffer_Type,
+        buffer_get_usage: proc(buffer: Buffer) -> Buffer_Usage,
+        buffer_get_allocation_mode: proc(buffer: Buffer) -> Buffer_Allocation_Mode,
+        buffer_get_size: proc(buffer: Buffer) -> uint,
+        buffer_is_compute: proc(buffer: Buffer) -> bool,
     },
 
     selected_device_index: Maybe(uint),
@@ -35,11 +48,7 @@ CONTEXT_INSTANCE: core.Cell(Context)
 gfx_default_context :: proc() -> (ctx: rnt.Context) {
     assert(core.cell_is_valid(CONTEXT_INSTANCE), "The CONTEXT_INSTANCE is not valid. Exiting.")
 
-    ctx = core.default_context()
-    ctx.allocator = CONTEXT_INSTANCE.frontend_user_descriptor.allocator
-    ctx.logger = CONTEXT_INSTANCE.frontend_user_descriptor.logger
-
-    return
+    return CONTEXT_INSTANCE.frontend_user_descriptor.frontend_context
 }
 
 gfx_is_debug :: proc() -> bool {

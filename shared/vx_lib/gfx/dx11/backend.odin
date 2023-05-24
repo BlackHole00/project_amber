@@ -50,8 +50,7 @@ backend_pre_window_init :: proc(user_descriptor: gfx.Backend_User_Descritor) -> 
 
     core.cell_init(&CONTEXT_INSTANCE)
 
-    CONTEXT_INSTANCE.allocator = user_descriptor.allocator
-    CONTEXT_INSTANCE.logger = user_descriptor.logger
+    CONTEXT_INSTANCE.d3d11_context = user_descriptor.backend_context
     CONTEXT_INSTANCE.debug = user_descriptor.debug
 
     gfx.CONTEXT_INSTANCE.backend_get_info   = backend_get_info

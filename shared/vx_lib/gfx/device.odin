@@ -73,6 +73,8 @@ get_deviceinfolist :: proc() -> Device_Info_List {
 
 // Return the device info. Return nil if the device has not been chosen yet.
 device_get_info :: proc() -> Maybe(Device_Info) {
+	context = gfx_default_context()
+
 	if CONTEXT_INSTANCE.selected_device_index == nil {
 		log.warn("Requested device info while a device has not been set.")
 

@@ -19,7 +19,7 @@ get_deviceinfo_of_idx :: proc(index: uint) -> gfx.Device_Info {
 }
 
 deviceinfo_free :: proc(info: gfx.Device_Info) {
-    context.allocator = CONTEXT_INSTANCE.allocator
+    context = gl4_default_context()
 
     delete(info.device_description)
 }
@@ -51,7 +51,7 @@ device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapch
 
 @(private)
 device_get_deviceinfo_from_driver :: proc() -> gfx.Device_Info {
-    context.allocator = CONTEXT_INSTANCE.allocator
+    context = gl4_default_context()
 
     device_name := strings.clone_from_cstring(gl.GetString(gl.RENDERER))
     defer delete(device_name)

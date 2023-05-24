@@ -7,7 +7,7 @@ import "shared:vx_lib/gfx"
 
 @(private)
 gfxImageFormat_to_d3d11SwapchanFormat :: proc(format: gfx.Image_Format) -> dxgi.FORMAT {
-    context.logger = CONTEXT_INSTANCE.logger
+    context = d3d11_default_context()
 
     #partial switch format {
         case .R8: return .R8_UNORM

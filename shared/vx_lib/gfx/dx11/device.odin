@@ -30,6 +30,8 @@ device_get_info :: proc() -> gfx.Device_Info {
 }
 
 device_set :: proc(index: uint) -> gfx.Device_Set_Error {
+    context = d3d11_default_context()
+
     if CONTEXT_INSTANCE.adapters == nil do generate_adapter_list()
 
     CONTEXT_INSTANCE.adapter = CONTEXT_INSTANCE.adapters.?[index]
@@ -70,6 +72,8 @@ device_check_swapchain_descriptor :: proc(descriptor: gfx.Swapchain_Descriptor) 
 }
 
 device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapchain_Set_Error {
+    context = d3d11_default_context()
+
     CONTEXT_INSTANCE.swapchain_descriptor = descriptor
 
     dxgi_factory: ^dxgi.IFactory2
@@ -125,8 +129,7 @@ device_set_swapchain :: proc(descriptor: gfx.Swapchain_Descriptor) -> gfx.Swapch
 
 @(private)
 generate_adapter_list :: proc() {
-    context.allocator = CONTEXT_INSTANCE.allocator
-    context.logger = CONTEXT_INSTANCE.logger
+    context = d3d11_default_context()
 
     if CONTEXT_INSTANCE.adapters != nil {
         log.warn("generate_adapter_list called when the adapter list is still valid. Returning.")

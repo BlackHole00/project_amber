@@ -1,14 +1,12 @@
 package vx_lib_gfx
 
-import "core:mem"
-import "core:log"
+import "core:runtime"
 import core "shared:vx_core"
 import "shared:glfw"
 import wnd "shared:vx_lib/window"
 
 Frontend_User_Descritor :: struct {
-	allocator: mem.Allocator,
-	logger: log.Logger,
+	frontend_context: runtime.Context,
 	debug: bool,
 }
 
@@ -19,12 +17,15 @@ Gfx_Descriptor :: struct {
 }
 
 gfx_set_descriptor :: proc(descriptor: Gfx_Descriptor) {
-    core.cell_init(&CONTEXT_INSTANCE, descriptor.frontend_user_descriptor.allocator)
+    context = descriptor.frontend_user_descriptor.frontend_context
+
+    core.cell_init(&CONTEXT_INSTANCE)
 
     CONTEXT_INSTANCE.descriptor = descriptor
 }
 
 gfx_pre_window_init :: proc() -> bool {
+    context = gfx_default_context()
     assert(core.cell_is_valid(CONTEXT_INSTANCE), "The gfx descriptor must be set before calling gfx_pre_window_init.")
 
     return CONTEXT_INSTANCE.backend_initializer.pre_window_init_proc(CONTEXT_INSTANCE.descriptor.backend_user_descriptor)

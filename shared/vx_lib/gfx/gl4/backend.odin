@@ -35,8 +35,7 @@ backend_pre_window_init :: proc(user_descriptor: gfx.Backend_User_Descritor) -> 
 
     core.cell_init(&CONTEXT_INSTANCE)
 
-    CONTEXT_INSTANCE.allocator = user_descriptor.allocator
-    CONTEXT_INSTANCE.logger = user_descriptor.logger
+    CONTEXT_INSTANCE.gl4_context = user_descriptor.backend_context
     CONTEXT_INSTANCE.debug = user_descriptor.debug
 
     gfx.CONTEXT_INSTANCE.backend_get_info   = backend_get_info
@@ -51,6 +50,18 @@ backend_pre_window_init :: proc(user_descriptor: gfx.Backend_User_Descritor) -> 
     gfx.CONTEXT_INSTANCE.swapchain_get_info = swapchain_get_info 
     gfx.CONTEXT_INSTANCE.swapchain_resize   = swapchain_resize 
     gfx.CONTEXT_INSTANCE.swapchain_get_rendertarget = swapchain_get_rendertarget 
+    gfx.CONTEXT_INSTANCE.buffer_new_empty   = buffer_new_empty
+    gfx.CONTEXT_INSTANCE.buffer_new_with_data = buffer_new_with_data
+    gfx.CONTEXT_INSTANCE.buffer_free        = buffer_free
+    gfx.CONTEXT_INSTANCE.buffer_set_data    = buffer_set_data
+    gfx.CONTEXT_INSTANCE.buffer_map         = buffer_map
+    gfx.CONTEXT_INSTANCE.buffer_unmap       = buffer_unmap
+    gfx.CONTEXT_INSTANCE.buffer_resize      = buffer_resize
+    gfx.CONTEXT_INSTANCE.buffer_get_type       = buffer_get_type
+    gfx.CONTEXT_INSTANCE.buffer_get_usage       = buffer_get_usage
+    gfx.CONTEXT_INSTANCE.buffer_get_allocation_mode       = buffer_get_allocation_mode
+    gfx.CONTEXT_INSTANCE.buffer_get_size       = buffer_get_size
+    gfx.CONTEXT_INSTANCE.buffer_is_compute       = buffer_is_compute
 
     return true
 }

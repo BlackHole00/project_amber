@@ -1,13 +1,11 @@
 package vx_lib_gfx
 
-import "core:mem"
-import "core:log"
+import "core:runtime"
 import "shared:glfw"
 import core "shared:vx_core"
 
 Backend_User_Descritor :: struct {
-	allocator: mem.Allocator,
-	logger: log.Logger,
+	backend_context: runtime.Context,
 	debug: bool,
 	extra_data: rawptr, // To be interpreted by the backend implementation
 }

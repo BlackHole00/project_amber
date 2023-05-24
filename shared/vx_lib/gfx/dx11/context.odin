@@ -1,8 +1,7 @@
 //+build windows
 package vx_lib_gfx_dx11
 
-import "core:mem"
-import "core:log"
+import "core:runtime"
 import win "core:sys/windows"
 import "vendor:directx/d3d11"
 import "vendor:directx/dxgi"
@@ -10,8 +9,7 @@ import core "shared:vx_core"
 import "shared:vx_lib/gfx"
 
 Context :: struct {
-    allocator: mem.Allocator,
-	logger: log.Logger,
+    d3d11_context: runtime.Context,
 	debug: bool,
 
     native_hwnd: win.HWND,
@@ -28,3 +26,9 @@ Context :: struct {
     swapchain_descriptor: Maybe(gfx.Swapchain_Descriptor),
 }
 CONTEXT_INSTANCE: core.Cell(Context)
+
+
+@(private)
+d3d11_default_context :: proc() -> runtime.Context {
+    return CONTEXT_INSTANCE.d3d11_context
+}

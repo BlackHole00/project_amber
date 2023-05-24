@@ -69,6 +69,31 @@ init :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 	swpachain_info := gfx.swapchain_get_info()
 	if swpachain_info == nil do log.warn("Could not get swapchain info.")
 	else do log.info("Using swapchain: ", swpachain_info.?)
+
+	buffer, err := gfx.buffer_new(gfx.Buffer_Descriptor {
+		type = .Vertex_Buffer,
+		usage = .Default,
+		allocation_mode = .Dynamic,
+		size = 12,
+		is_compute = false,
+	})
+	if err != .Ok {
+		log.fatal("Could not create a buffer")
+		panic("Could not create a buffer")
+	}
+	defer gfx.buffer_free(buffer)
+
+	gfx.buffer_set_data(buffer, []uint { 1, 2, 3, 4 })
+
+	data, _ := gfx.buffer_map(buffer, .Read_Write)
+	log.info(data)
+	data[2] = 5
+	log.info(data)
+	gfx.buffer_unmap(buffer)
+
+	log.info(gfx.buffer_get_size(buffer))
+
+
 	return .Ok, ""
 }
 
@@ -121,17 +146,15 @@ main :: proc() {
 
 	gfx.gfx_set_descriptor(gfx.Gfx_Descriptor {
 		frontend_user_descriptor = gfx.Frontend_User_Descritor {
-			allocator = context.allocator,
-			logger = context.logger,
+			frontend_context = context,
 			debug = ODIN_DEBUG,
 		},
 		backend_user_descriptor = gfx.Backend_User_Descritor {
-			allocator = context.allocator,
-			logger = context.logger,
+			backend_context = context,
 			debug = ODIN_DEBUG,
 		},
-		backend_initializer = dx11.BACKEND_INITIALIZER,
-		// backend_initializer = gl4.BACKEND_INITIALIZER,
+		// backend_initializer = dx11.BACKEND_INITIALIZER,
+		backend_initializer = gl4.BACKEND_INITIALIZER,
 	})
 
 	plt.platform_run()
