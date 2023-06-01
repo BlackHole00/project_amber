@@ -8,6 +8,11 @@ import "vendor:directx/dxgi"
 import core "shared:vx_core"
 import "shared:vx_lib/gfx"
 
+Map_Data :: struct {
+    buffer: ^d3d11.IBuffer,
+    map_mode: gfx.Buffer_Map_Mode,
+}
+
 Context :: struct {
     d3d11_context: runtime.Context,
 	debug: bool,
@@ -24,6 +29,8 @@ Context :: struct {
     swapchain_rendertarget: ^d3d11.IRenderTargetView,
 
     swapchain_descriptor: Maybe(gfx.Swapchain_Descriptor),
+
+    map_buffer_associations: map[^d3d11.IBuffer]Map_Data,
 }
 CONTEXT_INSTANCE: core.Cell(Context)
 

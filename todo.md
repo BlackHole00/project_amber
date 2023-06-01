@@ -1,6 +1,6 @@
 - [ ] untie platform and window closing
-- [ ] create better glue between extension and gfx
-
+- [X] create better glue between extension and gfx
+- [ ] dx11.Buffer use the bufferallocator also for the normal DynamicAllocation Buffers.
 
 Old:
 - [ ] Bindings should have a Bindings_Descriptor

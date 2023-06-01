@@ -34,6 +34,7 @@ Context :: struct {
         buffer_get_type: proc(buffer: Buffer) -> Buffer_Type,
         buffer_get_usage: proc(buffer: Buffer) -> Buffer_Usage,
         buffer_get_allocation_mode: proc(buffer: Buffer) -> Buffer_Allocation_Mode,
+        buffer_get_cpu_access: proc(buffer: Buffer) -> Buffer_Cpu_Access,
         buffer_get_size: proc(buffer: Buffer) -> uint,
         buffer_is_compute: proc(buffer: Buffer) -> bool,
     },

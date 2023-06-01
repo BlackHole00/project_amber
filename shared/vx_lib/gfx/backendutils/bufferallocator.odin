@@ -30,12 +30,13 @@ gfxbufferallocator_register_buffer :: proc(entry: GfxBufferAllocator_Entry) {
 
     append(&GFXBUFFERALLOCATOR_INSTANCE.buffers, GfxBufferAllocator_Entry {})
 
-    j := len(GFXBUFFERALLOCATOR_INSTANCE.buffers) - 1
+    j := len(GFXBUFFERALLOCATOR_INSTANCE.buffers) - 2
     for j >= i {
         GFXBUFFERALLOCATOR_INSTANCE.buffers[j + 1] = GFXBUFFERALLOCATOR_INSTANCE.buffers[j]
 
         j -= 1
     }
+    GFXBUFFERALLOCATOR_INSTANCE.buffers[i] = entry
 }
 
 gfxbufferallocator_get_buffer :: proc(size: uint, usage: gfx.Buffer_Usage) -> Maybe(GfxBufferAllocator_Entry) {
@@ -66,6 +67,8 @@ gfxbufferallocator_get_all :: proc() -> []GfxBufferAllocator_Entry {
     return GFXBUFFERALLOCATOR_INSTANCE.buffers[:]
 }
 
-gfxbufferallocator_free :: proc() {
+gfxbufferallocator_deinit :: proc() {
+    delete(GFXBUFFERALLOCATOR_INSTANCE.buffers)
+
     core.cell_free(&GFXBUFFERALLOCATOR_INSTANCE)
 }

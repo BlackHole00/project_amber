@@ -57,11 +57,12 @@ backend_pre_window_init :: proc(user_descriptor: gfx.Backend_User_Descritor) -> 
     gfx.CONTEXT_INSTANCE.buffer_map         = buffer_map
     gfx.CONTEXT_INSTANCE.buffer_unmap       = buffer_unmap
     gfx.CONTEXT_INSTANCE.buffer_resize      = buffer_resize
-    gfx.CONTEXT_INSTANCE.buffer_get_type       = buffer_get_type
-    gfx.CONTEXT_INSTANCE.buffer_get_usage       = buffer_get_usage
-    gfx.CONTEXT_INSTANCE.buffer_get_allocation_mode       = buffer_get_allocation_mode
-    gfx.CONTEXT_INSTANCE.buffer_get_size       = buffer_get_size
-    gfx.CONTEXT_INSTANCE.buffer_is_compute       = buffer_is_compute
+    gfx.CONTEXT_INSTANCE.buffer_get_type    = buffer_get_type
+    gfx.CONTEXT_INSTANCE.buffer_get_usage   = buffer_get_usage
+    gfx.CONTEXT_INSTANCE.buffer_get_allocation_mode = buffer_get_allocation_mode
+    gfx.CONTEXT_INSTANCE.buffer_get_cpu_access = buffer_get_cpu_access
+    gfx.CONTEXT_INSTANCE.buffer_get_size    = buffer_get_size
+    gfx.CONTEXT_INSTANCE.buffer_is_compute  = buffer_is_compute
 
     return true
 }

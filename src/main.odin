@@ -74,25 +74,33 @@ init :: proc() -> (result: plt.Platform_Operation_Result, message: string) {
 		type = .Vertex_Buffer,
 		usage = .Default,
 		allocation_mode = .Dynamic,
+		cpu_access = .Read_Write,
 		size = 12,
 		is_compute = false,
 	})
 	if err != .Ok {
-		log.fatal("Could not create a buffer")
 		panic("Could not create a buffer")
 	}
 	defer gfx.buffer_free(buffer)
 
-	gfx.buffer_set_data(buffer, []uint { 1, 2, 3, 4 })
+	if gfx.buffer_set_data(buffer, []u32 { 1, 2, 3, 4 }) != .Ok {
+		panic("Could not set the buffer data")
+	}
 
-	data, _ := gfx.buffer_map(buffer, .Read_Write)
+	data, map_error := gfx.buffer_map(buffer, .Read_Write)
+	if map_error != .Ok {
+		panic("Could not map the buffer")
+	}
+
 	log.info(data)
 	data[2] = 5
 	log.info(data)
-	gfx.buffer_unmap(buffer)
+	
+	if gfx.buffer_unmap(buffer) != .Ok {
+		panic("Could not unmap the buffer")
+	}
 
 	log.info(gfx.buffer_get_size(buffer))
-
 
 	return .Ok, ""
 }
@@ -153,8 +161,8 @@ main :: proc() {
 			backend_context = context,
 			debug = ODIN_DEBUG,
 		},
-		// backend_initializer = dx11.BACKEND_INITIALIZER,
-		backend_initializer = gl4.BACKEND_INITIALIZER,
+		backend_initializer = dx11.BACKEND_INITIALIZER,
+		// backend_initializer = gl4.BACKEND_INITIALIZER,
 	})
 
 	plt.platform_run()

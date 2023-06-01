@@ -3,9 +3,12 @@ package vx_lib_gfx_gl4
 import "core:mem"
 import gl "vendor:OpenGL"
 import "shared:vx_lib/gfx"
+import bku "shared:vx_lib/gfx/backendutils"
 
 _ :: mem
 
+
+// TODO: implement uniform blocks (Uniform buffers)
 Buffer :: struct {
     opengl_buffer: u32,
     info: gfx.Buffer_Info,
@@ -16,14 +19,7 @@ buffer_new_empty :: proc(descriptor: gfx.Buffer_Descriptor) -> (gfx.Buffer, gfx.
     context = gl4_default_context()
 
     buffer := new(Buffer)
-    buffer.info.usage = descriptor.usage
-    buffer.info.type = descriptor.type
-    buffer.info.allocation_mode = descriptor.allocation_mode
-    buffer.info.is_compute = descriptor.is_compute
-    if descriptor.size == nil do buffer.info.size = 0
-    else do buffer.info.size = descriptor.size.?
-
-    gl.CreateBuffers(1, &buffer.opengl_buffer)
+    buffer.info = bku.bufferdescriptor_to_bufferinfo(descriptor)
 
     buffer.opengl_buffer = gen_openglbuffer_with_data(descriptor.usage, nil, descriptor.size.?)
 
@@ -34,14 +30,7 @@ buffer_new_with_data :: proc(descriptor: gfx.Buffer_Descriptor, data: []byte) ->
     context = gl4_default_context()
 
     buffer := new(Buffer)
-    buffer.info.usage = descriptor.usage
-    buffer.info.type = descriptor.type
-    buffer.info.allocation_mode = descriptor.allocation_mode
-    buffer.info.is_compute = descriptor.is_compute
-    if descriptor.size == nil do buffer.info.size = 0
-    else do buffer.info.size = descriptor.size.?
-
-    gl.CreateBuffers(1, &buffer.opengl_buffer)
+    buffer.info = bku.bufferdescriptor_to_bufferinfo(descriptor)
 
     size: uint = len(data)
     if descriptor.size != nil && descriptor.size.? > size {
@@ -85,6 +74,8 @@ buffer_map :: proc(buffer: gfx.Buffer, mode: gfx.Buffer_Map_Mode) -> ([]byte, gf
 
     if data_ptr == nil do return nil, .Backend_Generic_Error
 
+    buffer.is_mapped = true
+
     return mem.byte_slice(data_ptr, buffer.info.size), .Ok
 }
 
@@ -93,6 +84,8 @@ buffer_unmap :: proc(buffer: gfx.Buffer) -> gfx.Buffer_Unmap_Error {
 
     if !buffer.is_mapped do return .Not_Mapped
     if !gl.UnmapNamedBuffer(buffer.opengl_buffer) do return .Backend_Generic_Error
+
+    buffer.is_mapped = false
 
     return .Ok
 }
@@ -123,6 +116,11 @@ buffer_get_usage :: proc(buffer: gfx.Buffer) -> gfx.Buffer_Usage {
 buffer_get_allocation_mode :: proc(buffer: gfx.Buffer) -> gfx.Buffer_Allocation_Mode {
     buffer := (^Buffer)(buffer)
     return buffer.info.allocation_mode
+}
+
+buffer_get_cpu_access :: proc(buffer: gfx.Buffer) -> gfx.Buffer_Cpu_Access {
+    buffer := (^Buffer)(buffer)
+    return buffer.info.cpu_access
 }
 
 buffer_get_size :: proc(buffer: gfx.Buffer) -> uint {
